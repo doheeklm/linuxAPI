@@ -6,7 +6,6 @@
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
-#include <stdlib.h>
 #include <stdio_ext.h>
 #include <unistd.h>
 #include <sys/stat.h>
@@ -59,6 +58,7 @@ int main()
 			if (strcmp(str_exit, shm.name) == 0) {
 				if (sem_post(pSem) == -1) {
 					fprintf(stderr, "sempost/errno[%d]", errno);
+					goto EXIT;
 				}
 				goto EXIT;
 			}
@@ -87,7 +87,7 @@ int main()
 			fprintf(stderr, "shmctl_lock/errno[%d]", errno);
 			goto EXIT;
 		}
-		
+	//TODO shmat 바깥으로	
 		if ((shared_memory = shmat(shmid, (void *)NULL, 0)) == NULL) {
 			fprintf(stderr, "shmat/errno[%d]", errno);
 			goto EXIT;
@@ -104,11 +104,16 @@ int main()
 			fprintf(stderr, "sempost/errno[%d]", errno);
 			goto EXIT;
 		}
+
+		if (shmdt(shared_memory) == -1) {
+			fprintf(stderr, "shmdt/errno[%d]", errno);
+			goto EXIT;
+		}
 	}
 
 EXIT:
 	if (shmctl(shmid, IPC_RMID, 0) == -1) {
-		fprintf(stderr, "shmctl/errno[%d]", errno);	
+		fprintf(stderr, "shmctl_rm/errno[%d]", errno);	
 	}
 
 	if (sem_destroy(pSem) == -1) {
