@@ -1,4 +1,6 @@
-# To compile: make add.c
+##########################
+# To Compile: make add.c #
+##########################
 
 CC = gcc -DDEBUG
 CFLAGS = -W -Wall -g
