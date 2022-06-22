@@ -24,6 +24,7 @@ typedef struct _SHM {
 int main()
 {
 	sem_t* pSem;
+	int sval = 0;
 
 	if ((pSem = sem_open(SEM_NAME, O_CREAT, 0777, 0)) == SEM_FAILED) {
 		fprintf(stderr, "sem_open/errno[%d]", errno);
@@ -40,12 +41,23 @@ int main()
 	void* shared_memory = NULL;
 	struct shmid_ds buf;
 
+	if ((shared_memory = shmat(shmid, (void *)0, 0)) == NULL) {
+		fprintf(stderr, "shmat/errno[%d]", errno);
+		goto EXIT;
+	}
+
 	while (1) {
+		sem_getvalue(pSem, &sval);
+		printf("세마포어 값 확인1[%d] - Waiting... \n", sval);
+
 		if (sem_wait(pSem) == -1) {
 			fprintf(stderr, "semwait/errno[%d]", errno);	
 			goto EXIT;
 		}
 		
+		sem_getvalue(pSem, &sval);
+		printf("세마포어 값 확인2[%d]\n", sval);
+
 		if (shmctl(shmid, IPC_STAT, &buf) == -1) {
 			printf("공유메모리 제거됨 - 프로세스 종료\n");
 			return 0;
@@ -55,11 +67,11 @@ int main()
 			fprintf(stderr, "shmctl_lock/errno[%d]", errno);
 			goto EXIT;
 		}
-	//TODO shmat 바깥으로
-		if ((shared_memory = shmat(shmid, (void *)0, 0)) == NULL) {
-			fprintf(stderr, "shmat/errno[%d]", errno);
-			goto EXIT;
-		}
+	//TODO shmat while문 밖으로 보냈음
+	//	if ((shared_memory = shmat(shmid, (void *)0, 0)) == NULL) {
+	//		fprintf(stderr, "shmat/errno[%d]", errno);
+	//		goto EXIT;
+	//	}
 		
 		FILE* fp = NULL;
 		fp = fopen("./address_shm.txt", "a");
@@ -82,16 +94,20 @@ int main()
 			goto EXIT;
 		}
 
-		if (shmdt(shared_memory) == -1) {
-			fprintf(stderr, "shmdt/errno[%d]", errno);
-			goto EXIT;
-		}
+	//	if (shmdt(shared_memory) == -1) {
+	//		fprintf(stderr, "shmdt/errno[%d]", errno);
+	//		goto EXIT;
+	//	}
 	}
 
 EXIT:
 	if (shmctl(shmid, IPC_RMID, 0) == -1) {
 		fprintf(stderr, "shmctl_rm/errno[%d]", errno);
 	}
+
+	sem_getvalue(pSem, &sval);
+	printf("세마포어 값 확인3[%d]\n", sval);
+
 
 	return 0;
 }

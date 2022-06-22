@@ -27,7 +27,8 @@ void ClearStdin(char* c);
 int main()
 {
 	sem_t* pSem;
-
+	int sval = 0;
+	
 	Shm shm;
 	
 	int shmid = 0;
@@ -44,8 +45,16 @@ int main()
 		return 0;  //dev/sem
 	}
 
+	if ((shared_memory = shmat(shmid, (void *)NULL, 0)) == NULL) {
+		fprintf(stderr, "shmat/errno[%d]", errno);
+		goto EXIT;
+	}
+
 	while (1) {
 		memset(&shm, 0, sizeof(shm));
+
+		sem_getvalue(pSem, &sval);
+		printf("세마포어 값 확인1[%d]\n", sval);
 
 		do {
 			printf("Name: ");
@@ -56,10 +65,9 @@ int main()
 			ClearStdin(shm.name);
 
 			if (strcmp(str_exit, shm.name) == 0) {
-				if (sem_post(pSem) == -1) {
-					fprintf(stderr, "sempost/errno[%d]", errno);
-					goto EXIT;
-				}
+		//		if (sem_post(pSem) == -1) {
+		//			fprintf(stderr, "sempost/errno[%d]", errno);
+		//		}
 				goto EXIT;
 			}
 
@@ -87,11 +95,12 @@ int main()
 			fprintf(stderr, "shmctl_lock/errno[%d]", errno);
 			goto EXIT;
 		}
-	//TODO shmat 바깥으로	
-		if ((shared_memory = shmat(shmid, (void *)NULL, 0)) == NULL) {
-			fprintf(stderr, "shmat/errno[%d]", errno);
-			goto EXIT;
-		}
+	
+	//TODO shmat while문 밖으로 보냈음
+	//	if ((shared_memory = shmat(shmid, (void *)NULL, 0)) == NULL) {
+	//		fprintf(stderr, "shmat/errno[%d]", errno);
+	//		goto EXIT;
+	//	}
 
 		memcpy(shared_memory, &shm, sizeof(shm));
 
@@ -100,15 +109,21 @@ int main()
 			goto EXIT;
 		}
 
+		sem_getvalue(pSem, &sval);
+		printf("세마포어 값 확인2[%d]\n", sval);
+
 		if (sem_post(pSem) == -1) {
 			fprintf(stderr, "sempost/errno[%d]", errno);
 			goto EXIT;
 		}
 
-		if (shmdt(shared_memory) == -1) {
-			fprintf(stderr, "shmdt/errno[%d]", errno);
-			goto EXIT;
-		}
+		sem_getvalue(pSem, &sval);
+		printf("세마포어 값 확인3[%d]\n", sval);
+
+	//	if (shmdt(shared_memory) == -1) {
+	//		fprintf(stderr, "shmdt/errno[%d]", errno);
+	//		goto EXIT;
+	//	}
 	}
 
 EXIT:
@@ -116,9 +131,15 @@ EXIT:
 		fprintf(stderr, "shmctl_rm/errno[%d]", errno);	
 	}
 
+	sem_getvalue(pSem, &sval);
+	printf("세마포어 값 확인4[%d]\n", sval);
+
 	if (sem_destroy(pSem) == -1) {
 		fprintf(stderr, "sem_destroy/errno[%d]", errno);
 	}
+
+	sem_getvalue(pSem, &sval);
+	printf("세마포어 값 확인5[%d]\n", sval);
 
 	return 0;
 }
