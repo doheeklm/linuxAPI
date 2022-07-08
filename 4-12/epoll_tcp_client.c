@@ -11,6 +11,7 @@
 
 #define WRITE_FAIL -1
 #define WRITE_EOF 0
+#define szExit "exit"
 
 typedef struct _AddrBook {
 	char szName[13];
@@ -18,7 +19,6 @@ typedef struct _AddrBook {
 	char szAddress[151];
 } ADDRBOOK;
 
-const char* szExit = "exit";
 void ClearStdin(char* c);
 int MyWrite(int fd, void* buf, int nSize);
 
@@ -30,11 +30,11 @@ int main(int argc, char* argv[])
 		return 0;
 	}
 
-	int nPort = 0;
-	int nFd = 0;
-	char szFileName[255];
+	int nPort = 0; //연동된 Port 번호
+	int nFd = 0; //Client 소켓 Fd
+	char szFileName[261]; //인자로 입력받을 주소록 파일명
 
-	if (sizeof(argv[1]) > sizeof(szFileName))
+	if (strlen(argv[1]) > sizeof(szFileName))
 	{
 		printf("파일명이 너무 깁니다.\n");
 		return 0;
@@ -43,15 +43,15 @@ int main(int argc, char* argv[])
 	nPort = 7000;
 	nFd = 0;
 	memset(&szFileName, 0, sizeof(szFileName));
-	strncpy(szFileName, argv[1], sizeof(argv[1]));
-	szFileName[sizeof(szFileName) - 1] = '\0';
-	
-	struct sockaddr_in tAddr;
+	strncpy(szFileName, argv[1], strlen(argv[1]));
+	szFileName[strlen(szFileName)] = '\0';
+
+	struct sockaddr_in tAddr; //소켓에 설정할 주소 정보
 
 	socklen_t nAddrSize;
 	nAddrSize = sizeof(tAddr);
 	
-	ADDRBOOK tAddrBook;
+	ADDRBOOK tAddrBook; //주소록 정보 구조체 변수
 	
 	nFd = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (nFd == -1)
