@@ -6,7 +6,14 @@ include $(MAKECONFIG)
 # list of source files (list your *.c source files).
 #
 
-SRCS=	CCBLK_Main.c 
+# SRCS: 컴파일 할 파일들
+# MDEFS: define 파일
+# MINCLUDES: include 할 경로
+# MLDFLAGS: flag
+# EXENAME: 실행 파일
+# MLIBS: 라이브러리 파일
+
+SRCS=	NQ_Main.c 
 
 MDEFS=-D_USE_STAT -D_LOCAL_DB -D_HANGUP_ALARM
 MINCLUDES=-I$(TELCOBASE_HOME)/include
@@ -15,7 +22,7 @@ MCFLAGS=-g -W -Wall
 #
 # executable file name for compiled objects.
 #
-EXENAME=ccblk
+EXENAME=main
 #
 # module-specific library list for loading.
 #
