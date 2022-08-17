@@ -1,10 +1,4 @@
 /* NQ_Main.c */
-
-//TODO 문자열 사이즈 체크
-//TODO 에러처리+자원해제
-//TODO 함수 헤더
-//TODO 시그널 처리
-
 #include "NQ_Inc.h"
 
 #define TABLE_NAME	"EmployeeInfos"
@@ -14,17 +8,25 @@
 #define TEAM		"team"
 #define PHONE		"phone"
 
+typedef enum
+{
+	INSERT_ERR = -1, INSERT_SUC = 0,
+	SELECT_ERR = -1, SELECT_SUC = 0,
+	UPDATE_ERR = -1, UPDATE_SUC = 0,
+	DELETE_ERR = -1, DELETE_SUC = 0
+} ReturnCode_t;
+
 void ClearStdin( char *c );
 void Menu( DAL_CONN *ptConn );
-void Insert( DAL_CONN *ptConn );
-void Select( DAL_CONN *ptConn );
-void Update( DAL_CONN *ptConn );
-//void Delete( DAL_CONN *ptConn );
+int Insert( DAL_CONN *ptConn );
+int Select( DAL_CONN *ptConn );
+int Update( DAL_CONN *ptConn );
+int Delete( DAL_CONN *ptConn );
 
 /*=========================== Function Header ==============================
  * name  : main
  * desc  : Start point
- * return: CCBLK_rOk, or 
+ * return: 0
  * param : None
  * author: AUTHOR_NAME
 =======================================================================*/
@@ -44,6 +46,7 @@ int main( void )
 	if ( nRet == 0 )
 	{
 		fprintf( stderr, "DB Connection is dead.\n" );
+		exit( - 1 );
 	}
 
 	Menu( ptConn );
@@ -58,16 +61,19 @@ int main( void )
 	if ( nRet == 1 )
 	{
 		fprintf( stderr, "DB Connection is dead.\n" );
+		exit( -1 );
 	}
 
 	return 0;
 }
 
-void SigintHandler( int nSig )
-{
-	printf( "%d EXIT\n", nSig );
-}
-
+/*=========================== Function Header ==============================
+ * name  : ClearStdin
+ * desc  : Clear stdin buffer
+ * return: None
+ * param : c
+ * author: AUTHOR_NAME
+=======================================================================*/
 void ClearStdin( char *c )
 {
 	if ( c == NULL )
@@ -81,8 +87,16 @@ void ClearStdin( char *c )
 	}
 
 	__fpurge( stdin );
+	return;
 }
 
+/*=========================== Function Header ==============================
+ * name  : Menu
+ * desc  : Select menu 
+ * return: None
+ * param : ptConn
+ * author: AUTHOR_NAME
+=======================================================================*/
 void Menu( DAL_CONN *ptConn )
 {
 	char *pszRet = NULL;
@@ -105,22 +119,34 @@ void Menu( DAL_CONN *ptConn )
 		{
 			case 1:
 			{
-				Insert( ptConn );
+				if ( INSERT_ERR == Insert( ptConn ) )
+				{
+					return;	
+				}
 			}
 				break;
 			case 2:
 			{
-				Select( ptConn );
+				if ( SELECT_ERR == Select( ptConn ) )
+				{
+					return;
+				}
 			}
 				break;
 			case 3:
 			{
-				Update( ptConn );
+				if ( UPDATE_ERR == Update( ptConn ) )
+				{
+					return;
+				}
 			}
 				break;
 			case 4:
 			{
-				//Delete( ptConn );
+				if ( DELETE_ERR == Delete( ptConn ) )
+				{
+					return;
+				}
 			}
 				break;
 			case 5:
@@ -129,15 +155,25 @@ void Menu( DAL_CONN *ptConn )
 			}
 				break;
 			default:
+			{
+				printf( "잘 못 입력하여 메뉴로 돌아갑니다.\n" );
+				continue;
+			}
 				break;
 		}
 	}
 }
 
-void Insert( DAL_CONN *ptConn )
+/*=========================== Function Header ==============================
+ * name  : Insert
+ * desc  : Insert info
+ * return: INSERT_SUC, or INSERT_ERR
+ * param : ptConn
+ * author: AUTHOR_NAME
+=======================================================================*/
+int Insert( DAL_CONN *ptConn )
 {
 	char *pszRet = NULL;
-	
 	char szName[32];
 	char szJobTitle[32];
 	char szTeam[32];
@@ -155,7 +191,7 @@ void Insert( DAL_CONN *ptConn )
 	if ( pszRet == NULL )
 	{
 		fprintf( stderr, "fgets() error: errno[%d] errmsg[%s]\n", dalErrno(), dalErrmsg( dalErrno() ) );
-		return;
+		return INSERT_ERR;
 	}
 	ClearStdin( szName );
 
@@ -164,7 +200,7 @@ void Insert( DAL_CONN *ptConn )
 	if ( pszRet == NULL )
 	{
 		fprintf( stderr, "fgets() error: errno[%d] errmsg[%s]\n", dalErrno(), dalErrmsg( dalErrno() ) );
-		return;
+		return INSERT_ERR;
 	}
 	ClearStdin( szJobTitle );
 
@@ -173,7 +209,7 @@ void Insert( DAL_CONN *ptConn )
 	if ( pszRet == NULL )
 	{
 		fprintf( stderr, "fgets() error: errno[%d] errmsg[%s]\n", dalErrno(), dalErrmsg( dalErrno() ) );
-		return;
+		return INSERT_ERR;
 	}
 	ClearStdin( szTeam );
 
@@ -182,30 +218,37 @@ void Insert( DAL_CONN *ptConn )
 	if ( pszRet == NULL )
 	{
 		fprintf( stderr, "fgets() error: errno[%d] errmsg[%s]\n", dalErrno(), dalErrmsg( dalErrno() ) );
-		return;
+		return INSERT_ERR;
 	}
 	ClearStdin( szPhone );
 
 	snprintf( szQuery, sizeof(szQuery), "insert into %s (%s, %s, %s, %s) values ('%s', '%s', '%s', '%s');", TABLE_NAME, NAME, JOBTITLE, TEAM, PHONE, szName, szJobTitle, szTeam, szPhone );
 	szQuery[ strlen(szQuery) ] = '\0';
 
-	if ( dalExecUpdate( ptConn, szQuery ) < 0 )
+	if ( dalExecUpdate( ptConn, szQuery ) == -1 )
 	{
 		fprintf( stderr, "dalExecUpdate() error: errno[%d] errmsg[%s]\n", dalErrno(), dalErrmsg( dalErrno() ) );
-		exit( -1 );
+		return INSERT_ERR;
 	}
 
-	return;
+	printf( "[ 등록 완료 ] 메뉴로 돌아갑니다.\n" );
+	return INSERT_SUC;
 }
-
-void Select( DAL_CONN *ptConn )
+/*=========================== Function Header ==============================
+ * name  : Select
+ * desc  : Select info
+ * return: SELECT_SUC, or SELECT_ERR
+ * param : ptConn
+ * author: AUTHOR_NAME
+=======================================================================*/
+int Select( DAL_CONN *ptConn )
 {
 	char *pszRet = NULL;
 	char szPick[2];
 	char szInput[32];
 	char szQuery[256];
 	
-	DAL_RESULT_SET *ptResult; //NULL 하면 에러
+	DAL_RESULT_SET *ptResult; //NULL로 초기화 하면 에러
 	DAL_ENTRY *ptEntry;
 	
 	DAL_INT nId = 0;
@@ -224,7 +267,7 @@ void Select( DAL_CONN *ptConn )
 	if ( ptResult == NULL )
 	{
 		fprintf( stderr, "dalExecQuery() error: errno[%d] errmsg[%s]\n", dalErrno(), dalErrmsg( dalErrno() ) );
-		return;
+		return SELECT_ERR;
 	}
 
 	do
@@ -234,9 +277,8 @@ void Select( DAL_CONN *ptConn )
 		printf("==========\n(1) 전체 직원 조회\n(2) 특정 직원 조회\n==========\n입력: " );
 		pszRet = fgets( szPick, sizeof(szPick), stdin );
 		if ( pszRet == NULL )
-		{
-			fprintf( stderr, "fgets() error: errno[%d] errmsg[%s]\n", dalErrno(), dalErrmsg( dalErrno() ) );
-			return;
+		{ fprintf( stderr, "fgets() error: errno[%d] errmsg[%s]\n", dalErrno(), dalErrmsg( dalErrno() ) );
+			goto error_return;
 		}
 		ClearStdin( szPick );
 
@@ -251,13 +293,13 @@ void Select( DAL_CONN *ptConn )
 					if ( dalGetIntByKey( ptEntry, ID, &nId ) == -1 )
 					{
 						fprintf( stderr, "dalGetIntByKey() error: errno[%d] errmsg[%s]\n", dalErrno(), dalErrmsg( dalErrno() ) );
-						goto end_of_function;
+						goto error_return;
 					}
 
 					if ( dalGetStringByKey( ptEntry, NAME, &pszName ) == -1 )
 					{
 						fprintf( stderr, "dalGetStringByKey() error: errno[%d] errmsg[%s]\n", dalErrno(), dalErrmsg( dalErrno() ) );
-						goto end_of_function;
+						goto error_return;
 					}
 
 					printf( "ID: %d Name: %s\n", nId, pszName );
@@ -266,12 +308,12 @@ void Select( DAL_CONN *ptConn )
 			break;
 		case 2:
 			{
-				printf( "Input ID or Name: " );
+				printf( "정보 조회할 사원의 ID 또는 이름을 입력해주세요.: " );
 				pszRet = fgets( szInput, sizeof(szInput), stdin );
 				if ( pszRet == NULL )
 				{
 					fprintf( stderr, "fgets() error: errno[%d] errmsg[%s]\n", dalErrno(), dalErrmsg( dalErrno() ) );
-					goto end_of_function;
+					goto error_return;
 				}
 				ClearStdin( szInput );
 
@@ -280,7 +322,7 @@ void Select( DAL_CONN *ptConn )
 					if ( dalGetIntByKey( ptEntry, ID, &nId ) == -1 )
 					{
 						fprintf( stderr, "dalGetIntByKey() error: errno[%d] errmsg[%s]\n", dalErrno(), dalErrmsg( dalErrno() ) );
-						goto end_of_function;
+						goto error_return;
 					}
 
 					if ( nId == atoi( szInput ) )
@@ -288,30 +330,29 @@ void Select( DAL_CONN *ptConn )
 						if ( dalGetStringByKey( ptEntry, JOBTITLE, &pszJobTitle ) == -1 )
 						{
 							fprintf( stderr, "dalGetStringByKey() error: errno[%d] errmsg[%s]\n", dalErrno(), dalErrmsg( dalErrno() ) );
-							goto end_of_function;							
+							goto error_return;
 						}
 					
 						if ( dalGetStringByKey( ptEntry, TEAM, &pszTeam ) == -1 )
 						{
 							fprintf( stderr, "dalGetStringByKey() error: errno[%d] errmsg[%s]\n", dalErrno(), dalErrmsg( dalErrno() ) );
-							goto end_of_function;
+							goto error_return;
 						}
 
 						if ( dalGetStringByKey( ptEntry, PHONE, &pszPhone ) == -1 )
 						{
 							fprintf( stderr, "dalGetStringByKey() error: errno[%d] errmsg[%s]\n", dalErrno(), dalErrmsg( dalErrno() ) );
-							goto end_of_function;
+							goto error_return;
 						}
 
 						printf( "[ID:%d] 사원 직급:%s | 소속팀:%s | 사원 전화번호:%s\n", atoi( szInput ), pszJobTitle, pszTeam, pszPhone );
-	
 						goto end_of_function;
 					} 
 					
 					if ( dalGetStringByKey( ptEntry, NAME, &pszName ) == -1 )
 					{
 						fprintf( stderr, "dalGetStringByKey() error: errno[%d] errmsg[%s]\n", dalErrno(), dalErrmsg( dalErrno() ) );
-						goto end_of_function;
+						goto error_return;
 					}
 					
 					if ( strcmp( pszName, szInput ) == 0 )
@@ -319,29 +360,30 @@ void Select( DAL_CONN *ptConn )
 						if ( dalGetStringByKey( ptEntry, JOBTITLE, &pszJobTitle ) == -1 )
 						{
 							fprintf( stderr, "dalGetStringByKey() error: errno[%d] errmsg[%s]\n", dalErrno(), dalErrmsg( dalErrno() ) );
-							goto end_of_function;							
+							goto error_return;
 						}
 					
 						if ( dalGetStringByKey( ptEntry, TEAM, &pszTeam ) == -1 )
 						{
 							fprintf( stderr, "dalGetStringByKey() error: errno[%d] errmsg[%s]\n", dalErrno(), dalErrmsg( dalErrno() ) );
-							goto end_of_function;
+							goto error_return;
 						}
 
 						if ( dalGetStringByKey( ptEntry, PHONE, &pszPhone ) == -1 )
 						{
 							fprintf( stderr, "dalGetStringByKey() error: errno[%d] errmsg[%s]\n", dalErrno(), dalErrmsg( dalErrno() ) );
-							goto end_of_function;
+							goto error_return;
 						}
 
 						printf( "[NAME:%s] 사원 직급:%s | 소속팀:%s | 사원 전화번호:%s\n", szInput, pszJobTitle, pszTeam, pszPhone );
-
-						goto end_of_function;
 					}
 				}
 			}
 			break;
 		default:
+		{
+			goto error_return;
+		}
 			break;
 	}
 
@@ -350,17 +392,29 @@ end_of_function:
 	{
 		fprintf( stderr, "dalResFree() error: errno[%d], errmsg[%s]\n", dalErrno(), dalErrmsg( dalErrno() ) );
 	}	
-	
-	return;
-}
+	printf( "[ 조회 완료 ] 메뉴로 돌아갑니다.\n" );
+	return SELECT_SUC;
 
-void Update( DAL_CONN *ptConn )
+error_return:
+	if ( dalResFree( ptResult ) == -1 )
+	{
+		fprintf( stderr, "dalResFree() error: errno[%d], errmsg[%s]\n", dalErrno(), dalErrmsg( dalErrno() ) );
+	}	
+	printf( "[ 조회 실패 ] 프로그램을 종료합니다.\n" );
+	return SELECT_ERR;
+}
+/*=========================== Function Header ==============================
+ * name  : Update
+ * desc  : Update info
+ * return: UPDATE_SUC, or UPDATE_ERR
+ * param : ptConn
+ * author: AUTHOR_NAME
+=======================================================================*/
+int Update( DAL_CONN *ptConn )
 {
 	int nComma = 0;
 
 	char szTemp[32];
-	memset( szTemp, 0, sizeof( szTemp ) );
-
 	char *pszRet = NULL;
 	char szId[8];
 	char szQuery[256];
@@ -368,45 +422,47 @@ void Update( DAL_CONN *ptConn )
 	char szUpdateTeam[32];
 	char szUpdatePhone[32];
 
+	memset( szTemp, 0, sizeof(szTemp) );
 	memset( szId, 0, sizeof(szId) );
 	memset( szQuery, 0, sizeof(szQuery) );
 	memset( szUpdateJobTitle, 0, sizeof(szUpdateJobTitle) );
 	memset( szUpdateTeam, 0, sizeof(szUpdateTeam) );
 	memset( szUpdatePhone, 0, sizeof(szUpdatePhone) );
 	
-	printf( "Input ID to update: " );
+	printf( "정보 수정할 사원의 ID를 입력해주세요.: " );
 	pszRet = fgets( szId, sizeof(szId), stdin );
 	if ( pszRet == NULL )
 	{
 		fprintf( stderr, "fgets() error: errno[%d] errmsg[%s]\n", dalErrno(), dalErrmsg( dalErrno() ) );
-		return;
+		return UPDATE_ERR;
 	}
 	ClearStdin( szId );
 
-	//TODO Change to strncat
 	snprintf( szTemp, sizeof(szTemp), "update %s set ", TABLE_NAME );
-	strcat( szQuery, szTemp );
+	strncat( szQuery, szTemp, strlen(szTemp) );
 
-	printf( "Update JobTitle: " );
+	printf( "(수정) 사원 직급: " );
 	pszRet = fgets( szUpdateJobTitle, sizeof(szUpdateJobTitle), stdin );
 	if ( pszRet == NULL )
 	{
 		fprintf( stderr, "fgets() error: errno[%d] errmsg[%s]\n", dalErrno(), dalErrmsg( dalErrno() ) );
+		return UPDATE_ERR;
 	}
 	ClearStdin( szUpdateJobTitle );
 
 	if ( strlen( szUpdateJobTitle ) != 0 )
 	{
 		snprintf( szTemp, sizeof(szTemp), "%s = '%s'", JOBTITLE, szUpdateJobTitle );
-		strcat( szQuery, szTemp );
+		strncat( szQuery, szTemp, strlen(szTemp) );
 		nComma = 1;
 	}
 	
-	printf( "Update Team: " );
+	printf( "(수정) 소속팀: " );
 	pszRet = fgets( szUpdateTeam, sizeof(szUpdateTeam), stdin );
 	if ( pszRet == NULL )
 	{
 		fprintf( stderr, "fgets() error: errno[%d] errmsg[%s]\n", dalErrno(), dalErrmsg( dalErrno() ) );
+		return UPDATE_ERR;
 	}
 	ClearStdin( szUpdateTeam );
 
@@ -418,15 +474,16 @@ void Update( DAL_CONN *ptConn )
 		}
 		
 		snprintf( szTemp, sizeof(szTemp), "%s = '%s'", TEAM, szUpdateTeam );
-		strcat( szQuery, szTemp );
+		strncat( szQuery, szTemp, strlen(szTemp) );
 		nComma = 1;
 	}
 	
-	printf( "Update Phone: " );
+	printf( "(수정) 사원 전화번호: " );
 	pszRet = fgets( szUpdatePhone, sizeof(szUpdatePhone), stdin );
 	if ( pszRet == NULL )
 	{
 		fprintf( stderr, "fgets() error: errno[%d] errmsg[%s]\n", dalErrno(), dalErrmsg( dalErrno() ) );
+		return UPDATE_ERR;
 	}
 	ClearStdin( szUpdatePhone );
 	
@@ -438,23 +495,56 @@ void Update( DAL_CONN *ptConn )
 		}
 	
 		snprintf( szTemp, sizeof(szTemp), "%s = '%s'", PHONE, szUpdatePhone );
-		strcat( szQuery, szTemp );
+		strncat( szQuery, szTemp, strlen(szTemp) );
 	}
 
 	snprintf( szTemp, sizeof(szTemp), " where %s = %d;", ID, atoi( szId ) );
-	strcat( szQuery, szTemp );
+	strncat( szQuery, szTemp, strlen(szTemp) );
 	szQuery[ strlen(szQuery) ] = '\0';
 
 	if ( dalExecUpdate( ptConn, szQuery ) == -1 )
 	{
 		fprintf( stderr, "dalExecUpdate() error: errno[%d] errmsg[%s]\n", dalErrno(), dalErrmsg( dalErrno() ) );
-		return;
+		return UPDATE_ERR;
 	}
 
-	return;
+	printf( "[ 수정 완료 ] 메뉴로 돌아갑니다.\n" );
+	return UPDATE_SUC;
 }
+/*=========================== Function Header ==============================
+ * name  : Delete
+ * desc  : Delete info
+ * return: DELETE_SUC, or DELETE_ERR
+ * param : ptConn
+ * author: AUTHOR_NAME
+=======================================================================*/
+int Delete( DAL_CONN *ptConn )
+{
+	char *pszRet = NULL;
+	char szId[8];
+	char szQuery[256];
 
-//void Delete( DAL_CONN *ptConn )
-//{
+	memset( szId, 0, sizeof(szId) );
+	memset( szQuery, 0, sizeof(szQuery) );
+	
+	printf( "정보 삭제할 사원의 ID를 입력해주세요.: " );
+	pszRet = fgets( szId, sizeof(szId), stdin );
+	if ( pszRet == NULL )
+	{
+		fprintf( stderr, "fgets() error: errno[%d] errmsg[%s]\n", dalErrno(), dalErrmsg( dalErrno() ) );
+		return DELETE_ERR;
+	}
+	ClearStdin( szId );
 
-//}
+	snprintf( szQuery, sizeof(szQuery), "delete from %s where %s = %s;", TABLE_NAME, ID, szId );
+	szQuery[ strlen(szQuery) ] = '\0';
+	
+	if ( dalExecUpdate( ptConn, szQuery ) == -1 )
+	{
+		fprintf( stderr, "dalExecUpdate() error: errno[%d] errmsg[%s]\n", dalErrno(), dalErrmsg( dalErrno() ) );
+		return DELETE_ERR;
+	}
+	
+	printf( "[ 삭제 완료 ] 메뉴로 돌아갑니다.\n" );
+	return DELETE_SUC;
+}
