@@ -4,61 +4,48 @@
 !_TAG_PROGRAM_NAME	Exuberant Ctags	//
 !_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
 !_TAG_PROGRAM_VERSION	5.8	//
-CHECKID_FAIL	PS_Main.c	/^	CHECKID_FAIL = -1, CHECKID_VALID = 1, CHECKID_INVALID = 0,$/;"	e	enum:__anon1	file:
-CHECKID_INVALID	PS_Main.c	/^	CHECKID_FAIL = -1, CHECKID_VALID = 1, CHECKID_INVALID = 0,$/;"	e	enum:__anon1	file:
-CHECKID_VALID	PS_Main.c	/^	CHECKID_FAIL = -1, CHECKID_VALID = 1, CHECKID_INVALID = 0,$/;"	e	enum:__anon1	file:
-CheckId	PS_Main.c	/^int CheckId( int nId )$/;"	f
-ClearStdin	PS_Main.c	/^void ClearStdin( char *pszTemp )$/;"	f
-DELETE_FAIL	PS_Main.c	/^	DELETE_FAIL = -1, DELETE_SUCCESS = 1, DELETE_ZERO = 0,$/;"	e	enum:__anon1	file:
-DELETE_SUCCESS	PS_Main.c	/^	DELETE_FAIL = -1, DELETE_SUCCESS = 1, DELETE_ZERO = 0,$/;"	e	enum:__anon1	file:
-DELETE_ZERO	PS_Main.c	/^	DELETE_FAIL = -1, DELETE_SUCCESS = 1, DELETE_ZERO = 0,$/;"	e	enum:__anon1	file:
-DESTROY_FAIL	PS_Main.c	/^	DESTROY_FAIL = -1, DESTROY_SUCCESS = 1$/;"	e	enum:__anon1	file:
-DESTROY_SUCCESS	PS_Main.c	/^	DESTROY_FAIL = -1, DESTROY_SUCCESS = 1$/;"	e	enum:__anon1	file:
-Delete	PS_Main.c	/^int Delete()$/;"	f
-DestroyPreparedStatement	PS_Main.c	/^int DestroyPreparedStatement()$/;"	f
+CheckId	IPC_Main.c	/^int CheckId( int nId )$/;"	f
+ClearStdin	IPC_Main.c	/^void ClearStdin( char *pszTemp )$/;"	f
+DAL_FAIL	IPC_Main.c	/^	DAL_FAIL = -2, FGETS_FAIL = -3,$/;"	e	enum:__anon1	file:
+Delete	IPC_Main.c	/^int Delete()$/;"	f
+DestroyPreparedStatement	IPC_Main.c	/^void DestroyPreparedStatement()$/;"	f
 EXENAME	Makefile	/^EXENAME=main$/;"	m
-GETORIGINAL_FAIL	PS_Main.c	/^	GETORIGINAL_FAIL = -1, GETORIGINAL_SUCCESS = 1, GETORIGINAL_ZERO = 0,$/;"	e	enum:__anon1	file:
-GETORIGINAL_SUCCESS	PS_Main.c	/^	GETORIGINAL_FAIL = -1, GETORIGINAL_SUCCESS = 1, GETORIGINAL_ZERO = 0,$/;"	e	enum:__anon1	file:
-GETORIGINAL_ZERO	PS_Main.c	/^	GETORIGINAL_FAIL = -1, GETORIGINAL_SUCCESS = 1, GETORIGINAL_ZERO = 0,$/;"	e	enum:__anon1	file:
-GetOriginal	PS_Main.c	/^int GetOriginal( int nId, char *pszAttribute, char *pszOriginal )$/;"	f
-ID	PS_Main.c	5;"	d	file:
-INIT_FAIL	PS_Main.c	/^	INIT_FAIL = -1, INIT_SUCCESS = 1,$/;"	e	enum:__anon1	file:
-INIT_SUCCESS	PS_Main.c	/^	INIT_FAIL = -1, INIT_SUCCESS = 1,$/;"	e	enum:__anon1	file:
-INSERT_FAIL	PS_Main.c	/^	INSERT_FAIL = -1, INSERT_SUCCESS = 1, INSERT_ZERO = 0,$/;"	e	enum:__anon1	file:
-INSERT_SUCCESS	PS_Main.c	/^	INSERT_FAIL = -1, INSERT_SUCCESS = 1, INSERT_ZERO = 0,$/;"	e	enum:__anon1	file:
-INSERT_ZERO	PS_Main.c	/^	INSERT_FAIL = -1, INSERT_SUCCESS = 1, INSERT_ZERO = 0,$/;"	e	enum:__anon1	file:
-InitPreparedStatement	PS_Main.c	/^int InitPreparedStatement()$/;"	f
-Insert	PS_Main.c	/^int Insert()$/;"	f
-JOBTITLE	PS_Main.c	7;"	d	file:
+FGETS_FAIL	IPC_Main.c	/^	DAL_FAIL = -2, FGETS_FAIL = -3,$/;"	e	enum:__anon1	file:
+FUNC_FAIL	IPC_Main.c	/^	PTR_FAIL = -4, FUNC_FAIL = -5$/;"	e	enum:__anon1	file:
+GetOriginalInfo	IPC_Main.c	/^int GetOriginalInfo( int nId, char *pszAttribute, char *pszOriginalInfo )$/;"	f
+ID	IPC_Main.c	5;"	d	file:
+InitPreparedStatement	IPC_Main.c	/^int InitPreparedStatement()$/;"	f
+Insert	IPC_Main.c	/^int Insert()$/;"	f
+JOBTITLE	IPC_Main.c	7;"	d	file:
 MCFLAGS	Makefile	/^MCFLAGS=-g -W -Wall$/;"	m
 MDEFS	Makefile	/^MDEFS=-D_USE_STAT -D_LOCAL_DB -D_HANGUP_ALARM$/;"	m
 MINCLUDES	Makefile	/^MINCLUDES=-I$(TELCOBASE_HOME)\/include$/;"	m
 MLDFLAGS	Makefile	/^MLDFLAGS=$/;"	m
 MLIBDIRS	Makefile	/^MLIBDIRS=-L$(TELCOBASE_HOME)\/lib $/;"	m
 MLIBS	Makefile	/^MLIBS= -ltelcobase$/;"	m
-Menu	PS_Main.c	/^void Menu()$/;"	f
-NAME	PS_Main.c	6;"	d	file:
-PHONE	PS_Main.c	9;"	d	file:
-ReturnCode_t	PS_Main.c	/^} ReturnCode_t;$/;"	t	typeref:enum:__anon1	file:
-SELECT_FAIL	PS_Main.c	/^	SELECT_FAIL = -1, SELECT_SUCCESS = 1, SELECT_ZERO = 0,$/;"	e	enum:__anon1	file:
-SELECT_SUCCESS	PS_Main.c	/^	SELECT_FAIL = -1, SELECT_SUCCESS = 1, SELECT_ZERO = 0,$/;"	e	enum:__anon1	file:
-SELECT_ZERO	PS_Main.c	/^	SELECT_FAIL = -1, SELECT_SUCCESS = 1, SELECT_ZERO = 0,$/;"	e	enum:__anon1	file:
-SRCS	Makefile	/^SRCS=	PS_Main.c $/;"	m
-Select	PS_Main.c	/^int Select()$/;"	f
-SignalHandler	PS_Main.c	/^void SignalHandler( int nSigno )$/;"	f
-TABLE_NAME	PS_Main.c	4;"	d	file:
-TEAM	PS_Main.c	8;"	d	file:
-UPDATE_FAIL	PS_Main.c	/^	UPDATE_FAIL = -1, UPDATE_SUCCESS = 1, UPDATE_ZERO = 0,$/;"	e	enum:__anon1	file:
-UPDATE_SUCCESS	PS_Main.c	/^	UPDATE_FAIL = -1, UPDATE_SUCCESS = 1, UPDATE_ZERO = 0,$/;"	e	enum:__anon1	file:
-UPDATE_ZERO	PS_Main.c	/^	UPDATE_FAIL = -1, UPDATE_SUCCESS = 1, UPDATE_ZERO = 0,$/;"	e	enum:__anon1	file:
-Update	PS_Main.c	/^int Update()$/;"	f
-_PS_INC_H_	PS_Inc.h	4;"	d
-g_ptConn	PS_Main.c	/^DAL_CONN *g_ptConn = NULL;$/;"	v
-g_ptPstmtDelete	PS_Main.c	/^DAL_PSTMT *g_ptPstmtDelete = NULL;$/;"	v
-g_ptPstmtInsert	PS_Main.c	/^DAL_PSTMT *g_ptPstmtInsert = NULL;$/;"	v
-g_ptPstmtSelectAll	PS_Main.c	/^DAL_PSTMT *g_ptPstmtSelectAll = NULL;$/;"	v
-g_ptPstmtSelectOneById	PS_Main.c	/^DAL_PSTMT *g_ptPstmtSelectOneById = NULL;$/;"	v
-g_ptPstmtSelectOneByName	PS_Main.c	/^DAL_PSTMT *g_ptPstmtSelectOneByName = NULL;$/;"	v
-g_ptPstmtUpdate	PS_Main.c	/^DAL_PSTMT *g_ptPstmtUpdate = NULL;$/;"	v
-main	PS_Main.c	/^int main( void )$/;"	f
-ptPstmt	PS_Main.c	/^DAL_PSTMT *ptPstmt = NULL;$/;"	v
+Menu	IPC_Main.c	/^void Menu()$/;"	f
+NAME	IPC_Main.c	6;"	d	file:
+NOT_EXIST	IPC_Main.c	/^	SUCCESS = 1, NOT_EXIST = 0,$/;"	e	enum:__anon1	file:
+PHONE	IPC_Main.c	9;"	d	file:
+PTR_FAIL	IPC_Main.c	/^	PTR_FAIL = -4, FUNC_FAIL = -5$/;"	e	enum:__anon1	file:
+RUN	IPC_Main.c	/^	RUN = 100, STOP = -99,$/;"	e	enum:__anon1	file:
+ReturnCode_t	IPC_Main.c	/^} ReturnCode_t;$/;"	t	typeref:enum:__anon1	file:
+SRCS	Makefile	/^SRCS=	IPC_Main.c $/;"	m
+STOP	IPC_Main.c	/^	RUN = 100, STOP = -99,$/;"	e	enum:__anon1	file:
+SUCCESS	IPC_Main.c	/^	SUCCESS = 1, NOT_EXIST = 0,$/;"	e	enum:__anon1	file:
+Select	IPC_Main.c	/^int Select()$/;"	f
+SignalHandler	IPC_Main.c	/^void SignalHandler( int nSigno )$/;"	f
+TABLE_NAME	IPC_Main.c	4;"	d	file:
+TEAM	IPC_Main.c	8;"	d	file:
+Update	IPC_Main.c	/^int Update()$/;"	f
+_IPC_INC_H_	IPC_Inc.h	4;"	d
+g_nFlag	IPC_Main.c	/^int g_nFlag = RUN;$/;"	v
+g_ptConn	IPC_Main.c	/^DAL_CONN	*g_ptConn= NULL;$/;"	v
+g_ptPstmtDelete	IPC_Main.c	/^DAL_PSTMT	*g_ptPstmtDelete = NULL;$/;"	v
+g_ptPstmtInsert	IPC_Main.c	/^DAL_PSTMT	*g_ptPstmtInsert = NULL;$/;"	v
+g_ptPstmtSelectAll	IPC_Main.c	/^DAL_PSTMT	*g_ptPstmtSelectAll = NULL;$/;"	v
+g_ptPstmtSelectOneById	IPC_Main.c	/^DAL_PSTMT	*g_ptPstmtSelectOneById = NULL;$/;"	v
+g_ptPstmtSelectOneByName	IPC_Main.c	/^DAL_PSTMT	*g_ptPstmtSelectOneByName = NULL;$/;"	v
+g_ptPstmtUpdate	IPC_Main.c	/^DAL_PSTMT	*g_ptPstmtUpdate = NULL;$/;"	v
+main	IPC_Main.c	/^int main( void )$/;"	f
+ptPstmt	IPC_Main.c	/^DAL_PSTMT	*ptPstmt = NULL;$/;"	v
