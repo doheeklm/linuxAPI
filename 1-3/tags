@@ -4,12 +4,24 @@
 !_TAG_PROGRAM_NAME	Exuberant Ctags	//
 !_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
 !_TAG_PROGRAM_VERSION	5.8	//
+CHECKID_FAIL	PS_Main.c	/^	CHECKID_FAIL = -1, CHECKID_VALID = 1, CHECKID_INVALID = 0,$/;"	e	enum:__anon1	file:
+CHECKID_INVALID	PS_Main.c	/^	CHECKID_FAIL = -1, CHECKID_VALID = 1, CHECKID_INVALID = 0,$/;"	e	enum:__anon1	file:
+CHECKID_VALID	PS_Main.c	/^	CHECKID_FAIL = -1, CHECKID_VALID = 1, CHECKID_INVALID = 0,$/;"	e	enum:__anon1	file:
+CheckId	PS_Main.c	/^int CheckId( DAL_CONN *ptConn, int nId )$/;"	f
 ClearStdin	PS_Main.c	/^void ClearStdin( char *pszTemp )$/;"	f
+DELETE_FAIL	PS_Main.c	/^	DELETE_FAIL = -1, DELETE_SUCCESS = 1, DELETE_ZERO = 0,$/;"	e	enum:__anon1	file:
+DELETE_SUCCESS	PS_Main.c	/^	DELETE_FAIL = -1, DELETE_SUCCESS = 1, DELETE_ZERO = 0,$/;"	e	enum:__anon1	file:
+DELETE_ZERO	PS_Main.c	/^	DELETE_FAIL = -1, DELETE_SUCCESS = 1, DELETE_ZERO = 0,$/;"	e	enum:__anon1	file:
+Delete	PS_Main.c	/^int Delete( DAL_CONN *ptConn, DAL_PSTMT *ptPstmt )$/;"	f
 EXENAME	Makefile	/^EXENAME=main$/;"	m
+GETORIGINAL_FAIL	PS_Main.c	/^	GETORIGINAL_FAIL = -1, GETORIGINAL_SUCCESS = 1$/;"	e	enum:__anon1	file:
+GETORIGINAL_SUCCESS	PS_Main.c	/^	GETORIGINAL_FAIL = -1, GETORIGINAL_SUCCESS = 1$/;"	e	enum:__anon1	file:
+GetOriginal	PS_Main.c	/^int GetOriginal( DAL_CONN *ptConn, int nId, char *pszOption, char *pszOriginal )$/;"	f
 ID	PS_Main.c	5;"	d	file:
 INSERT_FAIL	PS_Main.c	/^	INSERT_FAIL = -1, INSERT_SUCCESS = 1, INSERT_ZERO = 0,$/;"	e	enum:__anon1	file:
 INSERT_SUCCESS	PS_Main.c	/^	INSERT_FAIL = -1, INSERT_SUCCESS = 1, INSERT_ZERO = 0,$/;"	e	enum:__anon1	file:
 INSERT_ZERO	PS_Main.c	/^	INSERT_FAIL = -1, INSERT_SUCCESS = 1, INSERT_ZERO = 0,$/;"	e	enum:__anon1	file:
+InitPreparedStatement	PS_Main.c	/^void InitPreparedStatement( DAL_CONN *ptConn, DAL_PSTMT **ptPstmt, char* pszQuery, int nSizeQuery, int nPickMenu )$/;"	f
 Insert	PS_Main.c	/^int Insert( DAL_CONN *ptConn, DAL_PSTMT *ptPstmt )$/;"	f
 JOBTITLE	PS_Main.c	7;"	d	file:
 MCFLAGS	Makefile	/^MCFLAGS=-g -W -Wall$/;"	m
@@ -22,12 +34,21 @@ Menu	PS_Main.c	/^void Menu( DAL_CONN *ptConn, DAL_PSTMT *ptPstmt )$/;"	f
 NAME	PS_Main.c	6;"	d	file:
 PHONE	PS_Main.c	9;"	d	file:
 ReturnCode_t	PS_Main.c	/^} ReturnCode_t;$/;"	t	typeref:enum:__anon1	file:
-SELECT_FAIL	PS_Main.c	/^	SELECT_FAIL = -1, SELECT_SUCCESS = 1, SELECT_ZERO = 0$/;"	e	enum:__anon1	file:
-SELECT_SUCCESS	PS_Main.c	/^	SELECT_FAIL = -1, SELECT_SUCCESS = 1, SELECT_ZERO = 0$/;"	e	enum:__anon1	file:
-SELECT_ZERO	PS_Main.c	/^	SELECT_FAIL = -1, SELECT_SUCCESS = 1, SELECT_ZERO = 0$/;"	e	enum:__anon1	file:
+SELECT_FAIL	PS_Main.c	/^	SELECT_FAIL = -1, SELECT_SUCCESS = 1, SELECT_ZERO = 0,$/;"	e	enum:__anon1	file:
+SELECT_SUCCESS	PS_Main.c	/^	SELECT_FAIL = -1, SELECT_SUCCESS = 1, SELECT_ZERO = 0,$/;"	e	enum:__anon1	file:
+SELECT_ZERO	PS_Main.c	/^	SELECT_FAIL = -1, SELECT_SUCCESS = 1, SELECT_ZERO = 0,$/;"	e	enum:__anon1	file:
 SRCS	Makefile	/^SRCS=	PS_Main.c $/;"	m
 Select	PS_Main.c	/^int Select( DAL_CONN *ptConn, DAL_PSTMT *ptPstmt )$/;"	f
+SignalHandler	PS_Main.c	/^void SignalHandler( int nSigno )$/;"	f
 TABLE_NAME	PS_Main.c	4;"	d	file:
 TEAM	PS_Main.c	8;"	d	file:
+UPDATE_FAIL	PS_Main.c	/^	UPDATE_FAIL = -1, UPDATE_SUCCESS = 1, UPDATE_ZERO = 0,$/;"	e	enum:__anon1	file:
+UPDATE_SUCCESS	PS_Main.c	/^	UPDATE_FAIL = -1, UPDATE_SUCCESS = 1, UPDATE_ZERO = 0,$/;"	e	enum:__anon1	file:
+UPDATE_ZERO	PS_Main.c	/^	UPDATE_FAIL = -1, UPDATE_SUCCESS = 1, UPDATE_ZERO = 0,$/;"	e	enum:__anon1	file:
+Update	PS_Main.c	/^int Update( DAL_CONN *ptConn, DAL_PSTMT *ptPstmt )$/;"	f
 _PS_INC_H_	PS_Inc.h	4;"	d
+g_szInput	PS_Main.c	/^char g_szInput[32];$/;"	v
+g_szPickSelect	PS_Main.c	/^char g_szPickSelect[2];$/;"	v
 main	PS_Main.c	/^int main( void )$/;"	f
+ptConn	PS_Main.c	/^DAL_CONN *ptConn = NULL;$/;"	v
+ptPstmt	PS_Main.c	/^DAL_PSTMT *ptPstmt = NULL;$/;"	v

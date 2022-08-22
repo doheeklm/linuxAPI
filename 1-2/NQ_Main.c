@@ -32,7 +32,6 @@ int Delete( DAL_CONN *ptConn );
 =======================================================================*/
 int main( void )
 {
-	int nRet = 0;
 	DAL_CONN *ptConn;
 
 	ptConn = dalConnect( NULL );
@@ -42,25 +41,11 @@ int main( void )
 		exit( -1 );
 	}
 
-	nRet = dalIsConnected( ptConn );
-	if ( nRet == 0 )
-	{
-		fprintf( stderr, "DB Connection is dead.\n" );
-		exit( - 1 );
-	}
-
 	Menu( ptConn );
 
 	if ( dalDisconnect( ptConn ) < 0 )
 	{
 		fprintf( stderr, "dalDisconnect() error: errno[%d] errmsg[%s]\n", dalErrno(), dalErrmsg( dalErrno() ) );
-		exit( -1 );
-	}
-
-	nRet = dalIsDisconnected( ptConn );
-	if ( nRet == 1 )
-	{
-		fprintf( stderr, "DB Connection is dead.\n" );
 		exit( -1 );
 	}
 
@@ -225,9 +210,9 @@ int Insert( DAL_CONN *ptConn )
 	snprintf( szQuery, sizeof(szQuery), "insert into %s (%s, %s, %s, %s) values ('%s', '%s', '%s', '%s');", TABLE_NAME, NAME, JOBTITLE, TEAM, PHONE, szName, szJobTitle, szTeam, szPhone );
 	szQuery[ strlen(szQuery) ] = '\0';
 
-	if ( dalExecUpdate( ptConn, szQuery ) == -1 )
+	if ( dalExecute( ptConn, szQuery, NULL ) == -1 )
 	{
-		fprintf( stderr, "dalExecUpdate() error: errno[%d] errmsg[%s]\n", dalErrno(), dalErrmsg( dalErrno() ) );
+		fprintf( stderr, "dalExecute() error: errno[%d] errmsg[%s]\n", dalErrno(), dalErrmsg( dalErrno() ) );
 		return INSERT_ERR;
 	}
 
@@ -248,17 +233,17 @@ int Select( DAL_CONN *ptConn )
 	char szInput[32];
 	char szQuery[256];
 	
-	DAL_RESULT_SET *ptResult; //NULL로 초기화 하면 에러
-	DAL_ENTRY *ptEntry;
+	DAL_RESULT_SET *ptResult = NULL; //NULL로 초기화 하면 에러
+	DAL_ENTRY *ptEntry = NULL;
 	
 	DAL_INT nId = 0;
 	DAL_STRING pszName = NULL;
 	DAL_STRING pszJobTitle = NULL;
 	DAL_STRING pszTeam = NULL;
 	DAL_STRING pszPhone = NULL;
-
-	memset( szInput, 0, sizeof(szInput) );
-	memset( szQuery, 0, sizeof(szQuery) );
+//TODO 0x00
+	memset( szInput, 0x00, sizeof(szInput) );
+	memset( szQuery, 0x00, sizeof(szQuery) );
 
 	snprintf( szQuery, sizeof(szQuery), "select * from %s;", TABLE_NAME );
 	szQuery[ strlen(szQuery) ] = '\0';
@@ -288,6 +273,7 @@ int Select( DAL_CONN *ptConn )
 	{
 		case 1:
 			{
+			//TODO	
 				for ( ptEntry = dalFetchFirst( ptResult ); ptEntry != NULL; ptEntry = dalFetchNext( ptResult ) )
 				{
 					if ( dalGetIntByKey( ptEntry, ID, &nId ) == -1 )
@@ -307,7 +293,7 @@ int Select( DAL_CONN *ptConn )
 			}
 			break;
 		case 2:
-			{
+			{ //TODO 조회 안되는 ID 처리 0
 				printf( "정보 조회할 사원의 ID 또는 이름을 입력해주세요.: " );
 				pszRet = fgets( szInput, sizeof(szInput), stdin );
 				if ( pszRet == NULL )
@@ -511,6 +497,7 @@ int Update( DAL_CONN *ptConn )
 	printf( "[ 수정 완료 ] 메뉴로 돌아갑니다.\n" );
 	return UPDATE_SUC;
 }
+
 /*=========================== Function Header ==============================
  * name  : Delete
  * desc  : Delete info
@@ -526,7 +513,7 @@ int Delete( DAL_CONN *ptConn )
 
 	memset( szId, 0, sizeof(szId) );
 	memset( szQuery, 0, sizeof(szQuery) );
-	
+//TODO 존재하는지 확인	
 	printf( "정보 삭제할 사원의 ID를 입력해주세요.: " );
 	pszRet = fgets( szId, sizeof(szId), stdin );
 	if ( pszRet == NULL )
