@@ -1,0 +1,37 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.8	//
+ClearStdin	NQ_Main.c	/^void ClearStdin( char *c )$/;"	f
+DELETE_ERR	NQ_Main.c	/^	DELETE_ERR = -1, DELETE_SUC = 0$/;"	e	enum:__anon1	file:
+DELETE_SUC	NQ_Main.c	/^	DELETE_ERR = -1, DELETE_SUC = 0$/;"	e	enum:__anon1	file:
+Delete	NQ_Main.c	/^int Delete( DAL_CONN *ptConn )$/;"	f
+EXENAME	Makefile	/^EXENAME=main$/;"	m
+ID	NQ_Main.c	5;"	d	file:
+INSERT_ERR	NQ_Main.c	/^	INSERT_ERR = -1, INSERT_SUC = 0,$/;"	e	enum:__anon1	file:
+INSERT_SUC	NQ_Main.c	/^	INSERT_ERR = -1, INSERT_SUC = 0,$/;"	e	enum:__anon1	file:
+Insert	NQ_Main.c	/^int Insert( DAL_CONN *ptConn )$/;"	f
+JOBTITLE	NQ_Main.c	7;"	d	file:
+MCFLAGS	Makefile	/^MCFLAGS=-g -W -Wall$/;"	m
+MDEFS	Makefile	/^MDEFS=-D_USE_STAT -D_LOCAL_DB -D_HANGUP_ALARM$/;"	m
+MINCLUDES	Makefile	/^MINCLUDES=-I$(TELCOBASE_HOME)\/include$/;"	m
+MLDFLAGS	Makefile	/^MLDFLAGS=$/;"	m
+MLIBDIRS	Makefile	/^MLIBDIRS=-L$(TELCOBASE_HOME)\/lib $/;"	m
+MLIBS	Makefile	/^MLIBS= -ltelcobase$/;"	m
+Menu	NQ_Main.c	/^void Menu( DAL_CONN *ptConn )$/;"	f
+NAME	NQ_Main.c	6;"	d	file:
+PHONE	NQ_Main.c	9;"	d	file:
+ReturnCode_t	NQ_Main.c	/^} ReturnCode_t;$/;"	t	typeref:enum:__anon1	file:
+SELECT_ERR	NQ_Main.c	/^	SELECT_ERR = -1, SELECT_SUC = 0,$/;"	e	enum:__anon1	file:
+SELECT_SUC	NQ_Main.c	/^	SELECT_ERR = -1, SELECT_SUC = 0,$/;"	e	enum:__anon1	file:
+SRCS	Makefile	/^SRCS=	NQ_Main.c $/;"	m
+Select	NQ_Main.c	/^int Select( DAL_CONN *ptConn )$/;"	f
+TABLE_NAME	NQ_Main.c	4;"	d	file:
+TEAM	NQ_Main.c	8;"	d	file:
+UPDATE_ERR	NQ_Main.c	/^	UPDATE_ERR = -1, UPDATE_SUC = 0,$/;"	e	enum:__anon1	file:
+UPDATE_SUC	NQ_Main.c	/^	UPDATE_ERR = -1, UPDATE_SUC = 0,$/;"	e	enum:__anon1	file:
+Update	NQ_Main.c	/^int Update( DAL_CONN *ptConn )$/;"	f
+_NQ_INC_H_	NQ_Inc.h	4;"	d
+main	NQ_Main.c	/^int main( void )$/;"	f
