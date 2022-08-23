@@ -115,21 +115,14 @@ int main( int argc, char *argv[] )
 			nPickMenu = atoi( szPickMenu );
 		}
 		while ( nPickMenu < 1 || nPickMenu > 5);
-
+		
 		switch ( nPickMenu )
 		{
 			case 1:
 			{
 				nRet = Insert();
-				if ( SUCCESS == nRet )
-				{
-					break;
-				}
-				else if ( INPUT_FAIL == nRet )
-				{
-					continue;
-				}	
-				else if ( SUCCESS != nRet )
+				//TODO INPUT_FAIL
+				if ( SUCCESS != nRet )
 				{
 					goto error_return;
 				}
@@ -171,7 +164,7 @@ int main( int argc, char *argv[] )
 			default:
 				break;
 		}
-
+		
 		//tMsg.buf.msgq_buf 와 g_tInfo 형변환
 		//memcpy( tMsg.buf.msgq_buf, &g_tInfo, sizeof(INFO_t) );
 
