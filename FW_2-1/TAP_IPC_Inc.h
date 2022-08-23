@@ -1,7 +1,7 @@
-/* IPC_Inc.h */
+/* TAP_IPC_Inc.h */
 
-#ifndef _IPC_INC_H_
-#define _IPC_INC_H_
+#ifndef _TAP_IPC_INC_H_
+#define _TAP_IPC_INC_H_
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,4 +20,4 @@
 #include <TAP_Ipc.h>
 
 
-#endif /*_IPC_INC_H_*/
+#endif /*_TAP_IPC_INC_H_*/

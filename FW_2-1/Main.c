@@ -1,5 +1,5 @@
-/* IPC_Main.c */
-#include "IPC_Inc.h"
+/* Main.c */
+#include "TAP_IPC_Inc.h"
 
 #define TABLE_NAME	"EmployeeInfos"
 #define ID			"id"
@@ -10,9 +10,21 @@
 
 typedef enum
 {
-	RUN = 100, STOP = -99, SUCCESS = 1, NOT_EXIST = 0,
-	DAL_FAIL = -2, FGETS_FAIL = -3,	PTR_FAIL = -4, FUNC_FAIL = -5
+	RUN = 100, STOP = -99,
+	SUCCESS = 1, NOT_EXIST = 0,
+	DAL_FAIL = -2, FGETS_FAIL = -3,
+	PTR_FAIL = -4, FUNC_FAIL = -5
 } ReturnCode_t;
+
+int g_nFlag = RUN;
+
+DAL_CONN	*g_ptConn= NULL;
+DAL_PSTMT	*g_ptPstmtInsert = NULL;
+DAL_PSTMT	*g_ptPstmtSelectAll = NULL;
+DAL_PSTMT	*g_ptPstmtSelectOneById = NULL;
+DAL_PSTMT	*g_ptPstmtSelectOneByName = NULL;
+DAL_PSTMT	*g_ptPstmtUpdate = NULL;
+DAL_PSTMT	*g_ptPstmtDelete = NULL;
 
 void	SignalHandler( int nSigno );
 void	Menu();
@@ -26,17 +38,6 @@ int Update();
 int Delete();
 int CheckId( int nId );
 int GetOriginalInfo( int nId, char *pszAttribute, char *pszOriginalInfo );
-
-DAL_CONN	*g_ptConn= NULL;
-DAL_PSTMT	*ptPstmt = NULL;
-DAL_PSTMT	*g_ptPstmtInsert = NULL;
-DAL_PSTMT	*g_ptPstmtSelectAll = NULL;
-DAL_PSTMT	*g_ptPstmtSelectOneById = NULL;
-DAL_PSTMT	*g_ptPstmtSelectOneByName = NULL;
-DAL_PSTMT	*g_ptPstmtUpdate = NULL;
-DAL_PSTMT	*g_ptPstmtDelete = NULL;
-
-int g_nFlag = RUN;
 
 void SignalHandler( int nSigno )
 {

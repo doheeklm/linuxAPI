@@ -13,7 +13,7 @@ include $(MAKECONFIG)
 # EXENAME: 실행 파일
 # MLIBS: 라이브러리 파일
 
-SRCS=	IPC_Main.c 
+SRCS=	TAP_IPC_Client.c
 
 MDEFS=-D_USE_STAT -D_LOCAL_DB -D_HANGUP_ALARM
 MINCLUDES=-I$(TELCOBASE_HOME)/include
@@ -22,13 +22,13 @@ MCFLAGS=-g -W -Wall
 #
 # executable file name for compiled objects.
 #
-EXENAME=main
+EXENAME=	cli
 #
 # module-specific library list for loading.
 #
 ifeq "$(TGT_SYS_OS_TYPE)" "LINUX_OS"
 MLIBDIRS=-L$(TELCOBASE_HOME)/lib 
-MLIBS= -ltelcobase
+MLIBS= -ltelcobase -lmplib -ltap
 MLDFLAGS=
 endif
 
