@@ -13,7 +13,7 @@ include $(MAKECONFIG)
 # EXENAME: 실행 파일
 # MLIBS: 라이브러리 파일
 
-SRCS=	TAP_IPC_Client.c
+SRCS=	TAP_MPLOG_Client.c
 
 MDEFS=-D_USE_STAT -D_LOCAL_DB -D_HANGUP_ALARM
 MINCLUDES=-I$(TELCOBASE_HOME)/include

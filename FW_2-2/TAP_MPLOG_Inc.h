@@ -1,7 +1,7 @@
-/* TAP_IPC_Inc.h */
+/* TAP_MPLOG_Inc.h */
 
-#ifndef _TAP_IPC_INC_H_
-#define _TAP_IPC_INC_H_
+#ifndef _TAP_IPC_MPLOG_H_
+#define _TAP_IPC_MPLOG_H_
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -61,4 +61,4 @@ typedef struct INFO_s
 
 int g_nFlag = FLAG_RUN;
 
-#endif /*_TAP_IPC_INC_H_*/
+#endif /*_TAP_IPC_MPLOG_H_*/

@@ -1,6 +1,5 @@
-/* TAP_IPC_Server.c */
-//DB operation을 담당하는 프로세스
-#include "TAP_IPC_Inc.h"
+/* TAP_MPLOG_Server.c */
+#include "TAP_MPLOG_Inc.h"
 
 DAL_CONN	*g_ptConn= NULL;
 DAL_PSTMT	*g_ptPstmtInsert = NULL;

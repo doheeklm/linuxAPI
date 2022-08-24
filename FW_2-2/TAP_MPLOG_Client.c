@@ -1,7 +1,5 @@
-/* TAP_IPC_Client.c */
-//입출력을 담당하는 프로세스
-
-#include "TAP_IPC_Inc.h"
+/* TAP_MPLOG_Client.c */
+#include "TAP_MPLOG_Inc.h"
 
 void SignalHandler( int nSig );
 void ClearStdin( char *pszTemp );
