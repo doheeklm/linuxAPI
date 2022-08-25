@@ -30,6 +30,7 @@ int main( int argc, char *argv[] )
 	int nPickMenu = 0;
 	char szPickMenu[8];
 	char *pszRet = NULL;
+	int *pnResponseMsg = NULL;
 
 	nRet = TAP_ipc_open( &tIpc, CLIENT_PROCESS );
 	if ( 0 > nRet )
@@ -131,6 +132,7 @@ int main( int argc, char *argv[] )
 				break;
 		} // switch
 
+		//TODO MPLOG_DBG()
 		printf( "\n[CLIENT SEND]\n"
 				"DB: %d\n"
 				"Id: %d\n"
@@ -139,7 +141,6 @@ int main( int argc, char *argv[] )
 				"Team: %s\n"
 				"Phone: %s\n",
 				ptInfo->nDB, ptInfo->nId, ptInfo->szName, ptInfo->szJobTitle, ptInfo->szTeam, ptInfo->szPhone ); 
-
 		tMsg.u.h.src = tSrcKey;
 		tMsg.u.h.dst = tDstKey;
 		tMsg.u.h.len = sizeof(struct INFO_s);
@@ -159,17 +160,28 @@ int main( int argc, char *argv[] )
 			fprintf( stderr, "%s TAP_ipc_msgrcv() errno[%d]\n", __func__, ipc_errno );
 			goto end_of_function;
 		}
-//TODO Response 따로
-		ptInfo = (INFO_t *)tMsg.buf.msgq_buf;
-		
-		printf( "\n[CLIENT RECV]\n"
-				"DB: %d\n"
-				"Id: %d\n"
-				"Name: %s\n"
-				"JobTitle: %s\n"
-				"Team: %s\n"
-				"Phone: %s\n",
-				ptInfo->nDB, ptInfo->nId, ptInfo->szName, ptInfo->szJobTitle, ptInfo->szTeam, ptInfo->szPhone ); 
+
+		switch ( nPickMenu )
+		{
+			case 1:
+			case 3:
+			case 4:
+			case 2:
+			{
+				pnResponseMsg = (int *)tMsg.buf.msgq_buf;
+				printf( "\n[CLIENT RECV] %d\n", *pnResponseMsg );
+			}
+				break;
+//				ptInfo = (INFO_t *)tMsg.buf.msgq_buf;
+//				printf( "\n[CLIENT RECV]\n"
+//						"DB: %d\n"
+//						"Id: %d\n"
+//						"Name: %s\n"
+//						"JobTitle: %s\n"
+//						"Team: %s\n"
+//						"Phone: %s\n",
+//						ptInfo->nDB, ptInfo->nId, ptInfo->szName, ptInfo->szJobTitle, ptInfo->szTeam, ptInfo->szPhone );
+		}
 	} // while
 
 end_of_function:

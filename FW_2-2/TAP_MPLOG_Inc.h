@@ -18,6 +18,7 @@
 /* FRAMEWORK */
 #include <dal.h>
 #include <TAP_Ipc.h>
+#include <mplog.h>
 
 #define SERVER_PROCESS	"MIPCSVR"
 #define CLIENT_PROCESS	"MIPCCLI"
@@ -51,13 +52,19 @@ typedef enum
 
 typedef struct INFO_s
 {
-	int nDB;
-	int nId;
-	char szName		[SIZE_NAME + 1];
-	char szJobTitle	[SIZE_JOBTITLE + 1];
-	char szTeam		[SIZE_TEAM + 1];
-	char szPhone	[SIZE_PHONE + 1];
+	int		nDB;
+	int		nId;
+	char	szName		[SIZE_NAME + 1];
+	char	szJobTitle	[SIZE_JOBTITLE + 1];
+	char	szTeam		[SIZE_TEAM + 1];
+	char	szPhone		[SIZE_PHONE + 1];
 } INFO_t;
+
+typedef struct SELECTALL_s
+{
+	int		nId;
+	char	szName		[SIZE_NAME + 1];
+} SELECTALL_t;
 
 int g_nFlag = FLAG_RUN;
 

@@ -31,13 +31,20 @@ int main( int argc, char *argv[] )
 	tb_signal( SIGTERM, SignalHandler ); //15
 
 	int nRet = 0;
-	
+	int *pnSendMsg = NULL;
 	INFO_t *ptInfo = NULL;
-
 	iipc_ds_t tIpc;
 	iipc_key_t tKey;
 	iipc_msg_t tMsg;
-
+	/*
+	mplog_t *tMplog = NULL;
+	tMplog = MPLOG_INIT( SERVER_PROCESS, "./log.txt", LOG_MODE_FILE_LINE, LOG_LEVEL_SVC );
+	if ( NULL == tMplog )
+	{
+		printf( " mplog_init() error\n" );
+		return -1;
+	}	
+*/
 	g_ptConn = dalConnect( NULL );
 	if ( NULL == g_ptConn )
 	{
@@ -82,42 +89,53 @@ int main( int argc, char *argv[] )
 			fprintf( stderr, "%s TAP_ipc_msgrcv() errno[%d]\n", __func__, ipc_errno );
 			continue;
 		}
-
+		
 		ptInfo = (INFO_t *)tMsg.buf.msgq_buf;
-
-		printf( "\n[SERVER RECV]\n"
-				"DB: %d\n"
-				"Id: %d\n"
-				"Name: %s\n"
-				"JobTitle: %s\n"
-				"Team: %s\n"
-				"Phone: %s\n",
-				ptInfo->nDB, ptInfo->nId, ptInfo->szName, ptInfo->szJobTitle, ptInfo->szTeam, ptInfo->szPhone ); 
-
+	
 		switch ( ptInfo->nDB )
 		{
 			case 1:
 				{
 					nRet = Insert( ptInfo );
+					
+					pnSendMsg = (int *)tMsg.buf.msgq_buf;
+					
 					if ( SUCCESS != nRet )
 					{
-						goto end_of_function;
+						*pnSendMsg = 0;
 					}
+					
+					*pnSendMsg = 1;
+					printf( "\n[SERVER SEND] %d\n", *pnSendMsg );
 				}
 				break;
 			case 2:
 				{
 					nRet = Select( ptInfo );
-					if ( SUCCESS != nRet && NOT_EXIST != nRet )
+					
+					if ( NOT_EXIST == nRet || SUCCESS != nRet )
 					{
-						goto end_of_function;
+						pnSendMsg = (int *)tMsg.buf.msgq_buf;
+						*pnSendMsg = 0;
+						printf( "\n[SERVER SEND] %d\n", *pnSendMsg );
+						break;
 					}
+
+					//TODO MPLOG_SVC()
+					printf( "\n[SERVER SEND]\n"
+							"DB: %d\n"
+							"Id: %d\n"
+							"Name: %s\n"
+							"JobTitle: %s\n"
+							"Team: %s\n"
+							"Phone: %s\n",
+							ptInfo->nDB, ptInfo->nId, ptInfo->szName, ptInfo->szJobTitle, ptInfo->szTeam, ptInfo->szPhone );
 				}
 				break;
 			case 3:
 				{
 					nRet = Update( ptInfo );
-					if ( SUCCESS != nRet && NOT_EXIST != nRet )
+					if ( SUCCESS != nRet && NOT_EXIST == nRet )
 					{
 						goto end_of_function;
 					}
@@ -126,9 +144,9 @@ int main( int argc, char *argv[] )
 			case 4:
 				{
 					nRet = Delete( ptInfo );
-					if ( SUCCESS != nRet && NOT_EXIST != nRet )
+					if ( SUCCESS != nRet && NOT_EXIST == nRet )
 					{
-						goto end_of_function;
+						goto end_of_function;	
 					}
 				}
 				break;
@@ -136,12 +154,11 @@ int main( int argc, char *argv[] )
 				break;
 		}
 
+		
 		tMsg.u.h.dst = tMsg.u.h.src;
 		tMsg.u.h.src = tKey;
-
-		//Insert Update Delete -> struct int 0, 1
+	
 		//Select All -> struct [10] id name ]
-		//Select One -> 그대로
 
 		nRet = TAP_ipc_msgsnd( &tIpc, &tMsg, IPC_BLOCK );
 		if ( 0 > nRet )
@@ -339,7 +356,6 @@ int Insert( struct INFO_s *ptInfo )
 		return DAL_FAIL;
 	}
 
-	// Insert
 	nRet = dalPreparedExec( g_ptConn, g_ptPstmtInsert, NULL );
 	if ( -1 == nRet )
 	{
@@ -373,7 +389,6 @@ int Select( struct INFO_s *ptInfo )
 	char* pszTeam = NULL;
 	char* pszPhone = NULL;
 
-	// Select All
 	if ( ptInfo->nId == 0 && strlen(ptInfo->szName) == 0 )
 	{
 		nRet = dalPreparedExec( g_ptConn, g_ptPstmtSelectAll, &ptResult );
@@ -395,6 +410,7 @@ int Select( struct INFO_s *ptInfo )
 			return NOT_EXIST;
 		}
 
+		printf( "\n " );
 		for ( ptEntry = dalFetchFirst( ptResult ); ptEntry != NULL; ptEntry = dalFetchNext( ptResult ) )
 		{
 			nRet = dalGetIntByKey( ptEntry, ID, &nId );
@@ -412,16 +428,9 @@ int Select( struct INFO_s *ptInfo )
 			}	
 	
 			printf( "[%s] ID: %3d | Name: %s\n", __func__, nId, pszName );
-		
-		//TODO Response
-//snprintf(Buf, );
-			
-//ptInfo->nId = nId;
-			//strlcpy( ptInfo->szName, pszName, sizeof(ptInfo->szName) );
 		}
 
 	}
-	// Select One By Id
 	else if ( ptInfo->nId != 0 && strlen(ptInfo->szName) == 0 )
 	{
 		nRet = dalSetIntByKey( g_ptPstmtSelectOneById, ID, ptInfo->nId );
@@ -479,7 +488,6 @@ int Select( struct INFO_s *ptInfo )
 		strlcpy( ptInfo->szTeam, pszTeam, sizeof(ptInfo->szTeam) );
 		strlcpy( ptInfo->szPhone, pszPhone, sizeof(ptInfo->szPhone) );
 	}
-	// Select One By Name
 	else if ( ptInfo->nId == 0 && strlen(ptInfo->szName) != 0 )
 	{
 		nRet = dalSetStringByKey( g_ptPstmtSelectOneByName, NAME, ptInfo->szName );
@@ -596,7 +604,6 @@ int Update( struct INFO_s *ptInfo )
 		return DAL_FAIL;
 	}
 
-	// Update
 	nRet = dalPreparedExec( g_ptConn, g_ptPstmtUpdate, NULL );
 	if ( -1 == nRet )
 	{
@@ -623,7 +630,6 @@ int Delete( struct INFO_s *ptInfo )
 		return DAL_FAIL;
 	}
 
-	// Delete	
 	nRet = dalPreparedExec( g_ptConn, g_ptPstmtDelete, NULL );
 	if ( -1 == nRet )
 	{
