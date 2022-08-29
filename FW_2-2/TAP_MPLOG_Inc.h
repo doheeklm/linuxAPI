@@ -1,7 +1,7 @@
 /* TAP_MPLOG_Inc.h */
 
 #ifndef _TAP_IPC_MPLOG_H_
-#define _TAP_IPC_MPLOG_H_
+#define _TAP_IPC_MGLOG_H_
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -35,6 +35,7 @@
 #define SIZE_JOBTITLE	32
 #define SIZE_TEAM		32
 #define SIZE_PHONE		13
+#define MAX_SELECT		20
 
 #define TABLE_NAME		"EmployeeInfos"
 #define ID				"id"
@@ -47,8 +48,14 @@ typedef enum
 {
 	NOT_EXIST = 0, SUCCESS = 1, INPUT_FAIL = 2,
 	DAL_FAIL = -2, FGETS_FAIL = -3, TAP_FAIL = -4,
-	NULL_FAIL = -5, FUNCTION_FAIL = -6
+	NULL_FAIL = -5, FUNCTION_FAIL = -6, MPGLOG_FAIL = -7
 } ReturnCode_t;
+
+//===Message_s===
+//success or fail
+//message type
+//char buffer[ee] = tMsg.buf.msgq_buf;
+//===============
 
 typedef struct INFO_s
 {
@@ -67,5 +74,8 @@ typedef struct SELECTALL_s
 } SELECTALL_t;
 
 int g_nFlag = FLAG_RUN;
+int g_nDB = 0;
 
-#endif /*_TAP_IPC_MPLOG_H_*/
+SELECTALL_t *g_ptSelectAll = NULL;
+
+#endif /*_TAP_MPLOG_INC_H_*/

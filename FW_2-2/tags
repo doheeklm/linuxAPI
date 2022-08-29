@@ -4,57 +4,66 @@
 !_TAG_PROGRAM_NAME	Exuberant Ctags	//
 !_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
 !_TAG_PROGRAM_VERSION	5.8	//
-CLIENT_PROCESS	TAP_MPLOG_Inc.h	23;"	d
+CLIENT_PROCESS	TAP_MPLOG_Inc.h	24;"	d
 ClearStdin	TAP_MPLOG_Client.c	/^void ClearStdin( char *pszTemp )$/;"	f
 DAL_FAIL	TAP_MPLOG_Inc.h	/^	DAL_FAIL = -2, FGETS_FAIL = -3, TAP_FAIL = -4,$/;"	e	enum:__anon1
-DELETE	TAP_MPLOG_Inc.h	28;"	d
+DELETE	TAP_MPLOG_Inc.h	29;"	d
 Delete	TAP_MPLOG_Client.c	/^int Delete( struct INFO_s *ptInfo )$/;"	f
 Delete	TAP_MPLOG_Server.c	/^int Delete( struct INFO_s *ptInfo )$/;"	f
 DestroyPreparedStatement	TAP_MPLOG_Server.c	/^void DestroyPreparedStatement()$/;"	f
-EXENAME	Makefile	/^EXENAME=	cli$/;"	m
+EXENAME	Makefile	/^EXENAME=	svr$/;"	m
 FGETS_FAIL	TAP_MPLOG_Inc.h	/^	DAL_FAIL = -2, FGETS_FAIL = -3, TAP_FAIL = -4,$/;"	e	enum:__anon1
-FLAG_RUN	TAP_MPLOG_Inc.h	30;"	d
-FLAG_STOP	TAP_MPLOG_Inc.h	31;"	d
-FUNCTION_FAIL	TAP_MPLOG_Inc.h	/^	NULL_FAIL = -5, FUNCTION_FAIL = -6$/;"	e	enum:__anon1
-ID	TAP_MPLOG_Inc.h	39;"	d
+FLAG_RUN	TAP_MPLOG_Inc.h	31;"	d
+FLAG_STOP	TAP_MPLOG_Inc.h	32;"	d
+FUNCTION_FAIL	TAP_MPLOG_Inc.h	/^	NULL_FAIL = -5, FUNCTION_FAIL = -6, MPGLOG_FAIL = -7$/;"	e	enum:__anon1
+GetOriginalData	TAP_MPLOG_Server.c	/^int GetOriginalData( int nId, char *pszAttribute, char *pszOriginal, int nSize )$/;"	f
+ID	TAP_MPLOG_Inc.h	41;"	d
 INFO_s	TAP_MPLOG_Inc.h	/^typedef struct INFO_s$/;"	s
 INFO_t	TAP_MPLOG_Inc.h	/^} INFO_t;$/;"	t	typeref:struct:INFO_s
 INPUT_FAIL	TAP_MPLOG_Inc.h	/^	NOT_EXIST = 0, SUCCESS = 1, INPUT_FAIL = 2,$/;"	e	enum:__anon1
-INSERT	TAP_MPLOG_Inc.h	25;"	d
+INSERT	TAP_MPLOG_Inc.h	26;"	d
 InitPreparedStatement	TAP_MPLOG_Server.c	/^int InitPreparedStatement()$/;"	f
 Insert	TAP_MPLOG_Client.c	/^int Insert( struct INFO_s *ptInfo )$/;"	f
 Insert	TAP_MPLOG_Server.c	/^int Insert( struct INFO_s *ptInfo )$/;"	f
-JOBTITLE	TAP_MPLOG_Inc.h	41;"	d
+JOBTITLE	TAP_MPLOG_Inc.h	43;"	d
+LOG_ERROR	TAP_MPLOG_Client.c	/^int LOG_ERROR( const char* pszFuncName, int nError )$/;"	f
+LOG_ERROR	TAP_MPLOG_Server.c	/^int LOG_ERROR( const char* pszFuncName, int nError )$/;"	f
+MAX_SELECT	TAP_MPLOG_Inc.h	38;"	d
 MCFLAGS	Makefile	/^MCFLAGS=-g -W -Wall$/;"	m
 MDEFS	Makefile	/^MDEFS=-D_USE_STAT -D_LOCAL_DB -D_HANGUP_ALARM$/;"	m
 MINCLUDES	Makefile	/^MINCLUDES=-I$(TELCOBASE_HOME)\/include$/;"	m
 MLDFLAGS	Makefile	/^MLDFLAGS=$/;"	m
 MLIBDIRS	Makefile	/^MLIBDIRS=-L$(TELCOBASE_HOME)\/lib $/;"	m
 MLIBS	Makefile	/^MLIBS= -ltelcobase -lmplib -ltap$/;"	m
-NAME	TAP_MPLOG_Inc.h	40;"	d
+MPGLOG_FAIL	TAP_MPLOG_Inc.h	/^	NULL_FAIL = -5, FUNCTION_FAIL = -6, MPGLOG_FAIL = -7$/;"	e	enum:__anon1
+NAME	TAP_MPLOG_Inc.h	42;"	d
 NOT_EXIST	TAP_MPLOG_Inc.h	/^	NOT_EXIST = 0, SUCCESS = 1, INPUT_FAIL = 2,$/;"	e	enum:__anon1
-NULL_FAIL	TAP_MPLOG_Inc.h	/^	NULL_FAIL = -5, FUNCTION_FAIL = -6$/;"	e	enum:__anon1
-PHONE	TAP_MPLOG_Inc.h	43;"	d
+NULL_FAIL	TAP_MPLOG_Inc.h	/^	NULL_FAIL = -5, FUNCTION_FAIL = -6, MPGLOG_FAIL = -7$/;"	e	enum:__anon1
+PHONE	TAP_MPLOG_Inc.h	45;"	d
 ReturnCode_t	TAP_MPLOG_Inc.h	/^} ReturnCode_t;$/;"	t	typeref:enum:__anon1
-SELECT	TAP_MPLOG_Inc.h	26;"	d
-SERVER_PROCESS	TAP_MPLOG_Inc.h	22;"	d
-SIZE_JOBTITLE	TAP_MPLOG_Inc.h	34;"	d
-SIZE_NAME	TAP_MPLOG_Inc.h	33;"	d
-SIZE_PHONE	TAP_MPLOG_Inc.h	36;"	d
-SIZE_TEAM	TAP_MPLOG_Inc.h	35;"	d
-SRCS	Makefile	/^SRCS=	TAP_MPLOG_Client.c$/;"	m
+SELECT	TAP_MPLOG_Inc.h	27;"	d
+SELECTALL_s	TAP_MPLOG_Inc.h	/^typedef struct SELECTALL_s$/;"	s
+SELECTALL_t	TAP_MPLOG_Inc.h	/^} SELECTALL_t;$/;"	t	typeref:struct:SELECTALL_s
+SERVER_PROCESS	TAP_MPLOG_Inc.h	23;"	d
+SIZE_JOBTITLE	TAP_MPLOG_Inc.h	35;"	d
+SIZE_NAME	TAP_MPLOG_Inc.h	34;"	d
+SIZE_PHONE	TAP_MPLOG_Inc.h	37;"	d
+SIZE_TEAM	TAP_MPLOG_Inc.h	36;"	d
+SRCS	Makefile	/^SRCS=	TAP_MPLOG_Server.c$/;"	m
 SUCCESS	TAP_MPLOG_Inc.h	/^	NOT_EXIST = 0, SUCCESS = 1, INPUT_FAIL = 2,$/;"	e	enum:__anon1
 Select	TAP_MPLOG_Client.c	/^int Select( struct INFO_s *ptInfo )$/;"	f
-Select	TAP_MPLOG_Server.c	/^int Select( struct INFO_s *ptInfo )$/;"	f
+SelectAll	TAP_MPLOG_Server.c	/^int SelectAll( struct INFO_s *ptInfo )$/;"	f
+SelectOne	TAP_MPLOG_Server.c	/^int SelectOne( struct INFO_s *ptInfo )$/;"	f
 SignalHandler	TAP_MPLOG_Client.c	/^void SignalHandler( int nSig )$/;"	f
 SignalHandler	TAP_MPLOG_Server.c	/^void SignalHandler( int nSig )$/;"	f
-TABLE_NAME	TAP_MPLOG_Inc.h	38;"	d
+TABLE_NAME	TAP_MPLOG_Inc.h	40;"	d
 TAP_FAIL	TAP_MPLOG_Inc.h	/^	DAL_FAIL = -2, FGETS_FAIL = -3, TAP_FAIL = -4,$/;"	e	enum:__anon1
-TEAM	TAP_MPLOG_Inc.h	42;"	d
-UPDATE	TAP_MPLOG_Inc.h	27;"	d
+TEAM	TAP_MPLOG_Inc.h	44;"	d
+UPDATE	TAP_MPLOG_Inc.h	28;"	d
 Update	TAP_MPLOG_Client.c	/^int Update( struct INFO_s *ptInfo )$/;"	f
 Update	TAP_MPLOG_Server.c	/^int Update( struct INFO_s *ptInfo )$/;"	f
-_TAP_IPC_MPLOG_H_	TAP_MPLOG_Inc.h	4;"	d
+_TAP_IPC_MGLOG_H_	TAP_MPLOG_Inc.h	4;"	d
+g_nDB	TAP_MPLOG_Inc.h	/^int g_nDB = 0;$/;"	v
 g_nFlag	TAP_MPLOG_Inc.h	/^int g_nFlag = FLAG_RUN;$/;"	v
 g_ptConn	TAP_MPLOG_Server.c	/^DAL_CONN	*g_ptConn= NULL;$/;"	v
 g_ptPstmtDelete	TAP_MPLOG_Server.c	/^DAL_PSTMT	*g_ptPstmtDelete = NULL;$/;"	v
@@ -63,11 +72,14 @@ g_ptPstmtSelectAll	TAP_MPLOG_Server.c	/^DAL_PSTMT	*g_ptPstmtSelectAll = NULL;$/;
 g_ptPstmtSelectOneById	TAP_MPLOG_Server.c	/^DAL_PSTMT	*g_ptPstmtSelectOneById = NULL;$/;"	v
 g_ptPstmtSelectOneByName	TAP_MPLOG_Server.c	/^DAL_PSTMT	*g_ptPstmtSelectOneByName = NULL;$/;"	v
 g_ptPstmtUpdate	TAP_MPLOG_Server.c	/^DAL_PSTMT	*g_ptPstmtUpdate = NULL;$/;"	v
+g_ptSelectAll	TAP_MPLOG_Inc.h	/^SELECTALL_t *g_ptSelectAll = NULL;$/;"	v
 main	TAP_MPLOG_Client.c	/^int main( int argc, char *argv[] )$/;"	f
 main	TAP_MPLOG_Server.c	/^int main( int argc, char *argv[] )$/;"	f
-nDB	TAP_MPLOG_Inc.h	/^	int nDB;$/;"	m	struct:INFO_s
-nId	TAP_MPLOG_Inc.h	/^	int nId;$/;"	m	struct:INFO_s
-szJobTitle	TAP_MPLOG_Inc.h	/^	char szJobTitle	[SIZE_JOBTITLE + 1];$/;"	m	struct:INFO_s
-szName	TAP_MPLOG_Inc.h	/^	char szName		[SIZE_NAME + 1];$/;"	m	struct:INFO_s
-szPhone	TAP_MPLOG_Inc.h	/^	char szPhone	[SIZE_PHONE + 1];$/;"	m	struct:INFO_s
-szTeam	TAP_MPLOG_Inc.h	/^	char szTeam		[SIZE_TEAM + 1];$/;"	m	struct:INFO_s
+nDB	TAP_MPLOG_Inc.h	/^	int		nDB;$/;"	m	struct:INFO_s
+nId	TAP_MPLOG_Inc.h	/^	int		nId;$/;"	m	struct:INFO_s
+nId	TAP_MPLOG_Inc.h	/^	int		nId;$/;"	m	struct:SELECTALL_s
+szJobTitle	TAP_MPLOG_Inc.h	/^	char	szJobTitle	[SIZE_JOBTITLE + 1];$/;"	m	struct:INFO_s
+szName	TAP_MPLOG_Inc.h	/^	char	szName		[SIZE_NAME + 1];$/;"	m	struct:INFO_s
+szName	TAP_MPLOG_Inc.h	/^	char	szName		[SIZE_NAME + 1];$/;"	m	struct:SELECTALL_s
+szPhone	TAP_MPLOG_Inc.h	/^	char	szPhone		[SIZE_PHONE + 1];$/;"	m	struct:INFO_s
+szTeam	TAP_MPLOG_Inc.h	/^	char	szTeam		[SIZE_TEAM + 1];$/;"	m	struct:INFO_s
