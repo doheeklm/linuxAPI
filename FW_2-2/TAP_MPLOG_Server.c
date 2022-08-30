@@ -13,11 +13,11 @@ void SignalHandler( int nSig );
 int InitPreparedStatement();
 void DestroyPreparedStatement();
 
-int Insert( struct INFO_s *ptInfo );
-int SelectAll( struct INFO_s *ptInfo );
-int SelectOne( struct INFO_s *ptInfo );
-int Update( struct INFO_s *ptInfo );
-int Delete( struct INFO_s *ptInfo );
+int Insert( struct SENDMSG_s *ptSendMsg );
+int SelectAll( struct SENDMSG_s *ptSendMsg, char* pszBuffer );
+int SelectOne( struct SENDMSG_s *ptSendMsg, char* pszBuffer );
+int Update( struct SENDMSG_s *ptSendMsg );
+int Delete( struct SENDMSG_s *ptSendMsg );
 int GetOriginalData( int nId, char *pszAttribute, char *pszOriginal, int nSize );
 int LOG_ERROR( const char* pszFuncName, int nError );
 
@@ -32,46 +32,30 @@ int main( int argc, char *argv[] )
 	tb_signal( SIGTERM, SignalHandler ); //15
 
 	int nRet = 0;
-	int *pnSendMsg = NULL;
-	INFO_t *ptInfo = NULL;
 	iipc_ds_t tIpc;
 	iipc_key_t tKey;
-	iipc_msg_t tMsg;
 
-	//TODO Select All 을 위한 메세지 버퍼 구조체 수정
+
+	//TODO cd etc -> dat ini 상용
+	//./test.ini
+	iipc_msg_t tMsg; //TODO tRecvMsg tSndMsg
+
+
+	char szBuf[2048];
+
+	SENDMSG_t *ptSendMsg = NULL;
+	RECVMSG_t *ptRecvMsg = NULL;
 
 	nRet = MPGLOG_INIT( SERVER_PROCESS, NULL,
 			LOG_MODE_DAILY |
-			LOG_MODE_REDIRECT_STDOUT |
-			LOG_MODE_REDIRECT_STDERR |
 			LOG_MODE_NO_DATE |
-			LOG_MODE_LEVEL_TAG |
-			LOG_MODE_FILE_LINE,
-			LOG_LEVEL_DBG );
+			LOG_MODE_LEVEL_TAG,
+			LOG_LEVEL_SVC );
 	if ( 0 > nRet )
 	{
 		printf( "MPGLOG_INIT() error\n" );
 		return MPGLOG_FAIL;
 	}	
-	
-	g_ptConn = dalConnect( NULL );
-	if ( NULL == g_ptConn )
-	{
-		LOG_ERROR( __func__, dalErrno() );
-		return DAL_FAIL;
-	}
-
-	nRet = InitPreparedStatement();
-	if ( SUCCESS != nRet )
-	{
-		nRet = dalDisconnect( g_ptConn );
-		if ( -1 == nRet )
-		{
-			LOG_ERROR( __func__, dalErrno() );
-		}
-		return DAL_FAIL;
-	}
-
 	nRet = TAP_ipc_open( &tIpc, SERVER_PROCESS );
 	if ( 0 > nRet )
 	{
@@ -92,103 +76,138 @@ int main( int argc, char *argv[] )
 		goto end_of_function;
 	}
 
+	g_ptConn = dalConnect( NULL );
+	if ( NULL == g_ptConn )
+	{
+		LOG_ERROR( __func__, dalErrno() );
+		return DAL_FAIL;
+	}
+
+	nRet = InitPreparedStatement();
+	if ( SUCCESS != nRet )
+	{
+		nRet = dalDisconnect( g_ptConn );
+		if ( -1 == nRet )
+		{
+			LOG_ERROR( __func__, dalErrno() );
+		}
+		return DAL_FAIL;
+	}
+
 	while ( FLAG_RUN == g_nFlag )
 	{
-		ptInfo = NULL;
 		memset( &tMsg, 0x00, sizeof(iipc_msg_t) );
-
+		memset( szBuf, 0x00, sizeof(szBuf) );
+		
 		nRet = TAP_ipc_msgrcv( &tIpc, &tMsg, IPC_BLOCK );
 		if ( 0 > nRet )
 		{
 			LOG_ERROR( __func__, ipc_errno );
 			continue;
 		}
-		
-		ptInfo = (INFO_t *)tMsg.buf.msgq_buf;
 	
-		switch ( ptInfo->nDB )
+		ptSendMsg = (SENDMSG_t *)tMsg.buf.msgq_buf;
+
+		MPGLOG_SVC( "[Recv Msg from Client] Type: %d | Id: %d | "
+					"Name: %s | JobTitle: %s | Team: %s | Phone: %s",
+					ptSendMsg->nType, ptSendMsg->nId,
+					ptSendMsg->szName, ptSendMsg->szJobTitle,
+					ptSendMsg->szTeam, ptSendMsg->szPhone );
+
+		switch ( ptSendMsg->nType )
 		{
 			case 1:
 			{
-				nRet = Insert( ptInfo );
-				pnSendMsg = (int *)tMsg.buf.msgq_buf;
+				nRet = Insert( ptSendMsg );
+				
+				ptRecvMsg = (RECVMSG_t *)tMsg.buf.msgq_buf;
+
 				if ( SUCCESS != nRet )
 				{
-					*pnSendMsg = 0;
-					MPGLOG_SVC( "[Send Msg to Client] %d\n", *pnSendMsg );
+					ptRecvMsg->nResult = 0;
+
 					break;
-				}	
-				*pnSendMsg = 1;
-				MPGLOG_SVC( "[Send Msg to Client] %d\n", *pnSendMsg );
+				}
+
+				ptRecvMsg->nResult = 1;
 			}
 				break;
 			case 2:
 			{
-				nRet = SelectAll( ptInfo );
+				nRet = SelectAll( ptSendMsg, ptRecvMsg->szBuffer );
+			//size TODO	
+				ptRecvMsg = (RECVMSG_t *)tMsg.buf.msgq_buf;
 
 				if ( NOT_EXIST == nRet || SUCCESS != nRet )
 				{
+					ptRecvMsg->nResult = 0;
 					break;
 				}
 			
-				g_ptSelectAll = (SELECTALL_t *)tMsg.buf.msgq_buf;
-				
-				MPGLOG_SVC( "[Send Msg to Client]\nId: %d\nName: %s\n",
-						g_ptSelectAll->nId, g_ptSelectAll->szName );
+				ptRecvMsg->nResult = 1;
+				strlcpy( ptRecvMsg->szBuffer, szBuf, sizeof(szBuf) );
 			}
 				break;
 			case 3:
 			{
-				nRet = SelectOne( ptInfo );
+				nRet = SelectOne( ptSendMsg, szBuf );
+				
+				ptRecvMsg = (RECVMSG_t *)tMsg.buf.msgq_buf;
 
 				if ( NOT_EXIST == nRet || SUCCESS != nRet )
 				{
+					ptRecvMsg->nResult = 0;
 					break;
 				}
-
-				MPGLOG_SVC( "[Send Msg to Client]\nDB: %d\nId: %d\n"
-						"Name: %s\nJobTitle: %s\n"
-						"Team: %s\nPhone: %s\n",
-						ptInfo->nDB, ptInfo->nId,
-						ptInfo->szName, ptInfo->szJobTitle,
-						ptInfo->szTeam, ptInfo->szPhone );
+		
+				ptRecvMsg->nResult = 1;
+				strlcpy( ptRecvMsg->szBuffer, szBuf, sizeof(szBuf) );
 			}
 				break;
 			case 4:
 			{
-				nRet = Update( ptInfo );
-				pnSendMsg = (int *)tMsg.buf.msgq_buf;			
+				nRet = Update( ptSendMsg );
+		
+				ptRecvMsg = (RECVMSG_t *)tMsg.buf.msgq_buf;
+				
 				if ( NOT_EXIST == nRet || SUCCESS != nRet )
 				{
-					*pnSendMsg = 0;
-					MPGLOG_SVC( "[Send Msg to Client] %d\n", *pnSendMsg );
+					ptRecvMsg->nResult = 0;
 					break;
 				}
-				*pnSendMsg = 1;
-				MPGLOG_SVC( "[Send Msg to Client] %d\n", *pnSendMsg );
+
+				ptRecvMsg->nResult = 1;
 			}
 				break;
 			case 5:
 			{
-				nRet = Delete( ptInfo );
-				pnSendMsg = (int *)tMsg.buf.msgq_buf;
+				nRet = Delete( ptSendMsg );
+
+				ptRecvMsg = (RECVMSG_t *)tMsg.buf.msgq_buf;
+
 				if ( NOT_EXIST == nRet || SUCCESS != nRet )
 				{
-					*pnSendMsg = 0;
-					MPGLOG_SVC( "[Send Msg to Client] %d\n", *pnSendMsg );
+					ptRecvMsg->nResult = 0;
 					break;
 				}
-				*pnSendMsg = 1;
-				MPGLOG_SVC( "[Send Msg to Client] %d\n", *pnSendMsg );
+
+				ptRecvMsg->nResult = 1;
 			}
 				break;
 			default:
 				break;
 		}
 
+		ptRecvMsg->nType = ptSendMsg->nType;
+
 		tMsg.u.h.dst = tMsg.u.h.src;
 		tMsg.u.h.src = tKey;
-	
+
+		MPGLOG_SVC( "[Send Msg to Client] Type: %d | Result: %d\n"
+					"%s",
+					ptRecvMsg->nType, ptRecvMsg->nResult,
+					ptRecvMsg->szBuffer );
+
 		nRet = TAP_ipc_msgsnd( &tIpc, &tMsg, IPC_BLOCK );
 		if ( 0 > nRet )
 		{
@@ -198,18 +217,18 @@ int main( int argc, char *argv[] )
 	}
 
 end_of_function:
-	nRet = TAP_ipc_close( &tIpc );
-	if ( 0 > nRet )
-	{
-		LOG_ERROR(  __func__, ipc_errno );
-		return TAP_FAIL;
-	}
-	
 	nRet = dalDisconnect( g_ptConn );
 	if ( -1 == nRet )
 	{
 		LOG_ERROR( __func__, dalErrno() );
 		return DAL_FAIL;
+	}
+	
+	nRet = TAP_ipc_close( &tIpc );
+	if ( 0 > nRet )
+	{
+		LOG_ERROR(  __func__, ipc_errno );
+		return TAP_FAIL;
 	}
 
 	MPGLOG_DESTROY();
@@ -348,38 +367,39 @@ void DestroyPreparedStatement()
 	return;
 }
 
-int Insert( struct INFO_s *ptInfo )
+int Insert( struct SENDMSG_s *ptSendMsg )
 {
-	if ( NULL == ptInfo )
+	if ( NULL == ptSendMsg )
 	{
-		printf( "%s ptInfo NULL\n", __func__ );
+	//TODO LOG ERR
+		printf( "%s Parameter NULL\n", __func__ );
 		return NULL_FAIL;		
 	}
 
 	int nRet = 0;
 
-	nRet = dalSetStringByKey( g_ptPstmtInsert, NAME, ptInfo->szName );
+	nRet = dalSetStringByKey( g_ptPstmtInsert, NAME, ptSendMsg->szName );
 	if ( -1 == nRet )
 	{
 		LOG_ERROR( __func__, dalErrno() );
 		return DAL_FAIL;
 	}
 
-	nRet = dalSetStringByKey( g_ptPstmtInsert, JOBTITLE, ptInfo->szJobTitle );
+	nRet = dalSetStringByKey( g_ptPstmtInsert, JOBTITLE, ptSendMsg->szJobTitle );
 	if ( -1 == nRet )
 	{
 		LOG_ERROR( __func__, dalErrno() );
 		return DAL_FAIL;
 	}
 
-	nRet = dalSetStringByKey( g_ptPstmtInsert, TEAM, ptInfo->szTeam );
+	nRet = dalSetStringByKey( g_ptPstmtInsert, TEAM, ptSendMsg->szTeam );
 	if ( -1 == nRet )
 	{
 		LOG_ERROR( __func__, dalErrno() );
 		return DAL_FAIL;
 	}
 
-	nRet = dalSetStringByKey( g_ptPstmtInsert, PHONE, ptInfo->szPhone );
+	nRet = dalSetStringByKey( g_ptPstmtInsert, PHONE, ptSendMsg->szPhone );
 	if ( -1 == nRet )
 	{
 		LOG_ERROR( __func__, dalErrno() );
@@ -401,21 +421,24 @@ int Insert( struct INFO_s *ptInfo )
 	return SUCCESS;
 }
 
-int SelectAll( struct INFO_s *ptInfo )
+int SelectAll( struct SENDMSG_s *ptSendMsg, char* pszBuffer )
 {
-	if ( NULL == ptInfo )
+	if ( NULL == ptSendMsg )
 	{
-		MPGLOG_ERR( "%s ptInfo NULL\n", __func__ );
+		MPGLOG_ERR( "%s parameter NULL\n", __func__ );
 		return NULL_FAIL;		
 	}
 
 	int nRet = 0;
+	
 	DAL_RESULT_SET *ptResult = NULL;
 	DAL_ENTRY *ptEntry = NULL;
 
-	int nIndex = 0;
 	int nGetId = 0;
 	char* pszGetName = NULL;
+
+	char szTemp[256];
+	memset( szTemp, 0x00, sizeof(szTemp) );
 
 	nRet = dalPreparedExec( g_ptConn, g_ptPstmtSelectAll, &ptResult );
 	if ( -1 == nRet )
@@ -434,15 +457,13 @@ int SelectAll( struct INFO_s *ptInfo )
 
 		MPGLOG_ERR( "[%s] %d Tuple\n", __func__, nRet );
 		return NOT_EXIST;
-	}
+	
+}
+
+	SELECTALL_t tS;
 
 	for ( ptEntry = dalFetchFirst( ptResult ); ptEntry != NULL; ptEntry = dalFetchNext( ptResult ) )
 	{
-		if ( nIndex >= MAX_SELECT )
-		{
-			break;
-		}
-
 		nRet = dalGetIntByKey( ptEntry, ID, &nGetId );
 		if ( -1 == nRet )
 		{
@@ -457,13 +478,25 @@ int SelectAll( struct INFO_s *ptInfo )
 			goto error_return;
 		}	
 
-		g_ptSelectAll->nId = nGetId;
-		strlcpy( g_ptSelectAll->szName, pszGetName, sizeof(g_ptSelectAll->szName) );
-
-		printf( "Id: %d | Name: %s\n", g_ptSelectAll->nId, g_ptSelectAll->szName );
-		
+		tS.nId[nIndex] = nGetId;
 		nIndex++;
+		
+		snprintf( szTemp, sizeof(szTemp), "Id: %d | Name: %s\n", nGetId, pszGetName );
+		szTemp[ strlen(szTemp) ] = '\0';
+
+		//TODO Size check
+		//TODO strlcat
+		//TODO size overflow -갯수 제한
+		strncat( pszBuffer, szTemp, sizeof(szTemp) );
+	
+//nIndex* size
+//			memcpy(szBuffer + x , tS, sizeof( SELECTALL_t ) );
+
 	}
+
+	
+
+	pszBuffer[ strlen(pszBuffer) ] = '\0';
 
 	nRet = dalResFree( ptResult );
 	if ( -1 == nRet )
@@ -484,12 +517,12 @@ error_return:
 	return DAL_FAIL;
 }
 
-int SelectOne( struct INFO_s *ptInfo )
+int SelectOne( struct SENDMSG_s *ptSendMsg, char* pszBuffer )
 {
-	if ( NULL == ptInfo )
+	if ( NULL == ptSendMsg )
 	{
-		MPGLOG_ERR( "%s ptInfo NULL\n", __func__ );
-		return NULL_FAIL;		
+		MPGLOG_ERR( "%s parameter NULL\n", __func__ );
+		return NULL_FAIL;
 	}
 
 	int nRet = 0;
@@ -500,9 +533,12 @@ int SelectOne( struct INFO_s *ptInfo )
 	char* pszTeam = NULL;
 	char* pszPhone = NULL;
 
-	if ( ptInfo->nId > 0 )
+	char szTemp[256];
+	memset( szTemp, 0x00, sizeof(szTemp) );
+
+	if ( ptSendMsg->nId > 0 )
 	{
-		nRet = dalSetIntByKey( g_ptPstmtSelectOneById, ID, ptInfo->nId );
+		nRet = dalSetIntByKey( g_ptPstmtSelectOneById, ID, ptSendMsg->nId );
 		if ( -1 == nRet )
 		{
 			LOG_ERROR( __func__, dalErrno() );
@@ -552,14 +588,10 @@ int SelectOne( struct INFO_s *ptInfo )
 				goto error_return;
 			}
 		}
-
-		strlcpy( ptInfo->szJobTitle, pszJobTitle, sizeof(ptInfo->szJobTitle) );
-		strlcpy( ptInfo->szTeam, pszTeam, sizeof(ptInfo->szTeam) );
-		strlcpy( ptInfo->szPhone, pszPhone, sizeof(ptInfo->szPhone) );
 	}
-	else if ( ptInfo->nId == 0 && strlen(ptInfo->szName) != 0 )
+	else if ( ptSendMsg->nId == 0 && strlen(ptSendMsg->szName) != 0 )
 	{
-		nRet = dalSetStringByKey( g_ptPstmtSelectOneByName, NAME, ptInfo->szName );
+		nRet = dalSetStringByKey( g_ptPstmtSelectOneByName, NAME, ptSendMsg->szName );
 		if ( -1 == nRet )
 		{
 			LOG_ERROR( __func__, dalErrno() );
@@ -609,16 +641,23 @@ int SelectOne( struct INFO_s *ptInfo )
 				goto error_return;
 			}
 		}
-
-		strlcpy( ptInfo->szJobTitle, pszJobTitle, sizeof(ptInfo->szJobTitle) );
-		strlcpy( ptInfo->szTeam, pszTeam, sizeof(ptInfo->szTeam) );
-		strlcpy( ptInfo->szPhone, pszPhone, sizeof(ptInfo->szPhone) );
 	}
-	else if ( ptInfo->nId == 0 && strlen(ptInfo->szName) == 0 )
+	else if ( ptSendMsg->nId == 0 && strlen(ptSendMsg->szName) == 0 )
 	{
 		MPGLOG_SVC( "[%s] %d Tuple\n", __func__, nRet );
 		return NOT_EXIST;
 	}
+
+	snprintf( szTemp, sizeof(szTemp), "JobTitle: %s\n", pszJobTitle );
+	strncat( pszBuffer, szTemp, sizeof(szTemp) );
+
+	snprintf( szTemp, sizeof(szTemp), "Team: %s\n", pszTeam );
+	strncat( pszBuffer, szTemp, sizeof(szTemp) );
+
+	snprintf( szTemp, sizeof(szTemp), "Phone: %s\n", pszPhone );
+	strncat( pszBuffer, szTemp, sizeof(szTemp) );
+
+	pszBuffer[ strlen(pszBuffer) ] = '\0';
 
 	nRet = dalResFree( ptResult );
 	if ( -1 == nRet )
@@ -639,19 +678,19 @@ error_return:
 	return DAL_FAIL;
 }
 
-int Update( struct INFO_s *ptInfo )
+int Update( struct SENDMSG_s *ptSendMsg )
 {
-	if ( NULL == ptInfo )
+	if ( NULL == ptSendMsg )
 	{
-		MPGLOG_ERR( "%s ptInfo NULL\n", __func__ );
+		MPGLOG_ERR( "%s parameter NULL\n", __func__ );
 		return NULL_FAIL;		
 	}
 
 	int nRet = 0;
 
-	if ( strlen(ptInfo->szJobTitle) == 0 )
+	if ( strlen(ptSendMsg->szJobTitle) == 0 )
 	{
-		nRet = GetOriginalData( ptInfo->nId, JOBTITLE, ptInfo->szJobTitle, sizeof(ptInfo->szJobTitle) );
+		nRet = GetOriginalData( ptSendMsg->nId, JOBTITLE, ptSendMsg->szJobTitle, sizeof(ptSendMsg->szJobTitle) );
 		if ( SUCCESS != nRet )
 		{
 			LOG_ERROR( __func__, dalErrno() );
@@ -659,9 +698,9 @@ int Update( struct INFO_s *ptInfo )
 		}	
 	}
 
-	if ( strlen(ptInfo->szTeam) == 0 )
+	if ( strlen(ptSendMsg->szTeam) == 0 )
 	{
-		nRet = GetOriginalData( ptInfo->nId, TEAM, ptInfo->szTeam, sizeof(ptInfo->szTeam) );
+		nRet = GetOriginalData( ptSendMsg->nId, TEAM, ptSendMsg->szTeam, sizeof(ptSendMsg->szTeam) );
 		if ( SUCCESS != nRet )
 		{
 			LOG_ERROR( __func__, dalErrno() );
@@ -669,9 +708,9 @@ int Update( struct INFO_s *ptInfo )
 		}	
 	}
 
-	if ( strlen(ptInfo->szPhone) == 0 )
+	if ( strlen(ptSendMsg->szPhone) == 0 )
 	{
-		nRet = GetOriginalData( ptInfo->nId, PHONE, ptInfo->szPhone, sizeof(ptInfo->szPhone) );
+		nRet = GetOriginalData( ptSendMsg->nId, PHONE, ptSendMsg->szPhone, sizeof(ptSendMsg->szPhone) );
 		if ( SUCCESS != nRet )
 		{
 			LOG_ERROR( __func__, dalErrno() );
@@ -679,28 +718,28 @@ int Update( struct INFO_s *ptInfo )
 		}	
 	}
 
-	nRet = dalSetIntByKey( g_ptPstmtUpdate, ID, ptInfo->nId );
+	nRet = dalSetIntByKey( g_ptPstmtUpdate, ID, ptSendMsg->nId );
 	if ( -1 == nRet )
 	{
 		LOG_ERROR( __func__, dalErrno() );
 		return DAL_FAIL;
 	}
 
-	nRet = dalSetStringByKey( g_ptPstmtUpdate, JOBTITLE, ptInfo->szJobTitle );
+	nRet = dalSetStringByKey( g_ptPstmtUpdate, JOBTITLE, ptSendMsg->szJobTitle );
 	if ( -1 == nRet )
 	{
 		LOG_ERROR( __func__, dalErrno() );
 		return DAL_FAIL;
 	}
 
-	nRet =  dalSetStringByKey( g_ptPstmtUpdate, TEAM, ptInfo->szTeam );
+	nRet =  dalSetStringByKey( g_ptPstmtUpdate, TEAM, ptSendMsg->szTeam );
 	if ( -1 == nRet )
 	{
 		LOG_ERROR( __func__, dalErrno() );
 		return DAL_FAIL;
 	}
 
-	nRet = dalSetStringByKey( g_ptPstmtUpdate, PHONE, ptInfo->szPhone );
+	nRet = dalSetStringByKey( g_ptPstmtUpdate, PHONE, ptSendMsg->szPhone );
 	if ( -1 == nRet )
 	{
 		LOG_ERROR( __func__, dalErrno() );
@@ -722,11 +761,11 @@ int Update( struct INFO_s *ptInfo )
 	return SUCCESS;
 }
 
-int Delete( struct INFO_s *ptInfo )
+int Delete( struct SENDMSG_s *ptSendMsg )
 {
 	int nRet = 0;
 
-	nRet = dalSetIntByKey( g_ptPstmtDelete, ID, ptInfo->nId );
+	nRet = dalSetIntByKey( g_ptPstmtDelete, ID, ptSendMsg->nId );
 	if ( -1 == nRet )
 	{
 		LOG_ERROR( __func__, dalErrno() );

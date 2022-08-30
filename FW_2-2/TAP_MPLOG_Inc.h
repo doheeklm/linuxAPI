@@ -1,7 +1,7 @@
 /* TAP_MPLOG_Inc.h */
 
-#ifndef _TAP_IPC_MPLOG_H_
-#define _TAP_IPC_MGLOG_H_
+#ifndef _TAP_MPLOG_INC_H_
+#define _TAP_MPLOG_INC_H_
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,7 +20,7 @@
 #include <TAP_Ipc.h>
 #include <mplog.h>
 
-#define SERVER_PROCESS	"MIPCSVR"
+#define SERVER_PROCESS	"MIPCSVR" //TAP IPC open시 사용하는 Process name
 #define CLIENT_PROCESS	"MIPCCLI"
 
 #define INSERT			"Insert"
@@ -48,34 +48,28 @@ typedef enum
 {
 	NOT_EXIST = 0, SUCCESS = 1, INPUT_FAIL = 2,
 	DAL_FAIL = -2, FGETS_FAIL = -3, TAP_FAIL = -4,
-	NULL_FAIL = -5, FUNCTION_FAIL = -6, MPGLOG_FAIL = -7
+	NULL_FAIL = -5, MPGLOG_FAIL = -6
 } ReturnCode_t;
 
-//===Message_s===
-//success or fail
-//message type
-//char buffer[ee] = tMsg.buf.msgq_buf;
-//===============
-
-typedef struct INFO_s
+//TODO REQUEST RESPONSE
+typedef struct SENDMSG_s //Client->Server
 {
-	int		nDB;
+	int		nType;
 	int		nId;
 	char	szName		[SIZE_NAME + 1];
 	char	szJobTitle	[SIZE_JOBTITLE + 1];
 	char	szTeam		[SIZE_TEAM + 1];
 	char	szPhone		[SIZE_PHONE + 1];
-} INFO_t;
 
-typedef struct SELECTALL_s
+} SENDMSG_t;
+
+typedef struct RECVMSG_s //Server->Client
 {
-	int		nId;
-	char	szName		[SIZE_NAME + 1];
-} SELECTALL_t;
+	int		nType;
+	int		nResult;
+	char	szBuffer	[2048];
+} RECVMSG_t;
 
 int g_nFlag = FLAG_RUN;
-int g_nDB = 0;
-
-SELECTALL_t *g_ptSelectAll = NULL;
 
 #endif /*_TAP_MPLOG_INC_H_*/
