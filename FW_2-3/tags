@@ -1,0 +1,95 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.8	//
+CLIENT_INPUT_FAIL	TAP_Inc.h	/^	CLIENT_INPUT_FAIL = -2,	FGETS_FAIL = -3,$/;"	e	enum:__anon1
+CLIENT_PROCESS	TAP_Inc.h	25;"	d
+CheckIdExist	TAP_Server.c	/^int CheckIdExist( int nId ) $/;"	f
+ClearStdin	TAP_Client.c	/^void ClearStdin( char *pszTemp )$/;"	f
+DELETE	TAP_Inc.h	30;"	d
+Delete	TAP_Client.c	/^int Delete( struct REQUEST_s *ptRequest )$/;"	f
+Delete	TAP_Server.c	/^int Delete( struct REQUEST_s *ptRequest )$/;"	f
+EXENAME	Makefile	/^EXENAME=	svr$/;"	m
+FGETS_FAIL	TAP_Inc.h	/^	CLIENT_INPUT_FAIL = -2,	FGETS_FAIL = -3,$/;"	e	enum:__anon1
+FLAG_RUN	TAP_Inc.h	32;"	d
+FLAG_STOP	TAP_Inc.h	33;"	d
+FUNC_FAIL	TAP_Inc.h	/^	OVER_MAX_FAIL = -8,		FUNC_FAIL = -9,$/;"	e	enum:__anon1
+ID	TAP_Inc.h	44;"	d
+ID_EXIST	TAP_Inc.h	/^	ID_EXIST = 30,			ID_NOT_EXIST = 31,$/;"	e	enum:__anon1
+ID_NOT_EXIST	TAP_Inc.h	/^	ID_EXIST = 30,			ID_NOT_EXIST = 31,$/;"	e	enum:__anon1
+INPUT_FAIL	TAP_Inc.h	/^	NOT_EXIST = 0,			SUCCESS = 1,		INPUT_FAIL = 2,$/;"	e	enum:__anon1
+INSERT	TAP_Inc.h	27;"	d
+Insert	TAP_Client.c	/^int Insert( struct REQUEST_s *ptRequest )$/;"	f
+Insert	TAP_Server.c	/^int Insert( struct REQUEST_s *ptRequest )$/;"	f
+JOBTITLE	TAP_Inc.h	46;"	d
+ListFree	TAP_Server.c	/^static void ListFree( mpconf_list_t *ptSectList, mpconf_list_t *ptItemList, mpconf_list_t *ptValueList )$/;"	f	file:
+LogErr	TAP_Client.c	/^void LogErr( const char* pszFuncName, int nErrno )$/;"	f
+LogErr	TAP_Server.c	/^void LogErr( const char* pszFuncName, int nErrno )$/;"	f
+MAX_CNT_ID	TAP_Inc.h	41;"	d
+MCFLAGS	Makefile	/^MCFLAGS=-g -W -Wall$/;"	m
+MDEFS	Makefile	/^MDEFS=-D_USE_STAT -D_LOCAL_DB -D_HANGUP_ALARM$/;"	m
+MINCLUDES	Makefile	/^MINCLUDES=-I$(TELCOBASE_HOME)\/include$/;"	m
+MLDFLAGS	Makefile	/^MLDFLAGS=$/;"	m
+MLIBDIRS	Makefile	/^MLIBDIRS=-L$(TELCOBASE_HOME)\/lib $/;"	m
+MLIBS	Makefile	/^MLIBS= -ltelcobase -lmplib -ltap$/;"	m
+MPCONF_FAIL	TAP_Inc.h	/^	MPGLOG_FAIL = -6,		MPCONF_FAIL = -7,$/;"	e	enum:__anon1
+MPGLOG_FAIL	TAP_Inc.h	/^	MPGLOG_FAIL = -6,		MPCONF_FAIL = -7,$/;"	e	enum:__anon1
+NAME	TAP_Inc.h	45;"	d
+NOT_EXIST	TAP_Inc.h	/^	NOT_EXIST = 0,			SUCCESS = 1,		INPUT_FAIL = 2,$/;"	e	enum:__anon1
+NULL_FAIL	TAP_Inc.h	/^	TAP_FAIL = -4,			NULL_FAIL = -5,$/;"	e	enum:__anon1
+OVER_MAX_FAIL	TAP_Inc.h	/^	OVER_MAX_FAIL = -8,		FUNC_FAIL = -9,$/;"	e	enum:__anon1
+PHONE	TAP_Inc.h	48;"	d
+REQUEST_s	TAP_Inc.h	/^typedef struct REQUEST_s$/;"	s
+REQUEST_t	TAP_Inc.h	/^} REQUEST_t;$/;"	t	typeref:struct:REQUEST_s
+RESPONSE_s	TAP_Inc.h	/^typedef struct RESPONSE_s$/;"	s
+RESPONSE_t	TAP_Inc.h	/^} RESPONSE_t;$/;"	t	typeref:struct:RESPONSE_s
+ReturnCode_t	TAP_Inc.h	/^} ReturnCode_t;$/;"	t	typeref:enum:__anon1
+SELECT	TAP_Inc.h	28;"	d
+SELECT_ALL_s	TAP_Inc.h	/^typedef struct SELECT_ALL_s$/;"	s
+SELECT_ALL_t	TAP_Inc.h	/^} SELECT_ALL_t;$/;"	t	typeref:struct:SELECT_ALL_s
+SELECT_ONE_s	TAP_Inc.h	/^typedef struct SELECT_ONE_s$/;"	s
+SELECT_ONE_t	TAP_Inc.h	/^} SELECT_ONE_t;$/;"	t	typeref:struct:SELECT_ONE_s
+SERVER_PROCESS	TAP_Inc.h	24;"	d
+SIZE_ID	TAP_Inc.h	35;"	d
+SIZE_JOBTITLE	TAP_Inc.h	37;"	d
+SIZE_NAME	TAP_Inc.h	36;"	d
+SIZE_PHONE	TAP_Inc.h	39;"	d
+SIZE_TEAM	TAP_Inc.h	38;"	d
+SRCS	Makefile	/^SRCS=	TAP_Server.c$/;"	m
+SUCCESS	TAP_Inc.h	/^	NOT_EXIST = 0,			SUCCESS = 1,		INPUT_FAIL = 2,$/;"	e	enum:__anon1
+Select	TAP_Client.c	/^int Select( struct REQUEST_s *ptRequest )$/;"	f
+SelectAll	TAP_Server.c	/^int SelectAll( struct RESPONSE_s *ptResponse )$/;"	f
+SelectOne	TAP_Server.c	/^int SelectOne( struct REQUEST_s *ptRequest, struct RESPONSE_s *ptResponse )$/;"	f
+SetUniqueId	TAP_Server.c	/^int SetUniqueId( int *pnId )$/;"	f
+SignalHandler	TAP_Client.c	/^void SignalHandler( int nSig )$/;"	f
+SignalHandler	TAP_Server.c	/^void SignalHandler( int nSig )$/;"	f
+TABLE_NAME	TAP_Inc.h	43;"	d
+TAP_FAIL	TAP_Inc.h	/^	TAP_FAIL = -4,			NULL_FAIL = -5,$/;"	e	enum:__anon1
+TEAM	TAP_Inc.h	47;"	d
+UPDATE	TAP_Inc.h	29;"	d
+Update	TAP_Client.c	/^int Update( struct REQUEST_s *ptRequest )$/;"	f
+Update	TAP_Server.c	/^int Update( struct REQUEST_s *ptRequest )$/;"	f
+_TAP_INC_H_	TAP_Inc.h	4;"	d
+g_nFlag	TAP_Inc.h	/^int g_nFlag = FLAG_RUN;$/;"	v
+g_pszConfigPath	TAP_Inc.h	/^char *g_pszConfigPath = "\/home1\/sepp\/user\/dhkim\/FW_2-3\/TAP_Config.ini";$/;"	v
+main	TAP_Client.c	/^int main( int argc, char *argv[] )$/;"	f
+main	TAP_Server.c	/^int main( int argc, char *argv[] )$/;"	f
+nCntSelectAll	TAP_Inc.h	/^	int		nCntSelectAll;$/;"	m	struct:RESPONSE_s
+nId	TAP_Inc.h	/^	int		nId;$/;"	m	struct:REQUEST_s
+nId	TAP_Inc.h	/^	int		nId;$/;"	m	struct:RESPONSE_s
+nId	TAP_Inc.h	/^	int		nId;$/;"	m	struct:SELECT_ALL_s
+nMsgType	TAP_Inc.h	/^	int		nMsgType;$/;"	m	struct:REQUEST_s
+nMsgType	TAP_Inc.h	/^	int		nMsgType;$/;"	m	struct:RESPONSE_s
+nResult	TAP_Inc.h	/^	int		nResult;$/;"	m	struct:RESPONSE_s
+szBuffer	TAP_Inc.h	/^	char	szBuffer	[2048];$/;"	m	struct:RESPONSE_s
+szJobTitle	TAP_Inc.h	/^	char	szJobTitle	[SIZE_JOBTITLE + 1];$/;"	m	struct:REQUEST_s
+szJobTitle	TAP_Inc.h	/^	char	szJobTitle	[SIZE_JOBTITLE + 1];$/;"	m	struct:SELECT_ONE_s
+szName	TAP_Inc.h	/^	char	szName		[SIZE_NAME + 1];$/;"	m	struct:REQUEST_s
+szName	TAP_Inc.h	/^	char	szName		[SIZE_NAME + 1];$/;"	m	struct:SELECT_ALL_s
+szName	TAP_Inc.h	/^	char	szName		[SIZE_NAME + 1];$/;"	m	struct:SELECT_ONE_s
+szPhone	TAP_Inc.h	/^	char	szPhone		[SIZE_PHONE + 1];$/;"	m	struct:REQUEST_s
+szPhone	TAP_Inc.h	/^	char	szPhone		[SIZE_PHONE + 1];$/;"	m	struct:SELECT_ONE_s
+szTeam	TAP_Inc.h	/^	char	szTeam		[SIZE_TEAM + 1];$/;"	m	struct:REQUEST_s
+szTeam	TAP_Inc.h	/^	char	szTeam		[SIZE_TEAM + 1];$/;"	m	struct:SELECT_ONE_s

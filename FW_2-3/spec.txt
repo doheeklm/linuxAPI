@@ -1,0 +1,13 @@
+=============================================================================
+2-3. TAP2 - MPCONF
+=============================================================================
+학습 내용
+1. MPCONF 관련 API 학습
+- mpconf_get_int(), mpconf_get_str(), mpconf_get_octect()
+- mpconf_get_sect_list(), mpconf_get_item_list(), mpconf_get_value_list()
+- mpconf_set_int(), mpconf_set_str(), mpconf_set_octect(), mpconf_del_sect(), mpconf_del_item()
+============================================================================
+과제- 1
+1. 1-3 과제를 DB가 아니라 파일에 사용하도록 변경
+- 파일 I/O는 TAP configuration API를 사용하여 구현
+- 파일의 포맷은 설계하여 개발
