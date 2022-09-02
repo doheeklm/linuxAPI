@@ -20,7 +20,7 @@
 #include <TAP_Ipc.h>
 #include <mplog.h>
 
-#define SERVER_PROCESS	"MIPCSVR" //TAP IPC open시 사용하는 Process name
+#define SERVER_PROCESS	"MIPCSVR"
 #define CLIENT_PROCESS	"MIPCCLI"
 
 #define INSERT			"Insert"
@@ -35,7 +35,6 @@
 #define SIZE_JOBTITLE	32
 #define SIZE_TEAM		32
 #define SIZE_PHONE		13
-#define MAX_SELECT_ALL	20
 
 #define TABLE_NAME		"EmployeeInfos"
 #define ID				"id"
@@ -46,14 +45,15 @@
 
 typedef enum
 {
-	NOT_EXIST = 0, SUCCESS = 1, INPUT_FAIL = 2,
+	SUCCESS = 1, INPUT_FAIL = 2,
 	DAL_FAIL = -2, FGETS_FAIL = -3, TAP_FAIL = -4,
-	NULL_FAIL = -5, MPGLOG_FAIL = -6
+	NULL_FAIL = -5, MPGLOG_FAIL = -6,
+	ID_NOT_EXIST = -7, NAME_NOT_EXIST = -8
 } ReturnCode_t;
 
 typedef struct REQUEST_s
 {
-	int		nType;
+	int		nMsgType;
 	int		nId;
 	char	szName		[SIZE_NAME + 1];
 	char	szJobTitle	[SIZE_JOBTITLE + 1];
@@ -64,10 +64,11 @@ typedef struct REQUEST_s
 
 typedef struct RESPONSE_s
 {
-	int		nType;
+	int		nMsgType;
+	int		nId;
 	int		nResult;
-	int		nCnt;
 	char	szBuffer	[2048];
+	int		nCntSelectAll;
 } RESPONSE_t;
 
 typedef struct SELECT_ALL_s
@@ -78,7 +79,6 @@ typedef struct SELECT_ALL_s
 
 typedef struct SELECT_ONE_s
 {
-	int		nId;
 	char	szName		[SIZE_NAME + 1];
 	char	szJobTitle	[SIZE_JOBTITLE + 1];
 	char	szTeam		[SIZE_TEAM + 1];

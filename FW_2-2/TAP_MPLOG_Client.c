@@ -3,12 +3,12 @@
 
 void SignalHandler( int nSig );
 void ClearStdin( char *pszTemp );
+void LogErr		( const char* pszFuncName, int nErrno );
 
 int	Insert		( struct REQUEST_s *ptRequest );
 int Select		( struct REQUEST_s *ptRequest );
 int Update		( struct REQUEST_s *ptRequest );
 int Delete		( struct REQUEST_s *ptRequest );
-void LOG_ERROR	( const char* pszFuncName, int nError );
 
 int main( int argc, char *argv[] )
 {
@@ -23,44 +23,48 @@ int main( int argc, char *argv[] )
 	REQUEST_t *ptRequest = NULL;
 	RESPONSE_t *ptResponse = NULL;
 	
-	iipc_msg_t tSendMsg;
-	iipc_msg_t tRecvMsg;
-
-	iipc_ds_t	tIpc;
-	iipc_key_t	tSrcKey;
-	iipc_key_t	tDstKey;
-
+	int i = 0;
 	int nRet = 0;
 	int nPickMenu = 0;
 	char szPickMenu[8];
 	char *pszRet = NULL;
 
+	iipc_ds_t	tIpc;
+	iipc_key_t	tSrcKey;
+	iipc_key_t	tDstKey;
+	iipc_msg_t tSendMsg;
+	iipc_msg_t tRecvMsg;
+	
+	/*
+	 *	MPLOG
+	 */
 	nRet = MPGLOG_INIT( CLIENT_PROCESS, NULL,
-			LOG_MODE_DAILY |
-			LOG_MODE_NO_DATE |
-			LOG_MODE_LEVEL_TAG,
-			LOG_LEVEL_SVC );
+			LOG_MODE_DAILY | LOG_MODE_NO_DATE | LOG_MODE_LEVEL_TAG,
+			LOG_LEVEL_DBG );
 	if ( 0 > nRet )
 	{
 		printf( "MPGLOG_INIT() error\n" );
 		return MPGLOG_FAIL;
 	}	
 
+	/*
+	 *	TAP_IPC
+	 */
 	nRet = TAP_ipc_open( &tIpc, CLIENT_PROCESS );
 	if ( 0 > nRet )
 	{
-		LOG_ERROR( __func__, ipc_errno );
+		LogErr( __func__, ipc_errno );
 		return TAP_FAIL;
 	}	
 
 	tDstKey = TAP_ipc_getkey( &tIpc, SERVER_PROCESS );
 	if ( IPC_NOPROC == tDstKey )
 	{
-		LOG_ERROR( __func__, ipc_errno );
+		LogErr( __func__, ipc_errno );
 		nRet = TAP_ipc_close( &tIpc );
 		if ( 0 > nRet )
 		{
-			LOG_ERROR( __func__, ipc_errno );
+			LogErr( __func__, ipc_errno );
 		}
 		return TAP_FAIL;
 	}
@@ -68,20 +72,24 @@ int main( int argc, char *argv[] )
 	tSrcKey = TAP_ipc_getkey( &tIpc, CLIENT_PROCESS );
 	if ( IPC_NOPROC == tSrcKey )
 	{
-		LOG_ERROR( __func__, ipc_errno );
+		LogErr( __func__, ipc_errno );
 		nRet = TAP_ipc_close( &tIpc );
 		if ( 0 > nRet )
 		{
-			LOG_ERROR( __func__, ipc_errno );
+			LogErr( __func__, ipc_errno );
 		}
 		return TAP_FAIL;
 	}
 
+	/*
+	 *	Run Program (Client)
+	 */
 	while ( FLAG_RUN == g_nFlag )
 	{
 		nRet = 0;
 		pszRet = NULL;
 		nPickMenu = 0;
+
 		memset( szPickMenu, 0x00, sizeof(szPickMenu) );
 		memset( &tSendMsg, 0x00, sizeof(iipc_msg_t) );
 		memset( &tRecvMsg, 0x00, sizeof(iipc_msg_t) );
@@ -100,13 +108,21 @@ int main( int argc, char *argv[] )
 			pszRet = fgets( szPickMenu, sizeof(szPickMenu), stdin );
 			if ( NULL == pszRet )
 			{
-				LOG_ERROR( __func__, dalErrno() );	
+				LogErr( __func__, dalErrno() );	
 				return FGETS_FAIL;
 			}
 			ClearStdin( szPickMenu );
 
 			nPickMenu = atoi( szPickMenu );
 		} while ( nPickMenu < 1 || nPickMenu > 5);
+
+		tSendMsg.u.h.src = tSrcKey;
+		tSendMsg.u.h.dst = tDstKey;
+		tSendMsg.u.h.len = sizeof(struct REQUEST_s);
+		
+		tRecvMsg.u.h.src = tSrcKey;
+		tRecvMsg.u.h.dst = tDstKey;
+		tRecvMsg.u.h.len = sizeof(struct RESPONSE_s);
 
 		ptRequest = (REQUEST_t *)tSendMsg.buf.msgq_buf;	
 
@@ -119,6 +135,10 @@ int main( int argc, char *argv[] )
 				{
 					goto end_of_function;
 				}
+
+				MPGLOG_SVC( "[SEND] MsgType: %d | Name: %s | JobTitle: %s | Team: %s | Phone: %s",
+						ptRequest->nMsgType, ptRequest->szName,
+						ptRequest->szJobTitle, ptRequest->szTeam, ptRequest->szPhone );
 			}
 				break;
 			case 2:
@@ -128,6 +148,11 @@ int main( int argc, char *argv[] )
 				{	
 					goto end_of_function;
 				}
+
+				if ( ptRequest->nMsgType == 2 )
+					MPGLOG_SVC( "[SEND] MsgType: %d", ptRequest->nMsgType );
+				else if ( ptRequest->nMsgType == 3 )	
+					MPGLOG_SVC( "[SEND] MsgType: %d | Id: %d", ptRequest->nMsgType, ptRequest->nId );
 			}
 				break;
 			case 3:
@@ -137,6 +162,10 @@ int main( int argc, char *argv[] )
 				{
 					goto end_of_function;
 				}
+
+				MPGLOG_SVC( "[SEND] MsgType: %d | Id: %d | Name: %s | JobTitle: %s | Team: %s | Phone: %s",
+						ptRequest->nMsgType, ptRequest->nId, ptRequest->szName,
+						ptRequest->szJobTitle, ptRequest->szTeam, ptRequest->szPhone ); 
 			}
 				break;
 			case 4:
@@ -146,6 +175,8 @@ int main( int argc, char *argv[] )
 				{
 					goto end_of_function;
 				}
+
+				MPGLOG_SVC( "[SEND] MsgType: %d | Id: %d", ptRequest->nMsgType, ptRequest->nId );
 			}
 				break;
 			case 5:
@@ -156,18 +187,7 @@ int main( int argc, char *argv[] )
 				break;
 			default:
 				break;
-		} //switch
-
-		tSendMsg.u.h.src = tSrcKey;
-		tSendMsg.u.h.dst = tDstKey;
-		tSendMsg.u.h.len = sizeof(struct REQUEST_s);
-
-		MPGLOG_SVC( "[Send Msg to Server] Type: %d | Id: %d | "
-				"Name: %s | JobTitle: %s | "
-				"Team: %s | Phone: %s",
-				ptRequest->nType, ptRequest->nId,
-				ptRequest->szName, ptRequest->szJobTitle,
-				ptRequest->szTeam, ptRequest->szPhone );
+		}
 
 		/*
 		 *	Send Message
@@ -175,11 +195,11 @@ int main( int argc, char *argv[] )
 		nRet = TAP_ipc_msgsnd( &tIpc, &tSendMsg, IPC_BLOCK );
 		if ( 0 > nRet )
 		{
-			LOG_ERROR( __func__, ipc_errno );
+			LogErr( __func__, ipc_errno );
 			nRet = TAP_ipc_close( &tIpc );
 			if ( 0 > nRet )
 			{
-				LOG_ERROR( __func__, ipc_errno );
+				LogErr( __func__, ipc_errno );
 			}
 			return TAP_FAIL;
 		}
@@ -190,56 +210,67 @@ int main( int argc, char *argv[] )
 		nRet = TAP_ipc_msgrcv( &tIpc, &tRecvMsg, IPC_BLOCK );
 		if ( 0 > nRet )
 		{
-			LOG_ERROR( __func__, ipc_errno );
+			LogErr( __func__, ipc_errno );
 			nRet = TAP_ipc_close( &tIpc );
 			if ( 0 > nRet )
 			{
-				LOG_ERROR( __func__, ipc_errno );
+				LogErr( __func__, ipc_errno );
 			}
 			return TAP_FAIL;
 		}
 
 		ptResponse = (RESPONSE_t *)tRecvMsg.buf.msgq_buf;	
+	
+		if ( ptResponse->nMsgType == 2 )
+			MPGLOG_SVC( "[RECV] MsgType: %d | Result: %d | CntSelectAll: %d", ptResponse->nMsgType, ptResponse->nResult, ptResponse->nCntSelectAll );
+		else
+			MPGLOG_SVC( "[RECV] MsgType: %d | Id: %d | Result: %d", ptResponse->nMsgType, ptResponse->nId, ptResponse->nResult );
 		
-		MPGLOG_SVC( "[Recv Msg from Server] Type: %d | Result: %d",
-					ptResponse->nType, ptResponse->nResult );
-
-		//TODO 매핑
-		//memcpy struct->char array
-
-		SELECT_ALL_t tSelectAll;
-		memset( &tSelectAll, 0x00, sizeof(tSelectAll) );
-
-		switch ( ptResponse->nType )
-		{
-			case 1:
-			case 4:
-			case 5:
-				break;
-			case 2: //SELECTALL
+		if ( ptResponse->nResult == 1 )
+		{	
+			if ( ptResponse->nMsgType == 2 )
 			{
-				printf( "Select All\n" );
-				memcpy( &tSelectAll, ptResponse->szBuffer, sizeof(tSelectAll) );
-				printf( "Id: %d\n", tSelectAll.nId );
-			}
-				break;
-			case 3: //SELECTONE
-				break;
-			default:
-				break;
-		}
+				/* Select All */	
+				for ( i = 0; i < ptResponse->nCntSelectAll; i++ )
+				{
+					SELECT_ALL_t tSelectAll;
 
-	} //while
+					memcpy( &tSelectAll, ptResponse->szBuffer + ( i * sizeof(tSelectAll) ), sizeof(tSelectAll) );
+
+					MPGLOG_SVC( "[%d]\n%s=%s\n", tSelectAll.nId, NAME, tSelectAll.szName );
+				}	
+			}
+			else if ( ptResponse->nMsgType == 3 )
+			{
+				/* Select One */
+				SELECT_ONE_t *ptSelectOne = NULL;
+
+				ptSelectOne = (SELECT_ONE_t *)ptResponse->szBuffer;
+
+				MPGLOG_SVC( "[%d]\n%s=%s\n%s=%s\n%s=%s",
+						ptResponse->nId,
+						JOBTITLE, ptSelectOne->szJobTitle,
+						TEAM, ptSelectOne->szTeam,
+						PHONE, ptSelectOne->szPhone );
+			}
+		}
+	}
 
 end_of_function:
 	nRet = TAP_ipc_close( &tIpc );
 	if ( 0 > nRet )
 	{
-		LOG_ERROR( __func__, ipc_errno );
+		LogErr( __func__, ipc_errno );
 		return TAP_FAIL;
 	}
 
 	return 0;
+}
+
+void LogErr( const char* pszFuncName, int nErrno )
+{
+	MPGLOG_ERR( "%s:: errno[%d]\n", pszFuncName, nErrno );
+	return;
 }
 
 void SignalHandler( int nSig )
@@ -277,14 +308,14 @@ int Insert( struct REQUEST_s *ptRequest )
 	
 	char *pszRet = NULL;
 
-	ptRequest->nType = 1;
+	ptRequest->nMsgType = 1;
 
 	printf( "[%s] Name: ", __func__ );
 
 	pszRet = fgets( ptRequest->szName, sizeof(ptRequest->szName), stdin );
 	if ( NULL == pszRet )
 	{
-		LOG_ERROR( __func__, dalErrno() );
+		LogErr( __func__, dalErrno() );
 		return FGETS_FAIL;
 	}
 	ClearStdin( ptRequest->szName );
@@ -293,7 +324,7 @@ int Insert( struct REQUEST_s *ptRequest )
 	pszRet = fgets( ptRequest->szJobTitle, sizeof(ptRequest->szJobTitle), stdin );
 	if ( NULL == pszRet )
 	{
-		LOG_ERROR( __func__, dalErrno() );
+		LogErr( __func__, dalErrno() );
 		return FGETS_FAIL;
 	}
 	ClearStdin( ptRequest->szJobTitle );
@@ -302,7 +333,7 @@ int Insert( struct REQUEST_s *ptRequest )
 	pszRet = fgets( ptRequest->szTeam, sizeof(ptRequest->szTeam), stdin );
 	if ( NULL == pszRet )
 	{
-		LOG_ERROR( __func__, dalErrno() );
+		LogErr( __func__, dalErrno() );
 		return FGETS_FAIL;
 	}
 	ClearStdin( ptRequest->szTeam );
@@ -311,7 +342,7 @@ int Insert( struct REQUEST_s *ptRequest )
 	pszRet = fgets( ptRequest->szPhone, sizeof(ptRequest->szPhone), stdin );
 	if ( NULL == pszRet )
 	{
-		LOG_ERROR( __func__, dalErrno() );
+		LogErr( __func__, dalErrno() );
 		return FGETS_FAIL;
 	}
 	ClearStdin( ptRequest->szPhone );
@@ -350,7 +381,7 @@ int Select( struct REQUEST_s *ptRequest )
 		pszRet = fgets( szPickSelect, sizeof(szPickSelect), stdin );
 		if ( NULL == pszRet )
 		{
-			LOG_ERROR( __func__, dalErrno() );
+			LogErr( __func__, dalErrno() );
 			return FGETS_FAIL;
 		}
 		ClearStdin( szPickSelect );
@@ -363,19 +394,19 @@ int Select( struct REQUEST_s *ptRequest )
 	{
 		case 1:
 		{
-			ptRequest->nType = 2;
+			ptRequest->nMsgType = 2;
 		}
 			break;
 		case 2:
 		{
-			ptRequest->nType = 3;
+			ptRequest->nMsgType = 3;
 
 			printf( "[%s] Input ID: ", __func__ );
 			
 			pszRet = fgets( szInputId, sizeof(szInputId), stdin );
 			if ( NULL == pszRet )
 			{
-				LOG_ERROR( __func__, dalErrno() );
+				LogErr( __func__, dalErrno() );
 				return FGETS_FAIL;
 			}
 			ClearStdin( szInputId );
@@ -387,7 +418,7 @@ int Select( struct REQUEST_s *ptRequest )
 				pszRet = fgets( szInputName, sizeof(szInputName), stdin );
 				if ( NULL == pszRet )
 				{
-					LOG_ERROR( __func__, dalErrno() );
+					LogErr( __func__, dalErrno() );
 					return FGETS_FAIL;
 				}
 				ClearStdin( szInputName );
@@ -434,13 +465,13 @@ int Update( struct REQUEST_s *ptRequest )
 	char szInput[32];
 	memset( szInput, 0x00, sizeof(szInput) );
 
-	ptRequest->nType = 4;
+	ptRequest->nMsgType = 4;
 
 	printf( "[%s] Input ID: ", __func__ );
 	pszRet = fgets( szInput, sizeof(szInput), stdin );
 	if ( NULL == pszRet )
 	{
-		LOG_ERROR( __func__, dalErrno() );
+		LogErr( __func__, dalErrno() );
 		return FGETS_FAIL;
 	}
 	ClearStdin( szInput );
@@ -458,7 +489,7 @@ int Update( struct REQUEST_s *ptRequest )
 	pszRet = fgets( ptRequest->szJobTitle, sizeof(ptRequest->szJobTitle), stdin );
 	if ( NULL == pszRet )
 	{
-		LOG_ERROR( __func__, dalErrno() );
+		LogErr( __func__, dalErrno() );
 		return FGETS_FAIL;
 	}
 	ClearStdin( ptRequest->szJobTitle );
@@ -467,7 +498,7 @@ int Update( struct REQUEST_s *ptRequest )
 	pszRet = fgets( ptRequest->szTeam, sizeof(ptRequest->szTeam), stdin );
 	if ( NULL == pszRet )
 	{
-		LOG_ERROR( __func__, dalErrno() );
+		LogErr( __func__, dalErrno() );
 		return FGETS_FAIL;
 	}
 	ClearStdin( ptRequest->szTeam );
@@ -476,7 +507,7 @@ int Update( struct REQUEST_s *ptRequest )
 	pszRet = fgets( ptRequest->szPhone, sizeof(ptRequest->szPhone), stdin );
 	if ( NULL == pszRet )
 	{
-		LOG_ERROR( __func__, dalErrno() );
+		LogErr( __func__, dalErrno() );
 		return FGETS_FAIL;
 	}
 	ClearStdin( ptRequest->szPhone );
@@ -495,13 +526,13 @@ int Delete( struct REQUEST_s *ptRequest )
 	char szInput[32];
 	memset( szInput, 0x00, sizeof(szInput) );
 
-	ptRequest->nType = 5;
+	ptRequest->nMsgType = 5;
 
 	printf( "[%s] Input ID: ", __func__ );
 	pszRet = fgets( szInput, sizeof(szInput), stdin );
 	if ( NULL == pszRet )
 	{
-		LOG_ERROR( __func__, dalErrno() );
+		LogErr( __func__, dalErrno() );
 		return FGETS_FAIL;
 	}
 	ClearStdin( szInput );
@@ -516,10 +547,4 @@ int Delete( struct REQUEST_s *ptRequest )
 	}	
 
 	return SUCCESS;
-}
-
-void LOG_ERROR( const char* pszFuncName, int nError )
-{
-	MPGLOG_ERR( "%s errno[%d]\n", pszFuncName, nError );
-	return;
 }

@@ -16,27 +16,27 @@ FGETS_FAIL	TAP_MPLOG_Inc.h	/^	DAL_FAIL = -2, FGETS_FAIL = -3, TAP_FAIL = -4,$/;"
 FLAG_RUN	TAP_MPLOG_Inc.h	31;"	d
 FLAG_STOP	TAP_MPLOG_Inc.h	32;"	d
 GetOriginalData	TAP_MPLOG_Server.c	/^int GetOriginalData( int nId, char *pszAttribute, char *pszOriginal, int nSize )$/;"	f
-ID	TAP_MPLOG_Inc.h	41;"	d
-INPUT_FAIL	TAP_MPLOG_Inc.h	/^	NOT_EXIST = 0, SUCCESS = 1, INPUT_FAIL = 2,$/;"	e	enum:__anon1
+ID	TAP_MPLOG_Inc.h	40;"	d
+ID_NOT_EXIST	TAP_MPLOG_Inc.h	/^	ID_NOT_EXIST = -7, NAME_NOT_EXIST = -8$/;"	e	enum:__anon1
+INPUT_FAIL	TAP_MPLOG_Inc.h	/^	SUCCESS = 1, INPUT_FAIL = 2,$/;"	e	enum:__anon1
 INSERT	TAP_MPLOG_Inc.h	26;"	d
 InitPreparedStatement	TAP_MPLOG_Server.c	/^int InitPreparedStatement()$/;"	f
 Insert	TAP_MPLOG_Client.c	/^int Insert( struct REQUEST_s *ptRequest )$/;"	f
 Insert	TAP_MPLOG_Server.c	/^int Insert( struct REQUEST_s *ptRequest )$/;"	f
-JOBTITLE	TAP_MPLOG_Inc.h	43;"	d
-LOG_ERROR	TAP_MPLOG_Client.c	/^void LOG_ERROR( const char* pszFuncName, int nError )$/;"	f
-LOG_ERROR	TAP_MPLOG_Server.c	/^void LOG_ERROR( const char* pszFuncName, int nError )$/;"	f
-MAX_SELECT_ALL	TAP_MPLOG_Inc.h	38;"	d
+JOBTITLE	TAP_MPLOG_Inc.h	42;"	d
+LogErr	TAP_MPLOG_Client.c	/^void LogErr( const char* pszFuncName, int nErrno )$/;"	f
+LogErr	TAP_MPLOG_Server.c	/^void LogErr( const char* pszFuncName, int nError )$/;"	f
 MCFLAGS	Makefile	/^MCFLAGS=-g -W -Wall$/;"	m
 MDEFS	Makefile	/^MDEFS=-D_USE_STAT -D_LOCAL_DB -D_HANGUP_ALARM$/;"	m
 MINCLUDES	Makefile	/^MINCLUDES=-I$(TELCOBASE_HOME)\/include$/;"	m
 MLDFLAGS	Makefile	/^MLDFLAGS=$/;"	m
 MLIBDIRS	Makefile	/^MLIBDIRS=-L$(TELCOBASE_HOME)\/lib $/;"	m
 MLIBS	Makefile	/^MLIBS= -ltelcobase -lmplib -ltap$/;"	m
-MPGLOG_FAIL	TAP_MPLOG_Inc.h	/^	NULL_FAIL = -5, MPGLOG_FAIL = -6$/;"	e	enum:__anon1
-NAME	TAP_MPLOG_Inc.h	42;"	d
-NOT_EXIST	TAP_MPLOG_Inc.h	/^	NOT_EXIST = 0, SUCCESS = 1, INPUT_FAIL = 2,$/;"	e	enum:__anon1
-NULL_FAIL	TAP_MPLOG_Inc.h	/^	NULL_FAIL = -5, MPGLOG_FAIL = -6$/;"	e	enum:__anon1
-PHONE	TAP_MPLOG_Inc.h	45;"	d
+MPGLOG_FAIL	TAP_MPLOG_Inc.h	/^	NULL_FAIL = -5, MPGLOG_FAIL = -6,$/;"	e	enum:__anon1
+NAME	TAP_MPLOG_Inc.h	41;"	d
+NAME_NOT_EXIST	TAP_MPLOG_Inc.h	/^	ID_NOT_EXIST = -7, NAME_NOT_EXIST = -8$/;"	e	enum:__anon1
+NULL_FAIL	TAP_MPLOG_Inc.h	/^	NULL_FAIL = -5, MPGLOG_FAIL = -6,$/;"	e	enum:__anon1
+PHONE	TAP_MPLOG_Inc.h	44;"	d
 REQUEST_s	TAP_MPLOG_Inc.h	/^typedef struct REQUEST_s$/;"	s
 REQUEST_t	TAP_MPLOG_Inc.h	/^} REQUEST_t;$/;"	t	typeref:struct:REQUEST_s
 RESPONSE_s	TAP_MPLOG_Inc.h	/^typedef struct RESPONSE_s$/;"	s
@@ -53,15 +53,15 @@ SIZE_NAME	TAP_MPLOG_Inc.h	34;"	d
 SIZE_PHONE	TAP_MPLOG_Inc.h	37;"	d
 SIZE_TEAM	TAP_MPLOG_Inc.h	36;"	d
 SRCS	Makefile	/^SRCS=	TAP_MPLOG_Server.c$/;"	m
-SUCCESS	TAP_MPLOG_Inc.h	/^	NOT_EXIST = 0, SUCCESS = 1, INPUT_FAIL = 2,$/;"	e	enum:__anon1
+SUCCESS	TAP_MPLOG_Inc.h	/^	SUCCESS = 1, INPUT_FAIL = 2,$/;"	e	enum:__anon1
 Select	TAP_MPLOG_Client.c	/^int Select( struct REQUEST_s *ptRequest )$/;"	f
-SelectAll	TAP_MPLOG_Server.c	/^int SelectAll( char* pszBuf )\/\/, int nBufSize )$/;"	f
-SelectOne	TAP_MPLOG_Server.c	/^int SelectOne( struct REQUEST_s *ptRequest, char* pszBuf, int nBufSize )$/;"	f
+SelectAll	TAP_MPLOG_Server.c	/^int SelectAll( struct RESPONSE_s *ptResponse )$/;"	f
+SelectOne	TAP_MPLOG_Server.c	/^int SelectOne( struct REQUEST_s *ptRequest, struct RESPONSE_s *ptResponse )$/;"	f
 SignalHandler	TAP_MPLOG_Client.c	/^void SignalHandler( int nSig )$/;"	f
 SignalHandler	TAP_MPLOG_Server.c	/^void SignalHandler( int nSig )$/;"	f
-TABLE_NAME	TAP_MPLOG_Inc.h	40;"	d
+TABLE_NAME	TAP_MPLOG_Inc.h	39;"	d
 TAP_FAIL	TAP_MPLOG_Inc.h	/^	DAL_FAIL = -2, FGETS_FAIL = -3, TAP_FAIL = -4,$/;"	e	enum:__anon1
-TEAM	TAP_MPLOG_Inc.h	44;"	d
+TEAM	TAP_MPLOG_Inc.h	43;"	d
 UPDATE	TAP_MPLOG_Inc.h	28;"	d
 Update	TAP_MPLOG_Client.c	/^int Update( struct REQUEST_s *ptRequest )$/;"	f
 Update	TAP_MPLOG_Server.c	/^int Update( struct REQUEST_s *ptRequest )$/;"	f
@@ -76,13 +76,13 @@ g_ptPstmtSelectOneByName	TAP_MPLOG_Server.c	/^DAL_PSTMT	*g_ptPstmtSelectOneByNam
 g_ptPstmtUpdate	TAP_MPLOG_Server.c	/^DAL_PSTMT	*g_ptPstmtUpdate = NULL;$/;"	v
 main	TAP_MPLOG_Client.c	/^int main( int argc, char *argv[] )$/;"	f
 main	TAP_MPLOG_Server.c	/^int main( int argc, char *argv[] )$/;"	f
-nCnt	TAP_MPLOG_Inc.h	/^	int		nCnt;$/;"	m	struct:RESPONSE_s
+nCntSelectAll	TAP_MPLOG_Inc.h	/^	int		nCntSelectAll;$/;"	m	struct:RESPONSE_s
 nId	TAP_MPLOG_Inc.h	/^	int		nId;$/;"	m	struct:REQUEST_s
+nId	TAP_MPLOG_Inc.h	/^	int		nId;$/;"	m	struct:RESPONSE_s
 nId	TAP_MPLOG_Inc.h	/^	int		nId;$/;"	m	struct:SELECT_ALL_s
-nId	TAP_MPLOG_Inc.h	/^	int		nId;$/;"	m	struct:SELECT_ONE_s
+nMsgType	TAP_MPLOG_Inc.h	/^	int		nMsgType;$/;"	m	struct:REQUEST_s
+nMsgType	TAP_MPLOG_Inc.h	/^	int		nMsgType;$/;"	m	struct:RESPONSE_s
 nResult	TAP_MPLOG_Inc.h	/^	int		nResult;$/;"	m	struct:RESPONSE_s
-nType	TAP_MPLOG_Inc.h	/^	int		nType;$/;"	m	struct:REQUEST_s
-nType	TAP_MPLOG_Inc.h	/^	int		nType;$/;"	m	struct:RESPONSE_s
 szBuffer	TAP_MPLOG_Inc.h	/^	char	szBuffer	[2048];$/;"	m	struct:RESPONSE_s
 szJobTitle	TAP_MPLOG_Inc.h	/^	char	szJobTitle	[SIZE_JOBTITLE + 1];$/;"	m	struct:REQUEST_s
 szJobTitle	TAP_MPLOG_Inc.h	/^	char	szJobTitle	[SIZE_JOBTITLE + 1];$/;"	m	struct:SELECT_ONE_s
