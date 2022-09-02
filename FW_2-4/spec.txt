@@ -1,0 +1,10 @@
+=============================================================================
+2-4. TAP2 - MPTMR
+=============================================================================
+학습 내용
+1. MPTMR 관련 API 학습
+- mptmr_init(), mptmr_set_svc_flag(), mptmr_start(), mptmr_stop(), mptmr_destroy()
+- mptmr_new_tmr_id(), mptmr_insert(), mptmr_insert_ontime(), mptmr_insert_abstime(), mptmr_cancel(), mptmr_cancel_all()
+============================================================================
+과제- 1
+1. 2-1 과제의 DB operation 프로그램에 10초 마다 직원의 수를 출력하도록 기능 추가

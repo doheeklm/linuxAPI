@@ -1,14 +1,14 @@
 /* TAP_Client.c */
 #include "TAP_Inc.h"
 
-void SignalHandler	( int nSig );
-void ClearStdin		( char *pszTemp );
-void LogErr			( const char* pszFuncName, int nErrno );
+void SignalHandler( int nSig );
+void ClearStdin( char *pszTemp );
+void LogErr		( const char* pszFuncName, int nErrno );
 
-int	Insert			( struct REQUEST_s *ptRequest );
-int Select			( struct REQUEST_s *ptRequest );
-int Update			( struct REQUEST_s *ptRequest );
-int Delete			( struct REQUEST_s *ptRequest );
+int	Insert		( struct REQUEST_s *ptRequest );
+int Select		( struct REQUEST_s *ptRequest );
+int Update		( struct REQUEST_s *ptRequest );
+int Delete		( struct REQUEST_s *ptRequest );
 
 int main( int argc, char *argv[] )
 {
@@ -22,8 +22,8 @@ int main( int argc, char *argv[] )
 
 	REQUEST_t *ptRequest = NULL;
 	RESPONSE_t *ptResponse = NULL;
-
-	int i = 0;	
+	
+	int i = 0;
 	int nRet = 0;
 	int nPickMenu = 0;
 	char szPickMenu[8];
@@ -32,9 +32,9 @@ int main( int argc, char *argv[] )
 	iipc_ds_t	tIpc;
 	iipc_key_t	tSrcKey;
 	iipc_key_t	tDstKey;
-	iipc_msg_t	tSendMsg;
-	iipc_msg_t	tRecvMsg;
-
+	iipc_msg_t tSendMsg;
+	iipc_msg_t tRecvMsg;
+	
 	/*
 	 *	MPLOG
 	 */
@@ -108,7 +108,7 @@ int main( int argc, char *argv[] )
 			pszRet = fgets( szPickMenu, sizeof(szPickMenu), stdin );
 			if ( NULL == pszRet )
 			{
-				LogErr( __func__, errno );
+				LogErr( __func__, dalErrno() );	
 				return FGETS_FAIL;
 			}
 			ClearStdin( szPickMenu );
@@ -125,7 +125,7 @@ int main( int argc, char *argv[] )
 		tRecvMsg.u.h.len = sizeof(struct RESPONSE_s);
 
 		ptRequest = (REQUEST_t *)tSendMsg.buf.msgq_buf;	
-		
+
 		switch ( nPickMenu )
 		{
 			case 1:
@@ -203,7 +203,7 @@ int main( int argc, char *argv[] )
 			}
 			return TAP_FAIL;
 		}
-
+	
 		/*
 		 *	Receive Message
 		 */
@@ -220,7 +220,7 @@ int main( int argc, char *argv[] )
 		}
 
 		ptResponse = (RESPONSE_t *)tRecvMsg.buf.msgq_buf;	
-
+	
 		if ( ptResponse->nMsgType == 2 )
 			MPGLOG_SVC( "[RECV] MsgType: %d | Result: %d | CntSelectAll: %d", ptResponse->nMsgType, ptResponse->nResult, ptResponse->nCntSelectAll );
 		else
@@ -247,8 +247,8 @@ int main( int argc, char *argv[] )
 
 				ptSelectOne = (SELECT_ONE_t *)ptResponse->szBuffer;
 
-				MPGLOG_SVC( "[%d]\n%s=%s\n%s=%s\n%s=%s\n%s=%s",
-						ptResponse->nId, NAME, ptSelectOne->szName,
+				MPGLOG_SVC( "[%d]\n%s=%s\n%s=%s\n%s=%s",
+						ptResponse->nId,
 						JOBTITLE, ptSelectOne->szJobTitle,
 						TEAM, ptSelectOne->szTeam,
 						PHONE, ptSelectOne->szPhone );
@@ -305,16 +305,17 @@ int Insert( struct REQUEST_s *ptRequest )
 	{
 		memset( ptRequest, 0x00, sizeof(struct REQUEST_s) );
 	}
-
-	char *pszRet = NULL;	
+	
+	char *pszRet = NULL;
 
 	ptRequest->nMsgType = 1;
 
 	printf( "[%s] Name: ", __func__ );
+
 	pszRet = fgets( ptRequest->szName, sizeof(ptRequest->szName), stdin );
 	if ( NULL == pszRet )
 	{
-		LogErr( __func__, errno );
+		LogErr( __func__, dalErrno() );
 		return FGETS_FAIL;
 	}
 	ClearStdin( ptRequest->szName );
@@ -323,7 +324,7 @@ int Insert( struct REQUEST_s *ptRequest )
 	pszRet = fgets( ptRequest->szJobTitle, sizeof(ptRequest->szJobTitle), stdin );
 	if ( NULL == pszRet )
 	{
-		LogErr( __func__, errno );
+		LogErr( __func__, dalErrno() );
 		return FGETS_FAIL;
 	}
 	ClearStdin( ptRequest->szJobTitle );
@@ -332,7 +333,7 @@ int Insert( struct REQUEST_s *ptRequest )
 	pszRet = fgets( ptRequest->szTeam, sizeof(ptRequest->szTeam), stdin );
 	if ( NULL == pszRet )
 	{
-		LogErr( __func__, errno );
+		LogErr( __func__, dalErrno() );
 		return FGETS_FAIL;
 	}
 	ClearStdin( ptRequest->szTeam );
@@ -341,14 +342,11 @@ int Insert( struct REQUEST_s *ptRequest )
 	pszRet = fgets( ptRequest->szPhone, sizeof(ptRequest->szPhone), stdin );
 	if ( NULL == pszRet )
 	{
-		LogErr( __func__, errno );
+		LogErr( __func__, dalErrno() );
 		return FGETS_FAIL;
 	}
 	ClearStdin( ptRequest->szPhone );
-
-	MPGLOG_DBG( "%d|%d|%s|%s|%s|%s", ptRequest->nMsgType, ptRequest->nId,
-		ptRequest->szName, ptRequest->szJobTitle, ptRequest->szTeam, ptRequest->szPhone );	
-
+	
 	return SUCCESS;
 }
 
@@ -383,7 +381,7 @@ int Select( struct REQUEST_s *ptRequest )
 		pszRet = fgets( szPickSelect, sizeof(szPickSelect), stdin );
 		if ( NULL == pszRet )
 		{
-			LogErr( __func__, errno );
+			LogErr( __func__, dalErrno() );
 			return FGETS_FAIL;
 		}
 		ClearStdin( szPickSelect );
@@ -403,27 +401,49 @@ int Select( struct REQUEST_s *ptRequest )
 		{
 			ptRequest->nMsgType = 3;
 
-			do
+			printf( "[%s] Input ID: ", __func__ );
+			
+			pszRet = fgets( szInputId, sizeof(szInputId), stdin );
+			if ( NULL == pszRet )
 			{
-				printf( "[%s] Input ID: ", __func__ );
+				LogErr( __func__, dalErrno() );
+				return FGETS_FAIL;
+			}
+			ClearStdin( szInputId );
 
-				pszRet = fgets( szInputId, sizeof(szInputId), stdin );
+			if ( strlen(szInputId) == 0 )
+			{
+				printf( "[%s] Input Name: ", __func__ );
+
+				pszRet = fgets( szInputName, sizeof(szInputName), stdin );
 				if ( NULL == pszRet )
 				{
-					LogErr( __func__, errno );
+					LogErr( __func__, dalErrno() );
 					return FGETS_FAIL;
 				}
-				ClearStdin( szInputId );
-			} while ( strlen( szInputId ) == 0 );
+				ClearStdin( szInputName );
 
-			if ( atoi(szInputId) > 0 )
-			{
-				ptRequest->nId = atoi(szInputId);
-				return SUCCESS;
+				if ( strlen(szInputName) == 0 )
+				{
+					return INPUT_FAIL;
+				}
+				else if ( strlen(szInputName) > 0 )
+				{
+					strlcpy( ptRequest->szName, szInputName, sizeof(szInputName) );
+					return SUCCESS;	
+				}
 			}
-			else
+			else if ( strlen(szInputId) > 0 )
 			{
-				return INPUT_FAIL;
+				if ( atoi(szInputId) > 0 )
+				{
+					ptRequest->nId = atoi(szInputId);
+					return SUCCESS;
+				}
+				else
+				{
+					return INPUT_FAIL;
+				}
 			}
 		}
 			break;
@@ -451,7 +471,7 @@ int Update( struct REQUEST_s *ptRequest )
 	pszRet = fgets( szInput, sizeof(szInput), stdin );
 	if ( NULL == pszRet )
 	{
-		LogErr( __func__, errno );
+		LogErr( __func__, dalErrno() );
 		return FGETS_FAIL;
 	}
 	ClearStdin( szInput );
@@ -469,7 +489,7 @@ int Update( struct REQUEST_s *ptRequest )
 	pszRet = fgets( ptRequest->szJobTitle, sizeof(ptRequest->szJobTitle), stdin );
 	if ( NULL == pszRet )
 	{
-		LogErr( __func__, errno );
+		LogErr( __func__, dalErrno() );
 		return FGETS_FAIL;
 	}
 	ClearStdin( ptRequest->szJobTitle );
@@ -478,7 +498,7 @@ int Update( struct REQUEST_s *ptRequest )
 	pszRet = fgets( ptRequest->szTeam, sizeof(ptRequest->szTeam), stdin );
 	if ( NULL == pszRet )
 	{
-		LogErr( __func__, errno );
+		LogErr( __func__, dalErrno() );
 		return FGETS_FAIL;
 	}
 	ClearStdin( ptRequest->szTeam );
@@ -487,7 +507,7 @@ int Update( struct REQUEST_s *ptRequest )
 	pszRet = fgets( ptRequest->szPhone, sizeof(ptRequest->szPhone), stdin );
 	if ( NULL == pszRet )
 	{
-		LogErr( __func__, errno );
+		LogErr( __func__, dalErrno() );
 		return FGETS_FAIL;
 	}
 	ClearStdin( ptRequest->szPhone );
@@ -512,7 +532,7 @@ int Delete( struct REQUEST_s *ptRequest )
 	pszRet = fgets( szInput, sizeof(szInput), stdin );
 	if ( NULL == pszRet )
 	{
-		LogErr( __func__, errno );
+		LogErr( __func__, dalErrno() );
 		return FGETS_FAIL;
 	}
 	ClearStdin( szInput );

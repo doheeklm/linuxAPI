@@ -105,7 +105,6 @@ int main( int argc, char *argv[] )
 				ptRequest->szJobTitle, ptRequest->szTeam, ptRequest->szPhone );
 
 				nRet = Insert( ptRequest );
-				
 				if ( SUCCESS != nRet )
 				{
 					ptResponse->nResult = 0;	
@@ -120,7 +119,6 @@ int main( int argc, char *argv[] )
 				MPGLOG_SVC( "[RECV] MsgType: %d", ptRequest->nMsgType );
 
 				nRet = SelectAll( ptResponse );
-				
 				if ( SUCCESS != nRet )
 				{
 					ptResponse->nResult = 0;
@@ -135,7 +133,6 @@ int main( int argc, char *argv[] )
 				MPGLOG_SVC( "[RECV] MsgType: %d | Id: %d", ptRequest->nMsgType, ptRequest->nId );
 
 				nRet = SelectOne( ptRequest, ptResponse );
-			
 				if ( SUCCESS != nRet )
 				{
 					ptResponse->nResult = 0;
@@ -151,7 +148,6 @@ int main( int argc, char *argv[] )
 						ptRequest->nMsgType, ptRequest->nId, ptRequest->szJobTitle, ptRequest->szTeam, ptRequest->szPhone );
 
 				nRet = Update( ptRequest );
-		
 				if ( SUCCESS != nRet )
 				{
 					ptResponse->nResult = 0;
@@ -166,7 +162,6 @@ int main( int argc, char *argv[] )
 				MPGLOG_SVC( "[RECV] MsgType: %d | Id: %d", ptRequest->nMsgType, ptRequest->nId );
 
 				nRet = Delete( ptRequest ); 
-
 				if ( SUCCESS != nRet )
 				{
 					ptResponse->nResult = 0;
@@ -366,7 +361,6 @@ int SelectAll( struct RESPONSE_s *ptResponse )
 	int nCnt = 0;
 
 	SELECT_ALL_t tSelectAll;
-	memset( &tSelectAll, 0x00, sizeof(SELECT_ALL_t) );
 
 	mpconf_list_t *ptSectList = NULL;
 	mpconf_list_t *ptItemList = NULL;
@@ -399,6 +393,8 @@ int SelectAll( struct RESPONSE_s *ptResponse )
 				 *	Section 문자열값 => ID
 				 *	Item의 Value값=> NAME
 				 */
+				memset( &tSelectAll, 0x00, sizeof(tSelectAll) );
+				
 				tSelectAll.nId = atoi( ptSectList->name[i] );
 				
 				strlcpy( tSelectAll.szName, ptValueList->name[j], sizeof(tSelectAll.szName) );
