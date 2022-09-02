@@ -35,7 +35,7 @@
 #define SIZE_JOBTITLE	32
 #define SIZE_TEAM		32
 #define SIZE_PHONE		13
-#define MAX_SELECT		20
+#define MAX_SELECT_ALL	20
 
 #define TABLE_NAME		"EmployeeInfos"
 #define ID				"id"
@@ -51,8 +51,7 @@ typedef enum
 	NULL_FAIL = -5, MPGLOG_FAIL = -6
 } ReturnCode_t;
 
-//TODO REQUEST RESPONSE
-typedef struct SENDMSG_s //Client->Server
+typedef struct REQUEST_s
 {
 	int		nType;
 	int		nId;
@@ -61,14 +60,30 @@ typedef struct SENDMSG_s //Client->Server
 	char	szTeam		[SIZE_TEAM + 1];
 	char	szPhone		[SIZE_PHONE + 1];
 
-} SENDMSG_t;
+} REQUEST_t;
 
-typedef struct RECVMSG_s //Server->Client
+typedef struct RESPONSE_s
 {
 	int		nType;
 	int		nResult;
+	int		nCnt;
 	char	szBuffer	[2048];
-} RECVMSG_t;
+} RESPONSE_t;
+
+typedef struct SELECT_ALL_s
+{
+	int		nId;
+	char	szName		[SIZE_NAME + 1];
+} SELECT_ALL_t;
+
+typedef struct SELECT_ONE_s
+{
+	int		nId;
+	char	szName		[SIZE_NAME + 1];
+	char	szJobTitle	[SIZE_JOBTITLE + 1];
+	char	szTeam		[SIZE_TEAM + 1];
+	char	szPhone		[SIZE_PHONE + 1];
+} SELECT_ONE_t;
 
 int g_nFlag = FLAG_RUN;
 

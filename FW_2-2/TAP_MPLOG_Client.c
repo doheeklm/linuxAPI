@@ -4,12 +4,11 @@
 void SignalHandler( int nSig );
 void ClearStdin( char *pszTemp );
 
-int	Insert( struct SENDMSG_s *ptSendMsg );
-int Select( struct SENDMSG_s *ptSendMsg );
-int Update( struct SENDMSG_s *ptSendMsg );
-int Delete( struct SENDMSG_s *ptSendMsg );
-
-int LOG_ERROR( const char* pszFuncName, int nError );
+int	Insert		( struct REQUEST_s *ptRequest );
+int Select		( struct REQUEST_s *ptRequest );
+int Update		( struct REQUEST_s *ptRequest );
+int Delete		( struct REQUEST_s *ptRequest );
+void LOG_ERROR	( const char* pszFuncName, int nError );
 
 int main( int argc, char *argv[] )
 {
@@ -21,11 +20,11 @@ int main( int argc, char *argv[] )
 	tb_signal( SIGQUIT, SignalHandler ); //3
 	tb_signal( SIGTERM, SignalHandler ); //15
 
-	SENDMSG_t *ptSendMsg = NULL;
-	RECVMSG_t *ptRecvMsg = NULL;
-
-	//TODO tMsg 나누기
-	iipc_msg_t	tMsg;
+	REQUEST_t *ptRequest = NULL;
+	RESPONSE_t *ptResponse = NULL;
+	
+	iipc_msg_t tSendMsg;
+	iipc_msg_t tRecvMsg;
 
 	iipc_ds_t	tIpc;
 	iipc_key_t	tSrcKey;
@@ -84,6 +83,8 @@ int main( int argc, char *argv[] )
 		pszRet = NULL;
 		nPickMenu = 0;
 		memset( szPickMenu, 0x00, sizeof(szPickMenu) );
+		memset( &tSendMsg, 0x00, sizeof(iipc_msg_t) );
+		memset( &tRecvMsg, 0x00, sizeof(iipc_msg_t) );
 
 		do
 		{
@@ -107,13 +108,13 @@ int main( int argc, char *argv[] )
 			nPickMenu = atoi( szPickMenu );
 		} while ( nPickMenu < 1 || nPickMenu > 5);
 
-		ptSendMsg = (SENDMSG_t *)tMsg.buf.msgq_buf;	
+		ptRequest = (REQUEST_t *)tSendMsg.buf.msgq_buf;	
 
 		switch ( nPickMenu )
 		{
 			case 1:
 			{
-				nRet = Insert( ptSendMsg );
+				nRet = Insert( ptRequest );
 				if ( SUCCESS != nRet )
 				{
 					goto end_of_function;
@@ -122,7 +123,7 @@ int main( int argc, char *argv[] )
 				break;
 			case 2:
 			{
-				nRet = Select( ptSendMsg );
+				nRet = Select( ptRequest );
 				if ( SUCCESS != nRet && INPUT_FAIL != nRet )
 				{	
 					goto end_of_function;
@@ -131,7 +132,7 @@ int main( int argc, char *argv[] )
 				break;
 			case 3:
 			{
-				nRet = Update( ptSendMsg );
+				nRet = Update( ptRequest );
 				if ( SUCCESS != nRet && INPUT_FAIL != nRet )
 				{
 					goto end_of_function;
@@ -140,7 +141,7 @@ int main( int argc, char *argv[] )
 				break;
 			case 4:
 			{
-				nRet = Delete( ptSendMsg );
+				nRet = Delete( ptRequest );
 				if ( SUCCESS != nRet && INPUT_FAIL != nRet )
 				{
 					goto end_of_function;
@@ -155,23 +156,23 @@ int main( int argc, char *argv[] )
 				break;
 			default:
 				break;
-		}
+		} //switch
 
-		tMsg.u.h.src = tSrcKey;
-		tMsg.u.h.dst = tDstKey;
-		tMsg.u.h.len = sizeof(struct SENDMSG_s);
+		tSendMsg.u.h.src = tSrcKey;
+		tSendMsg.u.h.dst = tDstKey;
+		tSendMsg.u.h.len = sizeof(struct REQUEST_s);
 
 		MPGLOG_SVC( "[Send Msg to Server] Type: %d | Id: %d | "
 				"Name: %s | JobTitle: %s | "
 				"Team: %s | Phone: %s",
-				ptSendMsg->nType, ptSendMsg->nId,
-				ptSendMsg->szName, ptSendMsg->szJobTitle,
-				ptSendMsg->szTeam, ptSendMsg->szPhone );
+				ptRequest->nType, ptRequest->nId,
+				ptRequest->szName, ptRequest->szJobTitle,
+				ptRequest->szTeam, ptRequest->szPhone );
 
 		/*
 		 *	Send Message
 		 */
-		nRet = TAP_ipc_msgsnd( &tIpc, &tMsg, IPC_BLOCK );
+		nRet = TAP_ipc_msgsnd( &tIpc, &tSendMsg, IPC_BLOCK );
 		if ( 0 > nRet )
 		{
 			LOG_ERROR( __func__, ipc_errno );
@@ -182,11 +183,11 @@ int main( int argc, char *argv[] )
 			}
 			return TAP_FAIL;
 		}
-
+	
 		/*
 		 *	Receive Message
 		 */
-		nRet = TAP_ipc_msgrcv( &tIpc, &tMsg, IPC_BLOCK );
+		nRet = TAP_ipc_msgrcv( &tIpc, &tRecvMsg, IPC_BLOCK );
 		if ( 0 > nRet )
 		{
 			LOG_ERROR( __func__, ipc_errno );
@@ -198,12 +199,36 @@ int main( int argc, char *argv[] )
 			return TAP_FAIL;
 		}
 
-		ptRecvMsg = (RECVMSG_t *)tMsg.buf.msgq_buf;	
+		ptResponse = (RESPONSE_t *)tRecvMsg.buf.msgq_buf;	
+		
+		MPGLOG_SVC( "[Recv Msg from Server] Type: %d | Result: %d",
+					ptResponse->nType, ptResponse->nResult );
 
-		MPGLOG_SVC( "[Recv Msg from Server] Type: %d | Result: %d\n"
-					"%s",
-					ptRecvMsg->nType, ptRecvMsg->nResult,
-			   		ptRecvMsg->szBuffer );	
+		//TODO 매핑
+		//memcpy struct->char array
+
+		SELECT_ALL_t tSelectAll;
+		memset( &tSelectAll, 0x00, sizeof(tSelectAll) );
+
+		switch ( ptResponse->nType )
+		{
+			case 1:
+			case 4:
+			case 5:
+				break;
+			case 2: //SELECTALL
+			{
+				printf( "Select All\n" );
+				memcpy( &tSelectAll, ptResponse->szBuffer, sizeof(tSelectAll) );
+				printf( "Id: %d\n", tSelectAll.nId );
+			}
+				break;
+			case 3: //SELECTONE
+				break;
+			default:
+				break;
+		}
+
 	} //while
 
 end_of_function:
@@ -243,62 +268,62 @@ void ClearStdin( char *pszTemp )
 	return;
 }
 
-int Insert( struct SENDMSG_s *ptSendMsg )
+int Insert( struct REQUEST_s *ptRequest )
 {
-	if ( NULL != ptSendMsg )
+	if ( NULL != ptRequest )
 	{
-		memset( ptSendMsg, 0x00, sizeof(struct SENDMSG_s) );
+		memset( ptRequest, 0x00, sizeof(struct REQUEST_s) );
 	}
 	
 	char *pszRet = NULL;
 
-	ptSendMsg->nType = 1;
+	ptRequest->nType = 1;
 
 	printf( "[%s] Name: ", __func__ );
 
-	pszRet = fgets( ptSendMsg->szName, sizeof(ptSendMsg->szName), stdin );
+	pszRet = fgets( ptRequest->szName, sizeof(ptRequest->szName), stdin );
 	if ( NULL == pszRet )
 	{
 		LOG_ERROR( __func__, dalErrno() );
 		return FGETS_FAIL;
 	}
-	ClearStdin( ptSendMsg->szName );
+	ClearStdin( ptRequest->szName );
 
 	printf( "[%s] Job Title: ", __func__ );
-	pszRet = fgets( ptSendMsg->szJobTitle, sizeof(ptSendMsg->szJobTitle), stdin );
+	pszRet = fgets( ptRequest->szJobTitle, sizeof(ptRequest->szJobTitle), stdin );
 	if ( NULL == pszRet )
 	{
 		LOG_ERROR( __func__, dalErrno() );
 		return FGETS_FAIL;
 	}
-	ClearStdin( ptSendMsg->szJobTitle );
+	ClearStdin( ptRequest->szJobTitle );
 
 	printf( "[%s] Team: ", __func__ );
-	pszRet = fgets( ptSendMsg->szTeam, sizeof(ptSendMsg->szTeam), stdin );
+	pszRet = fgets( ptRequest->szTeam, sizeof(ptRequest->szTeam), stdin );
 	if ( NULL == pszRet )
 	{
 		LOG_ERROR( __func__, dalErrno() );
 		return FGETS_FAIL;
 	}
-	ClearStdin( ptSendMsg->szTeam );
+	ClearStdin( ptRequest->szTeam );
 
 	printf( "[%s] Phone: ", __func__ );
-	pszRet = fgets( ptSendMsg->szPhone, sizeof(ptSendMsg->szPhone), stdin );
+	pszRet = fgets( ptRequest->szPhone, sizeof(ptRequest->szPhone), stdin );
 	if ( NULL == pszRet )
 	{
 		LOG_ERROR( __func__, dalErrno() );
 		return FGETS_FAIL;
 	}
-	ClearStdin( ptSendMsg->szPhone );
+	ClearStdin( ptRequest->szPhone );
 	
 	return SUCCESS;
 }
 
-int Select( struct SENDMSG_s *ptSendMsg )
+int Select( struct REQUEST_s *ptRequest )
 {	
-	if ( NULL != ptSendMsg )
+	if ( NULL != ptRequest )
 	{
-		memset( ptSendMsg, 0x00, sizeof(struct SENDMSG_s) );
+		memset( ptRequest, 0x00, sizeof(struct REQUEST_s) );
 	}
 
 	int nPickSelect = 0;
@@ -338,12 +363,12 @@ int Select( struct SENDMSG_s *ptSendMsg )
 	{
 		case 1:
 		{
-			ptSendMsg->nType = 2;
+			ptRequest->nType = 2;
 		}
 			break;
 		case 2:
 		{
-			ptSendMsg->nType = 3;
+			ptRequest->nType = 3;
 
 			printf( "[%s] Input ID: ", __func__ );
 			
@@ -373,14 +398,16 @@ int Select( struct SENDMSG_s *ptSendMsg )
 				}
 				else if ( strlen(szInputName) > 0 )
 				{
-					strlcpy( ptSendMsg->szName, szInputName, sizeof(szInputName) );
+					strlcpy( ptRequest->szName, szInputName, sizeof(szInputName) );
+					return SUCCESS;	
 				}
 			}
 			else if ( strlen(szInputId) > 0 )
 			{
 				if ( atoi(szInputId) > 0 )
 				{
-					ptSendMsg->nId = atoi(szInputId);
+					ptRequest->nId = atoi(szInputId);
+					return SUCCESS;
 				}
 				else
 				{
@@ -396,18 +423,18 @@ int Select( struct SENDMSG_s *ptSendMsg )
 	return SUCCESS;
 }
 
-int Update( struct SENDMSG_s *ptSendMsg )
+int Update( struct REQUEST_s *ptRequest )
 {
-	if ( NULL != ptSendMsg )
+	if ( NULL != ptRequest )
 	{
-		memset( ptSendMsg, 0x00, sizeof(struct SENDMSG_s) );
+		memset( ptRequest, 0x00, sizeof(struct REQUEST_s) );
 	}
 	
 	char *pszRet = NULL;
 	char szInput[32];
 	memset( szInput, 0x00, sizeof(szInput) );
 
-	ptSendMsg->nType = 4;
+	ptRequest->nType = 4;
 
 	printf( "[%s] Input ID: ", __func__ );
 	pszRet = fgets( szInput, sizeof(szInput), stdin );
@@ -420,7 +447,7 @@ int Update( struct SENDMSG_s *ptSendMsg )
 
 	if ( atoi( szInput ) > 0 )
 	{
-		ptSendMsg->nId = atoi( szInput );
+		ptRequest->nId = atoi( szInput );
 	}
 	else
 	{
@@ -428,47 +455,47 @@ int Update( struct SENDMSG_s *ptSendMsg )
 	}
 
 	printf( "[%s] Job Title: ", __func__ );
-	pszRet = fgets( ptSendMsg->szJobTitle, sizeof(ptSendMsg->szJobTitle), stdin );
+	pszRet = fgets( ptRequest->szJobTitle, sizeof(ptRequest->szJobTitle), stdin );
 	if ( NULL == pszRet )
 	{
 		LOG_ERROR( __func__, dalErrno() );
 		return FGETS_FAIL;
 	}
-	ClearStdin( ptSendMsg->szJobTitle );
+	ClearStdin( ptRequest->szJobTitle );
 
 	printf( "[%s] Team: ", __func__ );
-	pszRet = fgets( ptSendMsg->szTeam, sizeof(ptSendMsg->szTeam), stdin );
+	pszRet = fgets( ptRequest->szTeam, sizeof(ptRequest->szTeam), stdin );
 	if ( NULL == pszRet )
 	{
 		LOG_ERROR( __func__, dalErrno() );
 		return FGETS_FAIL;
 	}
-	ClearStdin( ptSendMsg->szTeam );
+	ClearStdin( ptRequest->szTeam );
 
 	printf( "[%s] Phone: ", __func__ );
-	pszRet = fgets( ptSendMsg->szPhone, sizeof(ptSendMsg->szPhone), stdin );
+	pszRet = fgets( ptRequest->szPhone, sizeof(ptRequest->szPhone), stdin );
 	if ( NULL == pszRet )
 	{
 		LOG_ERROR( __func__, dalErrno() );
 		return FGETS_FAIL;
 	}
-	ClearStdin( ptSendMsg->szPhone );
+	ClearStdin( ptRequest->szPhone );
 
 	return SUCCESS;
 }
 
-int Delete( struct SENDMSG_s *ptSendMsg )
+int Delete( struct REQUEST_s *ptRequest )
 {
-	if ( NULL != ptSendMsg )
+	if ( NULL != ptRequest )
 	{
-		memset( ptSendMsg, 0x00, sizeof(struct SENDMSG_s) );
+		memset( ptRequest, 0x00, sizeof(struct REQUEST_s) );
 	}
 
 	char *pszRet = NULL;
 	char szInput[32];
 	memset( szInput, 0x00, sizeof(szInput) );
 
-	ptSendMsg->nType = 5;
+	ptRequest->nType = 5;
 
 	printf( "[%s] Input ID: ", __func__ );
 	pszRet = fgets( szInput, sizeof(szInput), stdin );
@@ -481,7 +508,7 @@ int Delete( struct SENDMSG_s *ptSendMsg )
 
 	if ( atoi( szInput ) > 0 )
 	{
-		ptSendMsg->nId = atoi( szInput );
+		ptRequest->nId = atoi( szInput );
 	}
 	else
 	{
@@ -491,9 +518,8 @@ int Delete( struct SENDMSG_s *ptSendMsg )
 	return SUCCESS;
 }
 
-int LOG_ERROR( const char* pszFuncName, int nError )
+void LOG_ERROR( const char* pszFuncName, int nError )
 {
 	MPGLOG_ERR( "%s errno[%d]\n", pszFuncName, nError );
-
-	return 0;
+	return;
 }
