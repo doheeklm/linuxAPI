@@ -405,8 +405,15 @@ int SelectAll( struct RESPONSE_s *ptResponse )
 
 				MPGLOG_DBG( "[%s] %s=%s", ptSectList->name[i], ptItemList->name[j], ptValueList->name[j] ); 
 			
-				memcpy( ptResponse->szBuffer + ( nCnt * sizeof(tSelectAll) ), &tSelectAll, sizeof(tSelectAll) ); 
+				/* 버퍼사이즈를 초과하여 중간에 메모리가 잘릴 가능성이 있으면 memcpy 하지 않고 break */
+				if ( ( (nCnt + 1) * sizeof(tSelectAll) ) > sizeof(ptResponse->szBuffer) )
+				{
+					MPGLOG_DBG( "현재까지 읽은 사이즈[%ld], 버퍼사이즈[%ld]: 버퍼 사이즈 초과될 가능성이 있어 memcpy 하지 않음", nCnt * sizeof(tSelectAll), sizeof(ptResponse->szBuffer) );
+					break;
+				}
 
+				memcpy( ptResponse->szBuffer + ( nCnt * sizeof(tSelectAll) ), &tSelectAll, sizeof(tSelectAll) ); 
+				
 				nCnt++;
 			}
 		}
