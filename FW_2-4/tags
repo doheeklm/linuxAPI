@@ -36,6 +36,7 @@ MPGLOG_FAIL	TAP_Inc.h	/^	NULL_FAIL = -5, MPGLOG_FAIL = -6,$/;"	e	enum:__anon1
 NAME	TAP_Inc.h	42;"	d
 NAME_NOT_EXIST	TAP_Inc.h	/^	ID_NOT_EXIST = -7, NAME_NOT_EXIST = -8$/;"	e	enum:__anon1
 NULL_FAIL	TAP_Inc.h	/^	NULL_FAIL = -5, MPGLOG_FAIL = -6,$/;"	e	enum:__anon1
+NUMTUPLES	TAP_Inc.h	46;"	d
 PHONE	TAP_Inc.h	45;"	d
 REQUEST_s	TAP_Inc.h	/^typedef struct REQUEST_s$/;"	s
 REQUEST_t	TAP_Inc.h	/^} REQUEST_t;$/;"	t	typeref:struct:REQUEST_s
@@ -62,19 +63,23 @@ SignalHandler	TAP_Server.c	/^void SignalHandler( int nSig )$/;"	f
 TABLE_NAME	TAP_Inc.h	40;"	d
 TAP_FAIL	TAP_Inc.h	/^	DAL_FAIL = -2, FGETS_FAIL = -3, TAP_FAIL = -4,$/;"	e	enum:__anon1
 TEAM	TAP_Inc.h	44;"	d
-TIMER	TAP_Inc.h	47;"	d
+TIMER	TAP_Inc.h	48;"	d
+TMR_FLAG_RUN	TAP_Inc.h	49;"	d
+TMR_FLAG_STOP	TAP_Inc.h	50;"	d
 TimerHandler	TAP_Server.c	/^void TimerHandler( mptmr_t *ptTmr, void *pvArg, int nNumMiss )$/;"	f
 UPDATE	TAP_Inc.h	29;"	d
 Update	TAP_Client.c	/^int Update( struct REQUEST_s *ptRequest )$/;"	f
 Update	TAP_Server.c	/^int Update( struct REQUEST_s *ptRequest )$/;"	f
 _TAP_INC_H_	TAP_Inc.h	4;"	d
 g_nFlag	TAP_Inc.h	/^int g_nFlag = FLAG_RUN;$/;"	v
+g_nTmrFlag	TAP_Inc.h	/^int g_nTmrFlag = TMR_FLAG_RUN;$/;"	v
 g_ptConn	TAP_Server.c	/^DAL_CONN	*g_ptConn= NULL;$/;"	v
 g_ptPstmtDelete	TAP_Server.c	/^DAL_PSTMT	*g_ptPstmtDelete = NULL;$/;"	v
 g_ptPstmtInsert	TAP_Server.c	/^DAL_PSTMT	*g_ptPstmtInsert = NULL;$/;"	v
 g_ptPstmtSelectAll	TAP_Server.c	/^DAL_PSTMT	*g_ptPstmtSelectAll = NULL;$/;"	v
 g_ptPstmtSelectOneById	TAP_Server.c	/^DAL_PSTMT	*g_ptPstmtSelectOneById = NULL;$/;"	v
 g_ptPstmtSelectOneByName	TAP_Server.c	/^DAL_PSTMT	*g_ptPstmtSelectOneByName = NULL;$/;"	v
+g_ptPstmtTimer	TAP_Server.c	/^DAL_PSTMT	*g_ptPstmtTimer = NULL;$/;"	v
 g_ptPstmtUpdate	TAP_Server.c	/^DAL_PSTMT	*g_ptPstmtUpdate = NULL;$/;"	v
 main	TAP_Client.c	/^int main( int argc, char *argv[] )$/;"	f
 main	TAP_Server.c	/^int main( int argc, char *argv[] )$/;"	f

@@ -8,6 +8,7 @@ DAL_PSTMT	*g_ptPstmtSelectOneById = NULL;
 DAL_PSTMT	*g_ptPstmtSelectOneByName = NULL;
 DAL_PSTMT	*g_ptPstmtUpdate = NULL;
 DAL_PSTMT	*g_ptPstmtDelete = NULL;
+DAL_PSTMT	*g_ptPstmtTimer = NULL;
 
 int InitPreparedStatement();
 void DestroyPreparedStatement();
@@ -29,11 +30,44 @@ void TimerHandler( mptmr_t *ptTmr, void *pvArg, int nNumMiss )
 		return;
 
 	pvArg = pvArg;
-
-	//TODO query로 생성=> select NUMTUPLES from __SYS_TABLES__ where TABLE_NAME='EmployeeInfos';
-	printf( "%s:: NumMiss=%d\n", __func__, nNumMiss );
+	nNumMiss = nNumMiss;
 	
-	//TODO log에 저장
+	int nRet = 0;
+	int nEmployeeCnt = 0;
+	DAL_RESULT_SET *ptResult = NULL;
+	DAL_ENTRY *ptEntry = NULL;
+
+	//DONE query로 생성=> select NUMTUPLES from __SYS_TABLES__ where TABLE_NAME='EmployeeInfos';
+	nRet = dalPreparedExec( g_ptConn, g_ptPstmtTimer, &ptResult );
+	if ( -1 == nRet )
+	{
+		MPGLOG_ERR( "%s:: dalPreparedExec() fail=%d", __func__, dalErrno() );
+		return;
+	}
+	
+	ptEntry = dalFetchFirst( ptResult );
+	if ( NULL == ptEntry )
+	{
+		MPGLOG_ERR( "%s:: dalFetchFirst() fail=%d", __func__, dalErrno() );
+		return;
+	}
+	
+	nRet = dalGetIntByKey( ptEntry, NUMTUPLES, &nEmployeeCnt );
+	if ( -1 == nRet )
+	{
+		MPGLOG_ERR( "%s:: dalGetIntByKey() fail=%d", __func__, dalErrno() );
+	}
+	
+	//DONE log에 저장
+	MPGLOG_SVC( "Employee Count: %d", nEmployeeCnt );
+
+	nRet = dalResFree( ptResult );
+	if ( -1 == nRet )
+	{
+		MPGLOG_ERR( "%s:: dalResFree() fail=%d", __func__, dalErrno() );
+	}
+	
+	return;
 }
 
 int main( int argc, char *argv[] )
@@ -106,9 +140,9 @@ int main( int argc, char *argv[] )
 	/*
 	 *	Init PreparedStatement
 	 */
+	//DONE MultiThread용 _MT 적용
 	nRet = InitPreparedStatement();
 
-	//TODO MT 적용
 	if ( SUCCESS != nRet )
 	{
 		nRet = dalDisconnect( g_ptConn );
@@ -129,19 +163,37 @@ int main( int argc, char *argv[] )
 		goto end_of_function;
 	}
 	
-	//TODO INIT mptmr_set_svc_flag 
+	//DONE INIT mptmr_set_svc_flag 
+	nRet = mptmr_set_svc_flag( ptTmr, &g_nTmrFlag );
+	if ( 0 > nRet )
+	{
+		MPGLOG_ERR( "%s:: mptmr_set_svc_flag() fail", __func__ );
+		goto end_of_function_tmr;
+	}
 
-	//TODO Error Check
+	//DONE Error Check
 	nTmrId = mptmr_new_tmr_id( ptTmr );
 	if ( 0 == nTmrId )
 	{
 		MPGLOG_ERR( "%s:: mptmr_new_tmr_id() fail", __func__ );
 		goto end_of_function_tmr;
 	}
+	MPGLOG_DBG( "%s:: mptmr_new_tmr_id()=%d", __func__, nRet );
 
 	nRet = mptmr_insert( ptTmr, nRet, MPTMR_INFINITE, 3 * 1000, TimerHandler, NULL, NULL );
+	if ( 0 > nRet )
+	{
+		MPGLOG_ERR( "%s:: mptmr_insert() fail", __func__ );
+		goto end_of_function_tmr;
+	}
+	MPGLOG_DBG( "%s:: mptmrinsert()=%d", __func__, nRet );
 
 	nRet = mptmr_start( ptTmr );
+	if ( 0 > nRet )
+	{
+		MPGLOG_ERR( "%s: mptmr_start() fail", __func__ );
+		goto end_of_function_tmr;
+	}
 	MPGLOG_DBG( "%s:: mptmr_start()=%d", __func__, nRet );
 
 	/*
@@ -270,15 +322,17 @@ int main( int argc, char *argv[] )
 	nRet = mptmr_stop( ptTmr );
 	if ( 0 > nRet )
 	{
-		MPGLOG_ERR( "%s:: mptmr_stop() fail", __func__, nRet );
+		MPGLOG_ERR( "%s:: mptmr_stop() fail", __func__ );
 	}
+	MPGLOG_DBG( "%s:: mptmr_stop()=%d", __func__, nRet );
 
 end_of_function_tmr:
 	nRet = mptmr_cancel_all( ptTmr );
 	if ( 0 > nRet )
 	{
-		MPGLOG_ERR( "%s:: mptmr_cancel_all() fail", __func__, nRet );
+		MPGLOG_ERR( "%s:: mptmr_cancel_all() fail", __func__ );
 	}
+	MPGLOG_DBG( "%s:: mptmr_cancel_all()=%d", __func__, nRet );
 
 	mptmr_destroy( ptTmr );
 
@@ -308,7 +362,8 @@ void SignalHandler( int nSig )
 
 	MPGLOG_SVC( "Signal: %d\n", nSig );
 
-	//TODO set_svc_flag는 0으로 set (global)
+	//DONE mptmr_set_svc_flag set
+	g_nTmrFlag = TMR_FLAG_STOP;
 	
 	exit( -1 );
 }
@@ -322,7 +377,7 @@ int InitPreparedStatement()
 	snprintf( szQuery, sizeof(szQuery), "insert into %s (%s, %s, %s, %s) values (?%s, ?%s, ?%s, ?%s);", TABLE_NAME, NAME, JOBTITLE, TEAM, PHONE, NAME, JOBTITLE, TEAM, PHONE );
 	szQuery[ strlen(szQuery) ] = '\0';
 
-	g_ptPstmtInsert = dalPreparedStatement( g_ptConn, szQuery );
+	g_ptPstmtInsert = dalPreparedStatement_MT( g_ptConn, szQuery );
 	if ( NULL == g_ptPstmtInsert )
 	{
 		LogErr(  __func__, dalErrno() );
@@ -334,7 +389,7 @@ int InitPreparedStatement()
 	snprintf( szQuery, sizeof(szQuery), "select %s, %s from %s;", ID, NAME, TABLE_NAME );
 	szQuery[ strlen(szQuery) ] = '\0';
 
-	g_ptPstmtSelectAll = dalPreparedStatement( g_ptConn, szQuery );
+	g_ptPstmtSelectAll = dalPreparedStatement_MT( g_ptConn, szQuery );
 	if ( NULL == g_ptPstmtSelectAll )
 	{
 		LogErr( __func__, dalErrno() );
@@ -346,7 +401,7 @@ int InitPreparedStatement()
 	snprintf( szQuery, sizeof(szQuery), "select %s, %s, %s from %s where %s = ?%s;", JOBTITLE, TEAM, PHONE, TABLE_NAME, ID, ID );
 	szQuery[ strlen(szQuery) ] = '\0';
 
-	g_ptPstmtSelectOneById = dalPreparedStatement( g_ptConn, szQuery );
+	g_ptPstmtSelectOneById = dalPreparedStatement_MT( g_ptConn, szQuery );
 	if ( NULL == g_ptPstmtSelectOneById )
 	{
 		LogErr( __func__, dalErrno() );
@@ -358,7 +413,7 @@ int InitPreparedStatement()
 	snprintf( szQuery, sizeof(szQuery), "select %s, %s, %s from %s where %s = ?%s;", JOBTITLE, TEAM, PHONE, TABLE_NAME, NAME, NAME );
 	szQuery[ strlen(szQuery) ] = '\0';
 
-	g_ptPstmtSelectOneByName = dalPreparedStatement( g_ptConn, szQuery );
+	g_ptPstmtSelectOneByName = dalPreparedStatement_MT( g_ptConn, szQuery );
 	if ( NULL == g_ptPstmtSelectOneByName )
 	{
 		LogErr( __func__, dalErrno() );
@@ -370,7 +425,7 @@ int InitPreparedStatement()
 	snprintf( szQuery, sizeof(szQuery), "update %s set %s = ?%s, %s = ?%s, %s = ?%s where %s = ?%s;", TABLE_NAME, JOBTITLE, JOBTITLE, TEAM, TEAM, PHONE, PHONE, ID, ID );
 	szQuery[ strlen(szQuery) ] = '\0';
 
-	g_ptPstmtUpdate = dalPreparedStatement( g_ptConn, szQuery );
+	g_ptPstmtUpdate = dalPreparedStatement_MT( g_ptConn, szQuery );
 	if ( NULL == g_ptPstmtUpdate )
 	{
 		LogErr( __func__, dalErrno() );
@@ -382,8 +437,20 @@ int InitPreparedStatement()
 	snprintf( szQuery, sizeof(szQuery), "delete from %s where %s = ?%s;", TABLE_NAME, ID, ID );
 	szQuery[ strlen(szQuery) ] = '\0';
 
-	g_ptPstmtDelete = dalPreparedStatement( g_ptConn, szQuery );
+	g_ptPstmtDelete = dalPreparedStatement_MT( g_ptConn, szQuery );
 	if ( NULL == g_ptPstmtDelete )
+	{
+		LogErr( __func__, dalErrno() );
+		return DAL_FAIL;
+	}
+
+	//TIMER
+	memset( szQuery, 0x00, sizeof(szQuery) );
+	snprintf( szQuery, sizeof(szQuery), "select %s from __SYS_TABLES__ where TABLE_NAME='%s'", NUMTUPLES, TABLE_NAME );
+	szQuery[ strlen(szQuery) ] = '\0';
+	
+	g_ptPstmtTimer = dalPreparedStatement_MT( g_ptConn, szQuery );
+	if ( NULL == g_ptPstmtTimer )
 	{
 		LogErr( __func__, dalErrno() );
 		return DAL_FAIL;
@@ -427,6 +494,12 @@ void DestroyPreparedStatement()
 	}
 
 	nRet = dalDestroyPreparedStmt( g_ptPstmtDelete );
+	if ( -1 == nRet )
+	{
+		LogErr( __func__, dalErrno() );
+	}
+
+	nRet = dalDestroyPreparedStmt( g_ptPstmtTimer );
 	if ( -1 == nRet )
 	{
 		LogErr( __func__, dalErrno() );
@@ -622,28 +695,31 @@ int SelectOne( struct REQUEST_s *ptRequest, struct RESPONSE_s *ptResponse )
 		}
 
 		ptEntry = dalFetchFirst( ptResult );
-		if ( NULL != ptEntry )
+		if ( NULL == ptEntry )
 		{
-			nRet = dalGetStringByKey( ptEntry, JOBTITLE, &pszJobTitle );
-			if ( -1 == nRet )
-			{
-				LogErr( __func__, dalErrno() );
-				goto error_return;
-			}
+			MPGLOG_ERR( "%s:: dalFetchFirst fail=%d", __func__, dalErrno() );
+			goto error_return;
+		}
 
-			nRet = dalGetStringByKey( ptEntry, TEAM, &pszTeam );
-			if ( -1 == nRet )
-			{
-				LogErr( __func__, dalErrno() );
-				goto error_return;
-			}	
+		nRet = dalGetStringByKey( ptEntry, JOBTITLE, &pszJobTitle );
+		if ( -1 == nRet )
+		{
+			LogErr( __func__, dalErrno() );
+			goto error_return;
+		}
 
-			nRet = dalGetStringByKey( ptEntry, PHONE, &pszPhone );
-			if ( -1 == nRet )
-			{
-				LogErr( __func__, dalErrno() );
-				goto error_return;
-			}
+		nRet = dalGetStringByKey( ptEntry, TEAM, &pszTeam );
+		if ( -1 == nRet )
+		{
+			LogErr( __func__, dalErrno() );
+			goto error_return;
+		}	
+
+		nRet = dalGetStringByKey( ptEntry, PHONE, &pszPhone );
+		if ( -1 == nRet )
+		{
+			LogErr( __func__, dalErrno() );
+			goto error_return;
 		}
 	}
 	else if ( ptRequest->nId == 0 && strlen(ptRequest->szName) > 0 )
@@ -675,28 +751,31 @@ int SelectOne( struct REQUEST_s *ptRequest, struct RESPONSE_s *ptResponse )
 		}
 
 		ptEntry = dalFetchFirst( ptResult );
-		if ( NULL != ptEntry )
+		if ( NULL == ptEntry )
 		{
-			nRet = dalGetStringByKey( ptEntry, JOBTITLE, &pszJobTitle );
-			if ( -1 == nRet )
-			{
-				LogErr( __func__, dalErrno() );
-				goto error_return;
-			}
+			MPGLOG_ERR( "%s:: dalFetchFirst() fail=%d", __func__, dalErrno() );
+			goto error_return;
+		}
+	
+		nRet = dalGetStringByKey( ptEntry, JOBTITLE, &pszJobTitle );
+		if ( -1 == nRet )
+		{
+			LogErr( __func__, dalErrno() );
+			goto error_return;
+		}
 
-			nRet = dalGetStringByKey( ptEntry, TEAM, &pszTeam );
-			if ( -1 == nRet )
-			{
-				LogErr( __func__, dalErrno() );
-				goto error_return;
-			}	
+		nRet = dalGetStringByKey( ptEntry, TEAM, &pszTeam );
+		if ( -1 == nRet )
+		{
+			LogErr( __func__, dalErrno() );
+			goto error_return;
+		}	
 
-			nRet = dalGetStringByKey( ptEntry, PHONE, &pszPhone );
-			if ( -1 == nRet )
-			{
-				LogErr( __func__, dalErrno() );
-				goto error_return;
-			}
+		nRet = dalGetStringByKey( ptEntry, PHONE, &pszPhone );
+		if ( -1 == nRet )
+		{
+			LogErr( __func__, dalErrno() );
+			goto error_return;
 		}
 	}
 	else if ( ptRequest->nId == 0 && strlen(ptRequest->szName) == 0 )

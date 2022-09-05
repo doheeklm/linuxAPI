@@ -43,8 +43,11 @@
 #define JOBTITLE		"jobTitle"
 #define TEAM			"team"
 #define PHONE			"phone"
+#define NUMTUPLES		"NUMTUPLES"
 
 #define TIMER			"TMR"
+#define TMR_FLAG_RUN	1
+#define TMR_FLAG_STOP	0
 
 typedef enum
 {
@@ -89,5 +92,6 @@ typedef struct SELECT_ONE_s
 } SELECT_ONE_t;
 
 int g_nFlag = FLAG_RUN;
+int g_nTmrFlag = TMR_FLAG_RUN;
 
 #endif /*_TAP_INC_H_*/
