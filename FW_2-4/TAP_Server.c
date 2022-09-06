@@ -37,7 +37,6 @@ void TimerHandler( mptmr_t *ptTmr, void *pvArg, int nNumMiss )
 	DAL_RESULT_SET *ptResult = NULL;
 	DAL_ENTRY *ptEntry = NULL;
 
-	//DONE query로 생성=> select NUMTUPLES from __SYS_TABLES__ where TABLE_NAME='EmployeeInfos';
 	nRet = dalPreparedExec( g_ptConn, g_ptPstmtTimer, &ptResult );
 	if ( -1 == nRet )
 	{
@@ -51,14 +50,13 @@ void TimerHandler( mptmr_t *ptTmr, void *pvArg, int nNumMiss )
 		MPGLOG_ERR( "%s:: dalFetchFirst() fail=%d", __func__, dalErrno() );
 		return;
 	}
-	
+	//TODO index	
 	nRet = dalGetIntByKey( ptEntry, NUMTUPLES, &nEmployeeCnt );
 	if ( -1 == nRet )
 	{
 		MPGLOG_ERR( "%s:: dalGetIntByKey() fail=%d", __func__, dalErrno() );
 	}
 	
-	//DONE log에 저장
 	MPGLOG_SVC( "Employee Count: %d", nEmployeeCnt );
 
 	nRet = dalResFree( ptResult );
@@ -140,7 +138,6 @@ int main( int argc, char *argv[] )
 	/*
 	 *	Init PreparedStatement
 	 */
-	//DONE MultiThread용 _MT 적용
 	nRet = InitPreparedStatement();
 
 	if ( SUCCESS != nRet )
@@ -163,7 +160,6 @@ int main( int argc, char *argv[] )
 		goto end_of_function;
 	}
 	
-	//DONE INIT mptmr_set_svc_flag 
 	nRet = mptmr_set_svc_flag( ptTmr, &g_nTmrFlag );
 	if ( 0 > nRet )
 	{
@@ -171,7 +167,6 @@ int main( int argc, char *argv[] )
 		goto end_of_function_tmr;
 	}
 
-	//DONE Error Check
 	nTmrId = mptmr_new_tmr_id( ptTmr );
 	if ( 0 == nTmrId )
 	{
@@ -180,7 +175,7 @@ int main( int argc, char *argv[] )
 	}
 	MPGLOG_DBG( "%s:: mptmr_new_tmr_id()=%d", __func__, nRet );
 
-	nRet = mptmr_insert( ptTmr, nRet, MPTMR_INFINITE, 3 * 1000, TimerHandler, NULL, NULL );
+	nRet = mptmr_insert( ptTmr, nRet, MPTMR_INFINITE, 10 * 1000, TimerHandler, NULL, NULL );
 	if ( 0 > nRet )
 	{
 		MPGLOG_ERR( "%s:: mptmr_insert() fail", __func__ );
@@ -362,7 +357,6 @@ void SignalHandler( int nSig )
 
 	MPGLOG_SVC( "Signal: %d\n", nSig );
 
-	//DONE mptmr_set_svc_flag set
 	g_nTmrFlag = TMR_FLAG_STOP;
 	
 	exit( -1 );
