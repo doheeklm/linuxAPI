@@ -1,11 +1,11 @@
 /* FW_2-5/TAP_Server.c */
 #include "TAP_Inc.h"
 
-void SignalHandler	( int nSig );
 void LogErr			( const char* pszFuncName, int nErrno );
+void SignalHandler	( int nSig );
 static void ListFree( mpconf_list_t *ptSectList, mpconf_list_t *ptItemList, mpconf_list_t *ptValueList );
-int GetConfig		( char *pszIP, int *pnPort, int nSizeIP );
 
+int GetConfig		( char *pszIP, int *pnPort, int nSizeIP );
 int SetUniqueId		( int *pnId );
 int CheckIdExist	( int nId );
 
@@ -32,6 +32,9 @@ int main( int argc, char *argv[] )
 	RESPONSE_t *ptResponse = NULL;
 
 	int nRet = 0;
+	int nPort = 0;
+	char szIP[SIZE_IP];
+	memset( szIP, 0x00, sizeof(szIP) );
 
 	/*
 	 *	MPLOG
@@ -65,10 +68,6 @@ int main( int argc, char *argv[] )
 	/*
 	 *	MPCONF
 	 */
-	int nPort = 0;
-	char szIP[SIZE_IP];
-	memset( szIP, 0x00, sizeof(szIP) );
-
 	if ( SUCCESS != GetConfig( szIP, &nPort, sizeof(szIP) ) )
 	{
 		MPGLOG_ERR( "%s:: GetConfig() fail", __func__ );
@@ -196,6 +195,12 @@ end_of_function:
 	return 0;
 }
 
+void LogErr( const char* pszFuncName, int nErrno )
+{
+	MPGLOG_ERR( "%s errno[%d]\n", pszFuncName, nErrno );
+	return;
+}
+
 void SignalHandler( int nSig )
 {
 	g_nFlag = FLAG_STOP;
@@ -203,12 +208,6 @@ void SignalHandler( int nSig )
 	MPGLOG_SVC( "Signal: %d\n", nSig );
 
 	exit( -1 );
-}
-
-void LogErr( const char* pszFuncName, int nErrno )
-{
-	MPGLOG_ERR( "%s errno[%d]\n", pszFuncName, nErrno );
-	return;
 }
 
 static void ListFree( mpconf_list_t *ptSectList, mpconf_list_t *ptItemList, mpconf_list_t *ptValueList )
@@ -258,49 +257,35 @@ int GetConfig( char *pszIP, int *pnPort, int nSizeIP )
 
 int SetUniqueId( int *pnId )
 {
+	int nRet = 0;
+	int nCnt = 0;
+	int nDuplicateFlag = 0;
+
 	srand( time(NULL) );
 
-	*pnId = rand() % MAX_CNT_ID + 1;
-	
-	/*
-	int i = 0;
-	int nDuplicateFlag = 0;
-	int nCnt = 0;
-
-	mpconf_list_t *ptSectList = NULL;
-
 	do
-	{	
+	{
 		nCnt++;
-
+	
 		if ( nCnt > MAX_CNT_ID )
 		{
-			MPGLOG_ERR( "%s:: no more unique id", __func__ );
+			MPGLOG_ERR( "%s:: 아이디를 더이상 생성할 수 없습니다.", __func__ );
 			return OVER_MAX_FAIL;
 		}
 
-		*pnId = rand() % MAX_CNT_ID + 1; // if 10, 1~10. if 1000, 1~1000
+		*pnId = rand() % MAX_CNT_ID + 1; //ID 1~1000
 
-		ptSectList = mpconf_get_sect_list( NULL, g_pszConfigPath );
-		if ( NULL == ptSectList )
+		nRet = CheckIdExist( *pnId );
+		if ( ID_EXIST == nRet )
 		{
-			MPGLOG_ERR( "%s:: mpconf_get_sect_list() fail, path=%s", __func__, g_pszConfigPath );
-			return MPCONF_FAIL;
+			nDuplicateFlag = 1;
+			continue;
 		}
-
-		for ( i = 0; i < ptSectList->name_num; i++ )
-		{
-			if ( *pnId == atoi( ptSectList->name[i] ) )
-			{
-				nDuplicateFlag = 1;	
-				continue;
-			}
-		}
-
+			
 		nDuplicateFlag = 0;
 
 	} while ( nDuplicateFlag == 1 );
-*/
+
 	MPGLOG_DBG( "%s:: create random id [%d]", __func__, *pnId );
 
 	return SUCCESS;
@@ -329,7 +314,7 @@ int CheckIdExist( int nId )
 	pszToken = strtok_r( szBuf, DELIM, &pszDefaultToken );
 	while ( NULL != pszToken )
 	{
-		MPGLOG_DBG( "%s", pszToken );
+		//MPGLOG_DBG( "%s", pszToken );
 
 		if ( nId == atoi(pszToken) )
 		{
@@ -353,6 +338,11 @@ int Insert( struct REQUEST_s *ptRequest )
 	}
 
 	int nRet = 0;
+	char szKey[TAP_REGI_KEY_SIZE];
+	char szValue[SIZE_VALUE];
+
+	memset( szKey, 0x00, sizeof(szKey) );
+	memset( szValue, 0x00, sizeof(szValue) );
 
 	nRet = SetUniqueId( &(ptRequest->nId) );
 	if ( SUCCESS != nRet )
@@ -360,14 +350,7 @@ int Insert( struct REQUEST_s *ptRequest )
 		return FUNC_FAIL;
 	}
 
-	char szKey[TAP_REGI_KEY_SIZE]; //64
-	char szValue[SIZE_VALUE];
-
-	memset( szKey, 0x00, sizeof(szKey) );
-	memset( szValue, 0x00, sizeof(szValue) );
-
 	snprintf( szKey, sizeof(szKey), "%s%d", KEY_DIR, ptRequest->nId );	
-	MPGLOG_DBG( "strlen(szKey) = %ld", sizeof(szKey) );	
 	
 	/*
 	 *	Create Registry Key
@@ -386,7 +369,7 @@ int Insert( struct REQUEST_s *ptRequest )
 	memcpy( szValue, ptRequest, sizeof(struct REQUEST_s) );
 
 	/*
-	 *	Set Value in Registry Key
+	 *	Set Value
 	 */
 	nRet = TAP_Registry_udp_set_value( szKey, strlen(szKey), szValue, sizeof(struct REQUEST_s), SYSTEM_ID );
 	if ( 0 > nRet )
@@ -421,16 +404,14 @@ int Update( struct REQUEST_s *ptRequest )
 
 	snprintf( szKey, sizeof(szKey), "%s%d", KEY_DIR, ptRequest->nId );
 
-	snprintf( szReValue, sizeof(szReValue), "%s.%s.%s.%s", ptRequest->szJobTitle, ptRequest->szTeam, ptRequest->szTeam, ptRequest->szPhone );
+	memcpy( szReValue, ptRequest, sizeof(struct REQUEST_s) );
 
-	nRet = TAP_Registry_udp_replace_value( szKey, strlen(szKey), szReValue, sizeof(szReValue), SYSTEM_ID );
+	nRet = TAP_Registry_udp_replace_value( szKey, strlen(szKey), szReValue, sizeof(struct REQUEST_s), SYSTEM_ID );
 	if ( 0 > nRet )
 	{
 		MPGLOG_ERR( "%s:: TAP_Registry_udp_replace_value() fail=%d", __func__, nRet );
 		return TAP_REGI_FAIL;
 	}
-
-	//TODO 기존 정보를 적용할 것인지?
 
 	return SUCCESS;
 }

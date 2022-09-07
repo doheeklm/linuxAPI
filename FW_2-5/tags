@@ -7,17 +7,20 @@
 CLIENT_INPUT_FAIL	TAP_Inc.h	/^	CLIENT_INPUT_FAIL = -2,	FGETS_FAIL = -3,	TAP_IPC_FAIL = -4,$/;"	e	enum:__anon1
 CLIENT_PROCESS	TAP_Inc.h	28;"	d
 CONFIG_PATH	TAP_Inc.h	54;"	d
+CheckIdExist	TAP_Client.c	/^int CheckIdExist( int nId ) $/;"	f
 CheckIdExist	TAP_Server.c	/^int CheckIdExist( int nId ) $/;"	f
 ClearStdin	TAP_Client.c	/^void ClearStdin( char *pszTemp )$/;"	f
 DELETE	TAP_Inc.h	33;"	d
 DELIM	TAP_Inc.h	63;"	d
 Delete	TAP_Client.c	/^int Delete( struct REQUEST_s *ptRequest )$/;"	f
 Delete	TAP_Server.c	/^int Delete( struct REQUEST_s *ptRequest )$/;"	f
-EXENAME	Makefile	/^EXENAME=	svr$/;"	m
+EXENAME	Makefile	/^EXENAME=	cli$/;"	m
 FGETS_FAIL	TAP_Inc.h	/^	CLIENT_INPUT_FAIL = -2,	FGETS_FAIL = -3,	TAP_IPC_FAIL = -4,$/;"	e	enum:__anon1
 FLAG_RUN	TAP_Inc.h	35;"	d
 FLAG_STOP	TAP_Inc.h	36;"	d
 FUNC_FAIL	TAP_Inc.h	/^	OVER_MAX_FAIL = -8,		FUNC_FAIL = -9	$/;"	e	enum:__anon1
+GetAllIdAndName	TAP_Client.c	/^int GetAllIdAndName()$/;"	f
+GetConfig	TAP_Client.c	/^int GetConfig( char *pszIP, int *pnPort, int nSizeIP )$/;"	f
 GetConfig	TAP_Server.c	/^int GetConfig( char *pszIP, int *pnPort, int nSizeIP )$/;"	f
 ID	TAP_Inc.h	48;"	d
 ID_EXIST	TAP_Inc.h	/^	ID_EXIST = 3,			ID_NOT_EXIST = 4,$/;"	e	enum:__anon1
@@ -30,6 +33,7 @@ Insert	TAP_Client.c	/^int Insert( struct REQUEST_s *ptRequest )$/;"	f
 Insert	TAP_Server.c	/^int Insert( struct REQUEST_s *ptRequest )$/;"	f
 JOBTITLE	TAP_Inc.h	50;"	d
 KEY_DIR	TAP_Inc.h	59;"	d
+ListFree	TAP_Client.c	/^static void ListFree( mpconf_list_t *ptSectList, mpconf_list_t *ptItemList, mpconf_list_t *ptValueList )$/;"	f	file:
 ListFree	TAP_Server.c	/^static void ListFree( mpconf_list_t *ptSectList, mpconf_list_t *ptItemList, mpconf_list_t *ptValueList )$/;"	f	file:
 LogErr	TAP_Client.c	/^void LogErr( const char* pszFuncName, int nErrno )$/;"	f
 LogErr	TAP_Server.c	/^void LogErr( const char* pszFuncName, int nErrno )$/;"	f
@@ -66,7 +70,7 @@ SIZE_NAME	TAP_Inc.h	39;"	d
 SIZE_PHONE	TAP_Inc.h	42;"	d
 SIZE_TEAM	TAP_Inc.h	41;"	d
 SIZE_VALUE	TAP_Inc.h	61;"	d
-SRCS	Makefile	/^SRCS=	TAP_Server.c$/;"	m
+SRCS	Makefile	/^SRCS=	TAP_Client.c$/;"	m
 SUCCESS	TAP_Inc.h	/^	NOT_EXIST = 0,			SUCCESS = 1,		INPUT_FAIL = 2,$/;"	e	enum:__anon1
 SYSTEM_ID	TAP_Inc.h	60;"	d
 Select	TAP_Client.c	/^int Select( struct REQUEST_s *ptRequest )$/;"	f

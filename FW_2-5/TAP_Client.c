@@ -1,14 +1,20 @@
 /* FW_2-5/TAP_Client.c */
 #include "TAP_Inc.h"
 
-void SignalHandler	( int nSig );
 void ClearStdin		( char *pszTemp );
+
 void LogErr			( const char* pszFuncName, int nErrno );
+void SignalHandler	( int nSig );
+static void ListFree( mpconf_list_t *ptSectList, mpconf_list_t *ptItemList, mpconf_list_t *ptValueList );
+
+int GetConfig		( char *pszIP, int *pnPort, int nSizeIP );
+int CheckIdExist	( int nId );
 
 int	Insert			( struct REQUEST_s *ptRequest );
 int Select			( struct REQUEST_s *ptRequest );
 int Update			( struct REQUEST_s *ptRequest );
 int Delete			( struct REQUEST_s *ptRequest );
+int GetAllIdAndName ();
 
 int main( int argc, char *argv[] )
 {
@@ -23,17 +29,20 @@ int main( int argc, char *argv[] )
 	REQUEST_t *ptRequest = NULL;
 	RESPONSE_t *ptResponse = NULL;
 
-	int i = 0;	
 	int nRet = 0;
 	int nPickMenu = 0;
 	char szPickMenu[8];
 	char *pszRet = NULL;
-
+	
 	iipc_ds_t	tIpc;
 	iipc_key_t	tSrcKey;
 	iipc_key_t	tDstKey;
 	iipc_msg_t	tSendMsg;
 	iipc_msg_t	tRecvMsg;
+
+	int nPort = 0;
+	char szIP[SIZE_IP];
+	memset( szIP, 0x00, sizeof(szIP) );
 
 	/*
 	 *	MPLOG
@@ -80,6 +89,33 @@ int main( int argc, char *argv[] )
 		}
 		return TAP_IPC_FAIL;
 	}
+
+	/*
+	 *	MPCONF
+	 */
+	if ( SUCCESS != GetConfig( szIP, &nPort, sizeof(szIP) ) )
+	{
+		MPGLOG_ERR( "%s:: GetConfig() fail", __func__ );
+		goto end_of_function;	
+	}
+
+	/*
+	 *	TAP_Registry
+	 */
+	nRet = TAP_Registry_udp_open( szIP, nPort, '0', SYSTEM_ID );
+	if ( -1 == nRet )
+	{
+		MPGLOG_ERR( "%s:: TAP_Registry_udp_open() fail=%d", __func__, nRet );
+		goto end_of_function;
+	}
+
+	nRet = TAP_Registry_udp_manager_check_alive( SYSTEM_ID );
+	if ( -1 == nRet )
+	{
+		MPGLOG_ERR( "%s:: TAP_Registry_udp_manager_check_alive() fail=%d", __func__, nRet );
+		goto end_of_function;
+	}
+	MPGLOG_DBG( "Error Message [%s]", TAP_REG_GET_ERROR_CONTENT(nRet) );
 
 	/*
 	 *	Run Program (Client)
@@ -149,10 +185,8 @@ int main( int argc, char *argv[] )
 					goto end_of_function;
 				}
 
-				if ( ptRequest->nMsgType == 2 )
-					MPGLOG_SVC( "[SEND] MsgType: %d", ptRequest->nMsgType );
-				else if ( ptRequest->nMsgType == 3 )	
-					MPGLOG_SVC( "[SEND] MsgType: %d | Id: %d", ptRequest->nMsgType, ptRequest->nId );
+				// Send & Recv Msg를 하지 않기 위해 continue 함
+				continue;
 			}
 				break;
 			case 3:
@@ -221,39 +255,7 @@ int main( int argc, char *argv[] )
 
 		ptResponse = (RESPONSE_t *)tRecvMsg.buf.msgq_buf;	
 
-		if ( ptResponse->nMsgType == 2 )
-			MPGLOG_SVC( "[RECV] MsgType: %d | Result: %d | CntSelectAll: %d", ptResponse->nMsgType, ptResponse->nResult, ptResponse->nCntSelectAll );
-		else
-			MPGLOG_SVC( "[RECV] MsgType: %d | Id: %d | Result: %d", ptResponse->nMsgType, ptResponse->nId, ptResponse->nResult );
-		
-		if ( ptResponse->nResult == 1 )
-		{	
-			if ( ptResponse->nMsgType == 2 )
-			{
-				/* Select All */	
-				for ( i = 0; i < ptResponse->nCntSelectAll; i++ )
-				{
-					SELECT_ALL_t tSelectAll;
-
-					memcpy( &tSelectAll, ptResponse->szBuffer + ( i * sizeof(tSelectAll) ), sizeof(tSelectAll) );
-
-					MPGLOG_SVC( "[%d]\n%s=%s\n", tSelectAll.nId, NAME, tSelectAll.szName );
-				}	
-			}
-			else if ( ptResponse->nMsgType == 3 )
-			{
-				/* Select One */
-				SELECT_ONE_t *ptSelectOne = NULL;
-
-				ptSelectOne = (SELECT_ONE_t *)ptResponse->szBuffer;
-
-				MPGLOG_SVC( "[%d]\n%s=%s\n%s=%s\n%s=%s\n%s=%s",
-						ptResponse->nId, NAME, ptSelectOne->szName,
-						JOBTITLE, ptSelectOne->szJobTitle,
-						TEAM, ptSelectOne->szTeam,
-						PHONE, ptSelectOne->szPhone );
-			}
-		}
+		MPGLOG_SVC( "[RECV] MsgType: %d | Id: %d | Result: %d", ptResponse->nMsgType, ptResponse->nId, ptResponse->nResult );
 	}
 
 end_of_function:
@@ -265,21 +267,6 @@ end_of_function:
 	}
 
 	return 0;
-}
-
-void LogErr( const char* pszFuncName, int nErrno )
-{
-	MPGLOG_ERR( "%s:: errno[%d]\n", pszFuncName, nErrno );
-	return;
-}
-
-void SignalHandler( int nSig )
-{
-	g_nFlag = FLAG_STOP;
-
-	MPGLOG_SVC( "Signal: %d", nSig );
-
-	exit( -1 );
 }
 
 void ClearStdin( char *pszTemp )
@@ -297,6 +284,101 @@ void ClearStdin( char *pszTemp )
 	__fpurge( stdin );
 
 	return;
+}
+
+void LogErr( const char* pszFuncName, int nErrno )
+{
+	MPGLOG_ERR( "%s:: errno[%d]\n", pszFuncName, nErrno );
+	return;
+}
+
+void SignalHandler( int nSig )
+{
+	g_nFlag = FLAG_STOP;
+
+	MPGLOG_SVC( "Signal: %d", nSig );
+
+	exit( -1 );
+}
+
+static void ListFree( mpconf_list_t *ptSectList, mpconf_list_t *ptItemList, mpconf_list_t *ptValueList )
+{
+	if ( NULL != ptSectList )
+		mpconf_list_free( ptSectList );
+
+	if ( NULL != ptItemList )
+		mpconf_list_free( ptItemList );
+
+	if ( NULL != ptValueList )
+		mpconf_list_free( ptValueList );
+}
+
+int GetConfig( char *pszIP, int *pnPort, int nSizeIP )
+{
+	int i = 0;
+
+	mpconf_list_t *ptItemList = NULL;
+	mpconf_list_t *ptValueList = NULL;
+
+	ptValueList = mpconf_get_value_list( NULL, CONFIG_PATH, SECTION_NAME, &ptItemList );
+	if ( NULL == ptValueList )
+	{
+		MPGLOG_ERR( "%s:: mpconf_get_value_list() fail", __func__ );
+		return MPCONF_FAIL;
+	}
+
+	for ( i = 0; i < ptItemList->name_num; i++ )
+	{
+		if ( 0 == strcmp( ptItemList->name[i], ITEM_NAME_IP ) )
+		{
+			strlcpy( pszIP, ptValueList->name[i], nSizeIP ); 
+		}
+		else if ( 0 == strcmp( ptItemList->name[i], ITEM_NAME_PORT ) )
+		{
+			*pnPort = atoi( ptValueList->name[i] );
+		}
+	}
+
+	MPGLOG_DBG( "%s::[%s]IP=%s|PORT=%d", __func__, SECTION_NAME, pszIP, *pnPort );
+	
+	ListFree( NULL, ptItemList, ptValueList );
+
+	return SUCCESS;
+}
+
+int CheckIdExist( int nId ) 
+{
+	int nRet = 0;
+
+	char *pszToken = NULL;
+	char *pszDefaultToken = NULL;
+	
+	char szBuf[1024];
+	memset( szBuf, 0x00, sizeof(szBuf) );
+	
+	nRet = TAP_Registry_udp_enum_key_node( KEY_DIR, strlen(KEY_DIR), szBuf, sizeof(szBuf), SYSTEM_ID );
+	if ( 0 > nRet )
+	{
+		MPGLOG_ERR( "%s:: TAP_Registry_udp_enum_key_node() fail=%d", __func__, nRet );
+		return TAP_REGI_FAIL;
+	}
+
+	pszToken = strtok_r( szBuf, DELIM, &pszDefaultToken );
+	while ( NULL != pszToken )
+	{
+		//MPGLOG_DBG( "%s", pszToken );
+
+		if ( nId == atoi(pszToken) )
+		{
+			MPGLOG_DBG( "%s:: ID_EXIST return", __func__ );
+			return ID_EXIST;
+		}
+
+		pszToken = strtok_r( NULL, DELIM, &pszDefaultToken );
+	}
+
+	MPGLOG_DBG( "%s:: ID_NOT_EXIST return", __func__ );
+	return ID_NOT_EXIST;
 }
 
 int Insert( struct REQUEST_s *ptRequest )
@@ -359,16 +441,21 @@ int Select( struct REQUEST_s *ptRequest )
 		memset( ptRequest, 0x00, sizeof(struct REQUEST_s) );
 	}
 
+	int nRet = 0;
 	int nPickSelect = 0;
 	char szPickSelect[8];
 	char *pszRet = NULL;
 
 	char szInputId[32];
 	char szInputName[32];
+	char szKey[TAP_REGI_KEY_SIZE]; //64
+	char szValue[SIZE_VALUE];
 	
 	memset( szInputId, 0x00, sizeof(szInputId) );
 	memset( szInputName, 0x00, sizeof(szInputName) );
-
+	memset( szKey, 0x00, sizeof(szKey) );
+	memset( szValue, 0x00, sizeof(szValue) );
+	
 	do
 	{
 		nPickSelect = 0;
@@ -396,35 +483,52 @@ int Select( struct REQUEST_s *ptRequest )
 	{
 		case 1:
 		{
-			ptRequest->nMsgType = 2;
+			GetAllIdAndName();	
 		}
 			break;
 		case 2:
 		{
-			ptRequest->nMsgType = 3;
+			printf( "[%s] Input ID: ", __func__ );
 
-			do
+			pszRet = fgets( szInputId, sizeof(szInputId), stdin );
+			if ( NULL == pszRet )
 			{
-				printf( "[%s] Input ID: ", __func__ );
+				LogErr( __func__, errno );
+				return FGETS_FAIL;
+			}
+			ClearStdin( szInputId );
 
-				pszRet = fgets( szInputId, sizeof(szInputId), stdin );
-				if ( NULL == pszRet )
-				{
-					LogErr( __func__, errno );
-					return FGETS_FAIL;
-				}
-				ClearStdin( szInputId );
-			} while ( strlen( szInputId ) == 0 );
-
-			if ( atoi(szInputId) > 0 )
+			nRet = CheckIdExist( atoi(szInputId) );
+			if ( ID_EXIST == nRet )
 			{
 				ptRequest->nId = atoi(szInputId);
-				return SUCCESS;
+			}	
+			else if ( ID_NOT_EXIST != nRet )
+			{
+				return FUNC_FAIL;
 			}
-			else
+			else if ( ID_NOT_EXIST == nRet || strlen(szInputId) == 0 || atoi(szInputId) < 0 )
 			{
 				return INPUT_FAIL;
 			}
+
+			snprintf( szKey, sizeof(szKey), "%s%d", KEY_DIR, ptRequest->nId );	
+		
+			/*
+			 * Get Value
+			 */
+			nRet = TAP_Registry_udp_query_value( szKey, strlen(szKey), szValue, sizeof(struct REQUEST_s), SYSTEM_ID );
+			if ( 0 > nRet )
+			{
+				MPGLOG_ERR( "%s:: TAP_Registry_udp_set_value() fail=%d, key=%s", __func__, nRet, szKey );
+				return TAP_REGI_FAIL;
+			}
+			
+			struct REQUEST_s *ptTemp = NULL;
+			ptTemp = (struct REQUEST_s *)szValue;
+
+			MPGLOG_DBG( "%s:: Name: %s | JobTitle: %s | Team: %s | Phone: %s",
+				__func__, ptTemp->szName, ptTemp->szJobTitle, ptTemp->szTeam, ptTemp->szPhone );
 		}
 			break;
 		default:
@@ -534,6 +638,64 @@ int Delete( struct REQUEST_s *ptRequest )
 	{
 		return INPUT_FAIL;
 	}	
+
+	return SUCCESS;
+}
+
+int GetAllIdAndName()
+{
+	int i = 0;
+	int nRet = 0;
+	int nIndex = 0;
+
+	char *pszToken = NULL;
+	char *pszDefaultToken = NULL;
+
+	char szKey[TAP_REGI_KEY_SIZE]; //64
+	char szValue[SIZE_VALUE];
+	int anListId[10];
+	
+	memset( szValue, 0x00, sizeof(szValue) );
+	memset( anListId, 0x00, sizeof(anListId) );
+
+	nRet = TAP_Registry_udp_enum_key_node( KEY_DIR, strlen(KEY_DIR), szValue, sizeof(szValue), SYSTEM_ID );
+	if ( 0 > nRet )
+	{
+		MPGLOG_ERR( "%s:: TAP_Registry_udp_enum_key_node() fail=%d", __func__, nRet );
+		return TAP_REGI_FAIL;
+	}
+
+	pszToken = strtok_r( szValue, DELIM, &pszDefaultToken );
+	while ( NULL != pszToken )
+	{
+		if ( nIndex >= 10 )
+		{
+			return OVER_MAX_FAIL;
+		}
+
+		anListId[nIndex] = atoi(pszToken);		
+		nIndex++;
+		
+		pszToken = strtok_r( NULL, DELIM, &pszDefaultToken );
+	}
+
+	for ( i = 0; i < nIndex; i++ )
+	{
+		memset( szKey, 0x00, sizeof(szKey) );
+		snprintf( szKey, sizeof(szKey), "%s%d", KEY_DIR, anListId[i] );
+		
+		nRet = TAP_Registry_udp_query_value( szKey, strlen(szKey), szValue, sizeof(struct REQUEST_s), SYSTEM_ID );
+		if ( 0 > nRet )
+		{
+			MPGLOG_ERR( "%s:: TAP_Registry_udp_set_value() fail=%d, key=%s", __func__, nRet, szKey );
+			return TAP_REGI_FAIL;
+		}	
+
+		struct REQUEST_s *ptTemp = NULL;
+		ptTemp = (struct REQUEST_s *) szValue;
+
+		MPGLOG_DBG( "Id: %d | Name: %s", anListId[i], ptTemp->szName );
+	}
 
 	return SUCCESS;
 }
