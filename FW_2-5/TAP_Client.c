@@ -180,15 +180,15 @@ int main( int argc, char *argv[] )
 			case 2:
 			{
 				nRet = Select( ptRequest );
-				if ( SUCCESS != nRet && INPUT_FAIL != nRet )
+				if ( ID_NOT_EXIST == nRet || SUCCESS == nRet )
+				{
+					continue;
+				}
+				else 
 				{	
 					goto end_of_function;
 				}
-
-				// Send & Recv Msg를 하지 않기 위해 continue 함
-				continue;
 			}
-				break;
 			case 3:
 			{
 				nRet = Update( ptRequest );
@@ -346,41 +346,6 @@ int GetConfig( char *pszIP, int *pnPort, int nSizeIP )
 	return SUCCESS;
 }
 
-int CheckIdExist( int nId ) 
-{
-	int nRet = 0;
-
-	char *pszToken = NULL;
-	char *pszDefaultToken = NULL;
-	
-	char szBuf[1024];
-	memset( szBuf, 0x00, sizeof(szBuf) );
-	
-	nRet = TAP_Registry_udp_enum_key_node( KEY_DIR, strlen(KEY_DIR), szBuf, sizeof(szBuf), SYSTEM_ID );
-	if ( 0 > nRet )
-	{
-		MPGLOG_ERR( "%s:: TAP_Registry_udp_enum_key_node() fail=%d", __func__, nRet );
-		return TAP_REGI_FAIL;
-	}
-
-	pszToken = strtok_r( szBuf, DELIM, &pszDefaultToken );
-	while ( NULL != pszToken )
-	{
-		//MPGLOG_DBG( "%s", pszToken );
-
-		if ( nId == atoi(pszToken) )
-		{
-			MPGLOG_DBG( "%s:: ID_EXIST return", __func__ );
-			return ID_EXIST;
-		}
-
-		pszToken = strtok_r( NULL, DELIM, &pszDefaultToken );
-	}
-
-	MPGLOG_DBG( "%s:: ID_NOT_EXIST return", __func__ );
-	return ID_NOT_EXIST;
-}
-
 int Insert( struct REQUEST_s *ptRequest )
 {
 	if ( NULL != ptRequest )
@@ -498,19 +463,8 @@ int Select( struct REQUEST_s *ptRequest )
 			}
 			ClearStdin( szInputId );
 
-			nRet = CheckIdExist( atoi(szInputId) );
-			if ( ID_EXIST == nRet )
-			{
-				ptRequest->nId = atoi(szInputId);
-			}	
-			else if ( ID_NOT_EXIST != nRet )
-			{
-				return FUNC_FAIL;
-			}
-			else if ( ID_NOT_EXIST == nRet || strlen(szInputId) == 0 || atoi(szInputId) < 0 )
-			{
-				return INPUT_FAIL;
-			}
+			ptRequest->nId = atoi(szInputId);
+			MPGLOG_DBG( "%s:: ID[%d]", __func__, ptRequest->nId );
 
 			snprintf( szKey, sizeof(szKey), "%s%d", KEY_DIR, ptRequest->nId );	
 		
@@ -520,6 +474,11 @@ int Select( struct REQUEST_s *ptRequest )
 			nRet = TAP_Registry_udp_query_value( szKey, strlen(szKey), szValue, sizeof(struct REQUEST_s), SYSTEM_ID );
 			if ( 0 > nRet )
 			{
+				if ( TAP_REGI_NOT_FOUND == nRet )
+				{
+					MPGLOG_DBG( "%s:: TAP_REGI_NOT_FOUND", __func__ );	
+					return ID_NOT_EXIST;
+				}
 				MPGLOG_ERR( "%s:: TAP_Registry_udp_set_value() fail=%d, key=%s", __func__, nRet, szKey );
 				return TAP_REGI_FAIL;
 			}

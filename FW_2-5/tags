@@ -4,10 +4,8 @@
 !_TAG_PROGRAM_NAME	Exuberant Ctags	//
 !_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
 !_TAG_PROGRAM_VERSION	5.8	//
-CLIENT_INPUT_FAIL	TAP_Inc.h	/^	CLIENT_INPUT_FAIL = -2,	FGETS_FAIL = -3,	TAP_IPC_FAIL = -4,$/;"	e	enum:__anon1
 CLIENT_PROCESS	TAP_Inc.h	28;"	d
 CONFIG_PATH	TAP_Inc.h	54;"	d
-CheckIdExist	TAP_Client.c	/^int CheckIdExist( int nId ) $/;"	f
 CheckIdExist	TAP_Server.c	/^int CheckIdExist( int nId ) $/;"	f
 ClearStdin	TAP_Client.c	/^void ClearStdin( char *pszTemp )$/;"	f
 DELETE	TAP_Inc.h	33;"	d
@@ -15,13 +13,14 @@ DELIM	TAP_Inc.h	63;"	d
 Delete	TAP_Client.c	/^int Delete( struct REQUEST_s *ptRequest )$/;"	f
 Delete	TAP_Server.c	/^int Delete( struct REQUEST_s *ptRequest )$/;"	f
 EXENAME	Makefile	/^EXENAME=	cli$/;"	m
-FGETS_FAIL	TAP_Inc.h	/^	CLIENT_INPUT_FAIL = -2,	FGETS_FAIL = -3,	TAP_IPC_FAIL = -4,$/;"	e	enum:__anon1
+FGETS_FAIL	TAP_Inc.h	/^	FGETS_FAIL = -3,	TAP_IPC_FAIL = -4,$/;"	e	enum:__anon1
 FLAG_RUN	TAP_Inc.h	35;"	d
 FLAG_STOP	TAP_Inc.h	36;"	d
 FUNC_FAIL	TAP_Inc.h	/^	OVER_MAX_FAIL = -8,		FUNC_FAIL = -9	$/;"	e	enum:__anon1
 GetAllIdAndName	TAP_Client.c	/^int GetAllIdAndName()$/;"	f
 GetConfig	TAP_Client.c	/^int GetConfig( char *pszIP, int *pnPort, int nSizeIP )$/;"	f
 GetConfig	TAP_Server.c	/^int GetConfig( char *pszIP, int *pnPort, int nSizeIP )$/;"	f
+GetOriginalData	TAP_Server.c	/^int GetOriginalData	( int nId, char *pszAttribute, char *pszBuf, int nSizeBuf )$/;"	f
 ID	TAP_Inc.h	48;"	d
 ID_EXIST	TAP_Inc.h	/^	ID_EXIST = 3,			ID_NOT_EXIST = 4,$/;"	e	enum:__anon1
 ID_NOT_EXIST	TAP_Inc.h	/^	ID_EXIST = 3,			ID_NOT_EXIST = 4,$/;"	e	enum:__anon1
@@ -78,7 +77,7 @@ SetUniqueId	TAP_Server.c	/^int SetUniqueId( int *pnId )$/;"	f
 SignalHandler	TAP_Client.c	/^void SignalHandler( int nSig )$/;"	f
 SignalHandler	TAP_Server.c	/^void SignalHandler( int nSig )$/;"	f
 TABLE_NAME	TAP_Inc.h	47;"	d
-TAP_IPC_FAIL	TAP_Inc.h	/^	CLIENT_INPUT_FAIL = -2,	FGETS_FAIL = -3,	TAP_IPC_FAIL = -4,$/;"	e	enum:__anon1
+TAP_IPC_FAIL	TAP_Inc.h	/^	FGETS_FAIL = -3,	TAP_IPC_FAIL = -4,$/;"	e	enum:__anon1
 TEAM	TAP_Inc.h	51;"	d
 UPDATE	TAP_Inc.h	32;"	d
 Update	TAP_Client.c	/^int Update( struct REQUEST_s *ptRequest )$/;"	f

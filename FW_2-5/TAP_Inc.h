@@ -1,4 +1,4 @@
-/* TAP_Inc.h */
+/* FW_2-5/TAP_Inc.h */
 
 #ifndef _TAP_INC_H_
 #define _TAP_INC_H_
@@ -69,7 +69,7 @@ typedef enum
 	NOT_EXIST = 0,			SUCCESS = 1,		INPUT_FAIL = 2,
 	ID_EXIST = 3,			ID_NOT_EXIST = 4,
 	
-	CLIENT_INPUT_FAIL = -2,	FGETS_FAIL = -3,	TAP_IPC_FAIL = -4,
+	FGETS_FAIL = -3,	TAP_IPC_FAIL = -4,
 	NULL_FAIL = -5,			MPGLOG_FAIL = -6,	MPCONF_FAIL = -7,
 	OVER_MAX_FAIL = -8,		FUNC_FAIL = -9	
 

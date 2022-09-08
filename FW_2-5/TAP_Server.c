@@ -12,6 +12,7 @@ int CheckIdExist	( int nId );
 int Insert			( struct REQUEST_s *ptRequest );
 int Update			( struct REQUEST_s *ptRequest );
 int Delete			( struct REQUEST_s *ptRequest );
+int GetOriginalData	( int nId, char *pszAttribute, char *pszBuf, int nSizeBuf );
 
 int main( int argc, char *argv[] )
 {
@@ -125,8 +126,8 @@ int main( int argc, char *argv[] )
 			case 1:
 			{
 				MPGLOG_SVC( "[RECV] MsgType: %d | Name: %s | JobTitle: %s | Team: %s | Phone: %s",
-				ptRequest->nMsgType, ptRequest->szName,
-				ptRequest->szJobTitle, ptRequest->szTeam, ptRequest->szPhone );
+							ptRequest->nMsgType, ptRequest->szName,
+							ptRequest->szJobTitle, ptRequest->szTeam, ptRequest->szPhone );
 
 				nRet = Insert( ptRequest );
 				if ( SUCCESS != nRet )
@@ -141,7 +142,8 @@ int main( int argc, char *argv[] )
 			case 4:
 			{
 				MPGLOG_SVC( "[RECV] MsgType: %d | Id: %d | Name: %s | JobTitle: %s | Team: %s | Phone: %s",
-						ptRequest->nMsgType, ptRequest->nId, ptRequest->szName, ptRequest->szJobTitle, ptRequest->szTeam, ptRequest->szPhone );
+							ptRequest->nMsgType, ptRequest->nId, ptRequest->szName,
+						ptRequest->szJobTitle, ptRequest->szTeam, ptRequest->szPhone );
 
 				nRet = Update( ptRequest );
 				if ( SUCCESS != nRet )
@@ -213,13 +215,19 @@ void SignalHandler( int nSig )
 static void ListFree( mpconf_list_t *ptSectList, mpconf_list_t *ptItemList, mpconf_list_t *ptValueList )
 {
 	if ( NULL != ptSectList )
+	{
 		mpconf_list_free( ptSectList );
+	}
 
 	if ( NULL != ptItemList )
+	{
 		mpconf_list_free( ptItemList );
+	}
 
 	if ( NULL != ptValueList )
+	{
 		mpconf_list_free( ptValueList );
+	}
 }
 
 int GetConfig( char *pszIP, int *pnPort, int nSizeIP )
@@ -314,7 +322,7 @@ int CheckIdExist( int nId )
 	pszToken = strtok_r( szBuf, DELIM, &pszDefaultToken );
 	while ( NULL != pszToken )
 	{
-		//MPGLOG_DBG( "%s", pszToken );
+		MPGLOG_DBG( "%s", pszToken );
 
 		if ( nId == atoi(pszToken) )
 		{
@@ -392,14 +400,53 @@ int Update( struct REQUEST_s *ptRequest )
 	int nRet = 0;
 	char szKey[TAP_REGI_KEY_SIZE];
 	char szReValue[SIZE_VALUE];
-	
+	char szCopy[256];
+
 	memset( szKey, 0x00, sizeof(szKey) );
 	memset( szReValue, 0x00, sizeof(szReValue) );
-
-	nRet = CheckIdExist( ptRequest->nId );
-	if ( ID_EXIST != nRet )
+	memset( szCopy, 0x00, sizeof(szCopy) );
+	
+	if ( 0 == strlen(ptRequest->szName) )
 	{
-		return CLIENT_INPUT_FAIL;
+		nRet = GetOriginalData( ptRequest->nId, NAME, szCopy, sizeof(szCopy) );
+		if ( SUCCESS != nRet )
+		{
+			return FUNC_FAIL;
+		}
+		strlcpy( ptRequest->szName, szCopy, sizeof(ptRequest->szName) );
+	}
+
+	memset( szCopy, 0x00, sizeof(szCopy) );
+	if ( 0 == strlen(ptRequest->szJobTitle) )
+	{
+		nRet = GetOriginalData( ptRequest->nId, JOBTITLE, szCopy, sizeof(szCopy) );
+		if ( SUCCESS != nRet )
+		{
+			return FUNC_FAIL;
+		}
+		strlcpy( ptRequest->szJobTitle, szCopy, sizeof(ptRequest->szJobTitle) );
+	}
+
+	memset( szcopy, 0x00, sizeof(szcopy) );
+	if ( 0 == strlen(ptRequest->szTeam) )
+	{
+		nRet = GetOriginalData( ptRequest->nId, TEAM, szCopy, sizeof(szCopy) );
+		if ( SUCCESS != nRet )
+		{
+			return FUNC_FAIL;
+		}
+		strlcpy( ptRequest->szTeam, szCopy, sizeof(ptRequest->szTeam) );
+	}
+
+	memset( szcopy, 0x00, sizeof(szcopy) );
+	if ( 0 == strlen(ptRequest->szPhone) )
+	{
+		nRet = GetOriginalData( ptRequest->nId, PHONE, szCopy, sizeof(szCopy) );
+		if ( SUCCESS != nRet )
+		{
+			return FUNC_FAIL;
+		}
+		strlcpy( ptRequest->szPhone, szCopy, sizeof(ptRequest->szPhone) );
 	}
 
 	snprintf( szKey, sizeof(szKey), "%s%d", KEY_DIR, ptRequest->nId );
@@ -409,6 +456,12 @@ int Update( struct REQUEST_s *ptRequest )
 	nRet = TAP_Registry_udp_replace_value( szKey, strlen(szKey), szReValue, sizeof(struct REQUEST_s), SYSTEM_ID );
 	if ( 0 > nRet )
 	{
+		if ( TAP_REGI_NOT_FOUND == nRet )
+		{
+			MPGLOG_DBG( "%s:: TAP_REGI_NOT_FOUND", __func__ );
+			return ID_NOT_EXIST;
+		}
+		
 		MPGLOG_ERR( "%s:: TAP_Registry_udp_replace_value() fail=%d", __func__, nRet );
 		return TAP_REGI_FAIL;
 	}
@@ -428,19 +481,68 @@ int Delete( struct REQUEST_s *ptRequest )
 	char szKey[TAP_REGI_KEY_SIZE];
 	memset( szKey, 0x00, sizeof(szKey) );
 
-	nRet = CheckIdExist( ptRequest->nId );
-	if ( ID_EXIST != nRet )
-	{
-		return CLIENT_INPUT_FAIL;
-	}
-
 	snprintf( szKey, sizeof(szKey), "%s%d", KEY_DIR, ptRequest->nId );	
 
 	nRet = TAP_Registry_udp_key_delete( szKey, strlen(szKey), TAP_REGISTRY_UDP_REMOVE, SYSTEM_ID );
 	if ( 0 > nRet )
 	{
+		if ( TAP_REGI_NOT_FOUND == nRet )
+		{
+			MPGLOG_DBG( "%s:: TAP_REGI_NOT_FOUND", __func__ );
+			return ID_NOT_EXIST;
+		}
 		MPGLOG_ERR( "%s:: TAP_Registry_udp_key_delete() fail=%d", __func__, nRet );
 		return TAP_REGI_FAIL;
+	}
+
+	return SUCCESS;
+}
+
+int GetOriginalData	( int nId, char *pszAttribute, char *pszBuf, int nSizeBuf )
+{
+	int nRet = 0;
+	char szKey[TAP_REGI_KEY_SIZE];
+	char szValue[SIZE_VALUE];
+
+	memset( szKey, 0x00, sizeof(szKey) );
+	memset( szValue, 0x00, sizeof(szValue) );
+
+	snprintf( szKey, sizeof(szKey), "%s%d", KEY_DIR, nId );
+
+	nRet = TAP_Registry_udp_query_value( szKey, strlen(szKey), szValue, sizeof(struct REQUEST_s), SYSTEM_ID );
+	if ( 0 > nRet )
+	{
+		if ( TAP_REGI_NOT_FOUND == nRet )
+		{
+			MPGLOG_DBG( "%s:: TAP_REGI_NOT_FOUND", __func__ );	
+			return ID_NOT_EXIST;
+		}
+		MPGLOG_ERR( "%s:: TAP_Registry_udp_set_value() fail=%d, key=%s", __func__, nRet, szKey );
+		return TAP_REGI_FAIL;
+	}
+	
+	struct REQUEST_s *ptTemp = NULL;
+	ptTemp = (struct REQUEST_s *)szValue;
+
+	if ( 0 == strcmp( pszAttribute, NAME ) )
+	{
+		strlcpy( pszBuf, ptTemp->szName, nSizeBuf );
+	}
+	else if ( 0 == strcmp( pszAttribute, JOBTITLE ) )
+	{
+		strlcpy( pszBuf, ptTemp->szJobTitle, nSizeBuf );
+	}
+	else if ( 0 == strcmp( pszAttribute, TEAM ) )
+	{
+		strlcpy( pszBuf, ptTemp->szTeam, nSizeBuf );
+	}
+	else if ( 0 == strcmp( pszAttribute, PHONE ) )
+	{
+		strlcpy( pszBuf, ptTemp->szPhone, nSizeBuf );
+	}
+	else
+	{
+		return FUNC_FAIL;
 	}
 
 	return SUCCESS;
