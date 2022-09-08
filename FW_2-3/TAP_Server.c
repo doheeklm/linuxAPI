@@ -6,7 +6,6 @@ void LogErr			( const char* pszFuncName, int nErrno );
 static void ListFree( mpconf_list_t *ptSectList, mpconf_list_t *ptItemList, mpconf_list_t *ptValueList );
 
 int SetUniqueId		( int *pnId );
-int CheckIdExist	( int nId );
 
 int Insert			( struct REQUEST_s *ptRequest );
 int SelectAll		( struct RESPONSE_s *ptResponse );
@@ -277,32 +276,6 @@ int SetUniqueId( int *pnId )
 	return SUCCESS;
 }
 
-int CheckIdExist( int nId ) 
-{
-	int i = 0;
-	
-	mpconf_list_t *ptSectList = NULL;
-
-	ptSectList = mpconf_get_sect_list( NULL, g_pszConfigPath );
-	if ( NULL == ptSectList )
-	{
-		MPGLOG_ERR( "%s:: mpconf_get_sect_list() fail, path=%s", __func__, g_pszConfigPath );
-		return MPCONF_FAIL;
-	}
-
-	for ( i = 0; i < ptSectList->name_num; i++ )
-	{
-		if ( nId == atoi( ptSectList->name[i] ) )
-		{
-			return ID_EXIST;
-		}
-	}
-	
-	ListFree( ptSectList, NULL, NULL );
-
-	return ID_NOT_EXIST;
-}
-
 int Insert( struct REQUEST_s *ptRequest )
 {
 	if ( NULL == ptRequest )
@@ -389,10 +362,6 @@ int SelectAll( struct RESPONSE_s *ptResponse )
 		{
 			if ( strcmp( NAME, ptItemList->name[j] ) == 0 )
 			{
-				/*
-				 *	Section 문자열값 => ID
-				 *	Item의 Value값=> NAME
-				 */
 				memset( &tSelectAll, 0x00, sizeof(tSelectAll) );
 				
 				tSelectAll.nId = atoi( ptSectList->name[i] );
@@ -401,10 +370,9 @@ int SelectAll( struct RESPONSE_s *ptResponse )
 
 				MPGLOG_DBG( "[%s] %s=%s", ptSectList->name[i], ptItemList->name[j], ptValueList->name[j] ); 
 			
-				/* 버퍼사이즈를 초과하여 중간에 메모리가 잘릴 가능성이 있으면 memcpy 하지 않고 break */
 				if ( ( (nCnt + 1) * sizeof(tSelectAll) ) > sizeof(ptResponse->szBuffer) )
 				{
-					MPGLOG_DBG( "현재까지 읽은 사이즈[%ld], 버퍼사이즈[%ld]: 버퍼 사이즈 초과될 가능성이 있어 memcpy 하지 않음", nCnt * sizeof(tSelectAll), sizeof(ptResponse->szBuffer) );
+					MPGLOG_DBG( "%s:: 버퍼 사이즈 초과될 가능성이 있어 memcpy 하지 않음", __func__ );
 					break;
 				}
 
@@ -430,11 +398,6 @@ int SelectOne( struct REQUEST_s *ptRequest, struct RESPONSE_s *ptResponse )
 		return NULL_FAIL;		
 	}
 
-	if ( ID_NOT_EXIST == CheckIdExist( ptRequest->nId ) )
-	{
-		return CLIENT_INPUT_FAIL;
-	}
-
 	int nRet = 0;
 	char szBuf[256];
 	char szDefaultBuf[256];
@@ -454,6 +417,11 @@ int SelectOne( struct REQUEST_s *ptRequest, struct RESPONSE_s *ptResponse )
 		nRet = mpconf_get_str( NULL, g_pszConfigPath, szId, NAME, szBuf, sizeof(szBuf), szDefaultBuf );
 		if ( 0 > nRet )
 		{
+			if ( -2002 == nRet )
+			{
+				MPGLOG_DBG( "%s:: ID_NOT_EXIST", __func__ );
+				return ID_NOT_EXIST;
+			}
 			MPGLOG_ERR( "%s:: mpconf_get_str() fail, path=%s", __func__, g_pszConfigPath );
 			return MPCONF_FAIL;
 		}
@@ -509,11 +477,6 @@ int Update( struct REQUEST_s *ptRequest )
 		return NULL_FAIL;		
 	}
 
-	if ( ID_NOT_EXIST == CheckIdExist( ptRequest->nId ) )
-	{	
-		return CLIENT_INPUT_FAIL;
-	}
-
 	int nRet = 0;
 	char szId[SIZE_ID + 1];
 	
@@ -526,6 +489,11 @@ int Update( struct REQUEST_s *ptRequest )
 		nRet = mpconf_set_str( NULL, g_pszConfigPath, szId, JOBTITLE, ptRequest->szJobTitle );
 		if ( 0 > nRet )
 		{
+			if ( -2002 == nRet )
+			{
+				MPGLOG_DBG( "%s:: ID_NOT_EXIST", __func__ );
+				return ID_NOT_EXIST;
+			}
 			MPGLOG_ERR( "%s:: mpconf_set_str(), path=%s", __func__, g_pszConfigPath );
 			return MPCONF_FAIL;
 		}
@@ -536,6 +504,11 @@ int Update( struct REQUEST_s *ptRequest )
 		nRet = mpconf_set_str( NULL, g_pszConfigPath, szId, TEAM, ptRequest->szTeam );
 		if ( 0 > nRet )
 		{
+			if ( -2002 == nRet )
+			{
+				MPGLOG_DBG( "%s:: ID_NOT_EXIST", __func__ );
+				return ID_NOT_EXIST;
+			}
 			MPGLOG_ERR( "%s:: mpconf_set_str(), path=%s", __func__, g_pszConfigPath );
 			return MPCONF_FAIL;
 		}
@@ -546,6 +519,11 @@ int Update( struct REQUEST_s *ptRequest )
 		nRet = mpconf_set_str( NULL, g_pszConfigPath, szId, PHONE, ptRequest->szPhone );
 		if ( 0 > nRet )
 		{
+			if ( -2002 == nRet )
+			{
+				MPGLOG_DBG( "%s:: ID_NOT_EXIST", __func__ );
+				return ID_NOT_EXIST;
+			}
 			MPGLOG_ERR( "%s:: mpconf_set_str(), path=%s", __func__, g_pszConfigPath );
 			return MPCONF_FAIL;
 		}
@@ -562,14 +540,8 @@ int Delete( struct REQUEST_s *ptRequest )
 		return NULL_FAIL;		
 	}
 
-	if ( ID_NOT_EXIST == CheckIdExist( ptRequest->nId ) )
-	{	
-		return CLIENT_INPUT_FAIL;
-	}
-
 	int nRet = 0;
 	char szId[6];
-	
 	memset( szId, 0x00, sizeof(szId) );
 
 	snprintf( szId, sizeof(szId), "%d", ptRequest->nId );
@@ -577,6 +549,11 @@ int Delete( struct REQUEST_s *ptRequest )
 	nRet = mpconf_del_sect( NULL, g_pszConfigPath, szId );
 	if ( 0 > nRet )
 	{
+		if ( -2002 == nRet )
+		{
+			MPGLOG_DBG( "%s:: ID_NOT_EXIST", __func__ );
+			return ID_NOT_EXIST;
+		}
 		MPGLOG_ERR( "%s:: mpconf_del_sect() fail, path=%s\n", __func__, g_pszConfigPath );
 		return MPCONF_FAIL;
 	}
