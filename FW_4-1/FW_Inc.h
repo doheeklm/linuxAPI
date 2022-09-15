@@ -18,36 +18,41 @@
 #include <dal.h>
 #include <TAP_Ipc.h>
 #include <mplog.h>
+#include "stctl/stctl.h"
+#include "test_stat.h"
 
-#define SERVER_PROCESS	"MIPCSVR"
-#define CLIENT_PROCESS	"MIPCCLI"
+#define SERVER_PROCNAME				"MIPCSVR"
+#define CLIENT_PROCNAME				"MIPCCLI"
 
-#define INSERT			"Insert"
-#define SELECT			"Select"
-#define UPDATE			"Update"
-#define DELETE			"Delete"
+#define INSERT						"Insert"
+#define SELECT						"Select"
+#define UPDATE						"Update"
+#define DELETE						"Delete"
 
-#define FLAG_RUN		100
-#define FLAG_STOP		99
+#define FLAG_RUN					100
+#define FLAG_STOP					99
 
-#define SIZE_NAME		32
-#define SIZE_JOBTITLE	32
-#define SIZE_TEAM		32
-#define SIZE_PHONE		13
+#define SIZE_NAME					32
+#define SIZE_JOBTITLE				32
+#define SIZE_TEAM					32
+#define SIZE_PHONE					13
 
-#define TABLE_NAME		"EmployeeInfos"
-#define ID				"id"
-#define NAME			"name"
-#define JOBTITLE		"jobTitle"
-#define TEAM			"team"
-#define PHONE			"phone"
+#define TABLE_NAME					"EmployeeInfos"
+#define MSG_TYPE					"MsgType"
+#define ALL							"{ALL}"
+#define ID							"id"
+#define NAME						"name"
+#define JOBTITLE					"jobTitle"
+#define TEAM						"team"
+#define PHONE						"phone"
 
 typedef enum
 {
 	SUCCESS = 1, INPUT_FAIL = 2,
 	DAL_FAIL = -2, FGETS_FAIL = -3, TAP_FAIL = -4,
 	NULL_FAIL = -5, MPGLOG_FAIL = -6,
-	ID_NOT_EXIST = -7, NAME_NOT_EXIST = -8
+	ID_NOT_EXIST = -7, NAME_NOT_EXIST = -8,
+	STAT_FAIL = -9, FUNC_FAIL = -10
 } ReturnCode_t;
 
 typedef struct REQUEST_s
@@ -85,5 +90,13 @@ typedef struct SELECT_ONE_s
 } SELECT_ONE_t;
 
 int g_nFlag = FLAG_RUN;
+
+DAL_CONN	*g_ptConn= NULL;
+DAL_PSTMT	*g_ptPstmtInsert = NULL;
+DAL_PSTMT	*g_ptPstmtSelectAll = NULL;
+DAL_PSTMT	*g_ptPstmtSelectOneById = NULL;
+DAL_PSTMT	*g_ptPstmtSelectOneByName = NULL;
+DAL_PSTMT	*g_ptPstmtUpdate = NULL;
+DAL_PSTMT	*g_ptPstmtDelete = NULL;
 
 #endif /*_FW_INC_H_*/

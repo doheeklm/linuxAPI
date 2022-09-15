@@ -22,7 +22,10 @@ int main( int argc, char *argv[] )
 
 	REQUEST_t *ptRequest = NULL;
 	RESPONSE_t *ptResponse = NULL;
-	
+
+	SELECT_ALL_t tSelectAll;
+	SELECT_ONE_t *ptSelectOne = NULL;
+
 	int i = 0;
 	int nRet = 0;
 	int nPickMenu = 0;
@@ -38,7 +41,7 @@ int main( int argc, char *argv[] )
 	/*
 	 *	MPLOG
 	 */
-	nRet = MPGLOG_INIT( CLIENT_PROCESS, NULL,
+	nRet = MPGLOG_INIT( CLIENT_PROCNAME, NULL,
 			LOG_MODE_DAILY | LOG_MODE_NO_DATE | LOG_MODE_LEVEL_TAG,
 			LOG_LEVEL_DBG );
 	if ( 0 > nRet )
@@ -50,14 +53,14 @@ int main( int argc, char *argv[] )
 	/*
 	 *	TAP_IPC
 	 */
-	nRet = TAP_ipc_open( &tIpc, CLIENT_PROCESS );
+	nRet = TAP_ipc_open( &tIpc, CLIENT_PROCNAME );
 	if ( 0 > nRet )
 	{
 		LogErr( __func__, ipc_errno );
 		return TAP_FAIL;
 	}	
 
-	tDstKey = TAP_ipc_getkey( &tIpc, SERVER_PROCESS );
+	tDstKey = TAP_ipc_getkey( &tIpc, SERVER_PROCNAME );
 	if ( IPC_NOPROC == tDstKey )
 	{
 		LogErr( __func__, ipc_errno );
@@ -69,7 +72,7 @@ int main( int argc, char *argv[] )
 		return TAP_FAIL;
 	}
 
-	tSrcKey = TAP_ipc_getkey( &tIpc, CLIENT_PROCESS );
+	tSrcKey = TAP_ipc_getkey( &tIpc, CLIENT_PROCNAME );
 	if ( IPC_NOPROC == tSrcKey )
 	{
 		LogErr( __func__, ipc_errno );
@@ -114,7 +117,7 @@ int main( int argc, char *argv[] )
 			ClearStdin( szPickMenu );
 
 			nPickMenu = atoi( szPickMenu );
-		} while ( nPickMenu < 1 || nPickMenu > 5);
+		} while ( 1 > nPickMenu || 5 < nPickMenu );
 
 		tSendMsg.u.h.src = tSrcKey;
 		tSendMsg.u.h.dst = tDstKey;
@@ -136,9 +139,12 @@ int main( int argc, char *argv[] )
 					goto end_of_function;
 				}
 
-				MPGLOG_SVC( "[SEND] MsgType: %d | Name: %s | JobTitle: %s | Team: %s | Phone: %s",
-						ptRequest->nMsgType, ptRequest->szName,
-						ptRequest->szJobTitle, ptRequest->szTeam, ptRequest->szPhone );
+				MPGLOG_SVC( "[SEND] %s: %d | %s: %s | %s: %s| %s: %s | %s: %s",
+							MSG_TYPE, ptRequest->nMsgType,
+							NAME, ptRequest->szName,
+							JOBTITLE, ptRequest->szJobTitle,
+							TEAM, ptRequest->szTeam,
+							PHONE, ptRequest->szPhone );
 			}
 				break;
 			case 2:
@@ -150,9 +156,15 @@ int main( int argc, char *argv[] )
 				}
 
 				if ( ptRequest->nMsgType == 2 )
-					MPGLOG_SVC( "[SEND] MsgType: %d", ptRequest->nMsgType );
+				{
+					MPGLOG_SVC( "[SEND] %s: %d | %s: %s",
+								MSG_TYPE, ptRequest->nMsgType, ID, ALL );
+				}
 				else if ( ptRequest->nMsgType == 3 )	
-					MPGLOG_SVC( "[SEND] MsgType: %d | Id: %d", ptRequest->nMsgType, ptRequest->nId );
+				{
+					MPGLOG_SVC( "[SEND] %s: %d | %s: %d",
+								MSG_TYPE, ptRequest->nMsgType, ID, ptRequest->nId );
+				}
 			}
 				break;
 			case 3:
@@ -163,9 +175,13 @@ int main( int argc, char *argv[] )
 					goto end_of_function;
 				}
 
-				MPGLOG_SVC( "[SEND] MsgType: %d | Id: %d | Name: %s | JobTitle: %s | Team: %s | Phone: %s",
-						ptRequest->nMsgType, ptRequest->nId, ptRequest->szName,
-						ptRequest->szJobTitle, ptRequest->szTeam, ptRequest->szPhone ); 
+				MPGLOG_SVC( "[SEND] %s: %d | %s: %d | %s: %s | %s: %s | %s: %s | %s: %s",
+							MSG_TYPE, ptRequest->nMsgType,
+							ID, ptRequest->nId,
+							NAME, ptRequest->szName,
+							JOBTITLE, ptRequest->szJobTitle,
+							TEAM, ptRequest->szTeam,
+							PHONE, ptRequest->szPhone ); 
 			}
 				break;
 			case 4:
@@ -176,7 +192,8 @@ int main( int argc, char *argv[] )
 					goto end_of_function;
 				}
 
-				MPGLOG_SVC( "[SEND] MsgType: %d | Id: %d", ptRequest->nMsgType, ptRequest->nId );
+				MPGLOG_SVC( "[SEND] %s: %d | %s: %d",
+							MSG_TYPE, ptRequest->nMsgType, ID, ptRequest->nId );
 			}
 				break;
 			case 5:
@@ -220,39 +237,47 @@ int main( int argc, char *argv[] )
 		}
 
 		ptResponse = (RESPONSE_t *)tRecvMsg.buf.msgq_buf;	
-	
-		if ( ptResponse->nMsgType == 2 )
-			MPGLOG_SVC( "[RECV] MsgType: %d | Result: %d | CntSelectAll: %d", ptResponse->nMsgType, ptResponse->nResult, ptResponse->nCntSelectAll );
-		else
-			MPGLOG_SVC( "[RECV] MsgType: %d | Id: %d | Result: %d", ptResponse->nMsgType, ptResponse->nId, ptResponse->nResult );
-		
-		if ( ptResponse->nResult == 1 )
-		{	
-			if ( ptResponse->nMsgType == 2 )
+
+		switch ( ptResponse->nMsgType )	
+		{
+			case 2:
 			{
-				/* Select All */	
-				for ( i = 0; i < ptResponse->nCntSelectAll; i++ )
+				MPGLOG_SVC( "[RECV] %s: %d | %s: %s | Result: %d | CntSelectAll: %d",
+							MSG_TYPE, ptResponse->nMsgType, ID, ALL, ptResponse->nResult, ptResponse->nCntSelectAll );
+
+				if ( 1 == ptResponse->nResult )
 				{
-					SELECT_ALL_t tSelectAll;
+					for ( i = 0; i < ptResponse->nCntSelectAll; i++ )
+					{
+						memcpy( &tSelectAll, ptResponse->szBuffer + ( i * sizeof(tSelectAll) ), sizeof(tSelectAll) );
 
-					memcpy( &tSelectAll, ptResponse->szBuffer + ( i * sizeof(tSelectAll) ), sizeof(tSelectAll) );
+						MPGLOG_SVC( "%s: %d | %s: %s",
+									ID, tSelectAll.nId, NAME, tSelectAll.szName );
+					}	
+				}
+			}
+				break;
+			case 3:
+			{
+				MPGLOG_SVC( "[RECV] %s: %d | %s: %d | Result: %d",
+							MSG_TYPE, ptResponse->nMsgType, ID, ptResponse->nId, ptResponse->nResult );
 
-					MPGLOG_SVC( "[%d]\n%s=%s\n", tSelectAll.nId, NAME, tSelectAll.szName );
+				if ( 1 == ptResponse->nResult )
+				{
+					ptSelectOne = (SELECT_ONE_t *)ptResponse->szBuffer;
+
+					MPGLOG_SVC( "%s: %d | %s: %s | %s: %s | %s: %s",
+								ID, ptResponse->nId, JOBTITLE, ptSelectOne->szJobTitle,
+								TEAM, ptSelectOne->szTeam, PHONE, ptSelectOne->szPhone );
 				}	
 			}
-			else if ( ptResponse->nMsgType == 3 )
+				break;
+			default:
 			{
-				/* Select One */
-				SELECT_ONE_t *ptSelectOne = NULL;
-
-				ptSelectOne = (SELECT_ONE_t *)ptResponse->szBuffer;
-
-				MPGLOG_SVC( "[%d]\n%s=%s\n%s=%s\n%s=%s",
-						ptResponse->nId,
-						JOBTITLE, ptSelectOne->szJobTitle,
-						TEAM, ptSelectOne->szTeam,
-						PHONE, ptSelectOne->szPhone );
+				MPGLOG_SVC( "[RECV] %s: %d | %s: %d | Result: %d",
+							MSG_TYPE, ptResponse->nMsgType, ID, ptResponse->nId, ptResponse->nResult );
 			}
+				break;
 		}
 	}
 

@@ -1,14 +1,6 @@
 /* FW_4-1/FW_Server.c */
 #include "FW_Inc.h"
 
-DAL_CONN	*g_ptConn= NULL;
-DAL_PSTMT	*g_ptPstmtInsert = NULL;
-DAL_PSTMT	*g_ptPstmtSelectAll = NULL;
-DAL_PSTMT	*g_ptPstmtSelectOneById = NULL;
-DAL_PSTMT	*g_ptPstmtSelectOneByName = NULL;
-DAL_PSTMT	*g_ptPstmtUpdate = NULL;
-DAL_PSTMT	*g_ptPstmtDelete = NULL;
-
 int InitPreparedStatement();
 void DestroyPreparedStatement();
 
@@ -18,7 +10,6 @@ int SelectOne		( struct REQUEST_s *ptRequest, struct RESPONSE_s *ptResponse );
 int Update			( struct REQUEST_s *ptRequest );
 int Delete			( struct REQUEST_s *ptRequest );
 
-void LogErr			( const char* pszFuncName, int nErrno );
 void SignalHandler	( int nSig );
 int GetOriginalData	( int nId, char *pszAttribute, char *pszOriginal, int nSize );
 
@@ -40,15 +31,16 @@ int main( int argc, char *argv[] )
 	REQUEST_t *ptRequest = NULL;
 	RESPONSE_t *ptResponse = NULL;
 	
-	int nRet = 0;
+	int nRC = 0;
+	int nExit = 0;
 
 	/*
 	 *	MPLOG
 	 */
-	nRet = MPGLOG_INIT( SERVER_PROCESS, NULL,
+	nRC = MPGLOG_INIT( SERVER_PROCNAME, NULL,
 			LOG_MODE_DAILY | LOG_MODE_NO_DATE | LOG_MODE_LEVEL_TAG,
 			LOG_LEVEL_SVC );
-	if ( 0 > nRet )
+	if ( 0 > nRC )
 	{
 		printf( "%s MPGLOG_INIT() ERROR\n", __func__ );
 		return MPGLOG_FAIL;
@@ -57,23 +49,38 @@ int main( int argc, char *argv[] )
 	/*
 	 *	TAP_IPC
 	 */
-	nRet = TAP_ipc_open( &tIpc, SERVER_PROCESS );
-	if ( 0 > nRet )
+	nRC = TAP_ipc_open( &tIpc, SERVER_PROCNAME );
+	if ( 0 > nRC )
 	{
-		LogErr( __func__, ipc_errno );
+		MPGLOG_ERR( "%s:: TAP_ipc_open() fail=%d", __func__, ipc_errno );
 		return TAP_FAIL;
 	}
 
-	tKey = TAP_ipc_getkey( &tIpc, SERVER_PROCESS );
+	tKey = TAP_ipc_getkey( &tIpc, SERVER_PROCNAME );
 	if ( IPC_NOPROC == tKey )
 	{
-		LogErr( __func__, ipc_errno );
-		nRet = TAP_ipc_close( &tIpc );
-		if ( 0 > nRet )
+		MPGLOG_ERR( "%s:: TAP_ipc_getkey() fail=%d", __func__, ipc_errno );
+		nRC = TAP_ipc_close( &tIpc );
+		if ( 0 > nRC )
 		{
-			LogErr(  __func__, ipc_errno );
+			MPGLOG_ERR( "%s:: TAP_ipc_close() fail=%d", __func__, ipc_errno );
 		}
 		return TAP_FAIL;
+	}
+
+	/*
+	 *	STAT
+	 */
+	nRC = stgen_open( SERVER_PROCNAME, stctl_item_list, stctl_dtl_type_list );
+	if ( 0 > nRC )
+	{
+		MPGLOG_ERR( "%s:: stgen_open() fail=%d(%s)", __func__, nRC, stctl_strerror(nRC) );
+		nRC = TAP_ipc_close( &tIpc );
+		if ( 0 > nRC )
+		{
+			MPGLOG_ERR( "%s:: TAP_ipc_close() fail=%d", __func__, ipc_errno );
+		}
+		return STAT_FAIL;
 	}
 
 	/*
@@ -82,17 +89,17 @@ int main( int argc, char *argv[] )
 	g_ptConn = dalConnect( NULL );
 	if ( NULL == g_ptConn )
 	{
-		LogErr( __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: dalConnect() fail=%d", __func__, dalErrno() );
 		return DAL_FAIL;
 	}
 
-	nRet = InitPreparedStatement();
-	if ( SUCCESS != nRet )
+	nRC = InitPreparedStatement();
+	if ( SUCCESS != nRC )
 	{
-		nRet = dalDisconnect( g_ptConn );
-		if ( -1 == nRet )
+		nRC = dalDisconnect( g_ptConn );
+		if ( -1 == nRC )
 		{
-			LogErr( __func__, dalErrno() );
+			MPGLOG_ERR( "%s:: dalDisconnect() fail=%d", __func__, dalErrno() );
 		}
 		return DAL_FAIL;
 	}
@@ -104,22 +111,25 @@ int main( int argc, char *argv[] )
 	{
 		memset( &tSendMsg, 0x00, sizeof(iipc_msg_t) );
 		memset( &tRecvMsg, 0x00, sizeof(iipc_msg_t) );
-	
+
 		/*
 		 *	Receive Message
 		 */	
-		nRet = TAP_ipc_msgrcv( &tIpc, &tRecvMsg, IPC_BLOCK );
-		if ( 0 > nRet )
+		nRC = TAP_ipc_msgrcv( &tIpc, &tRecvMsg, IPC_BLOCK );
+
+		STGEN_DTLITEM_1COUNT( TCP_RCV_TOTAL_INV, SERVER_PROCNAME );
+		//STGEN_ITEM_1COUNT( TCP_RCV_TOTAL_INV );
+
+		if ( 0 > nRC )
 		{
-			LogErr( __func__, ipc_errno );
+			MPGLOG_ERR( "%s:: TAP_ipc_msgrcv() fail=%d", __func__, ipc_errno );
 			continue;
 		}
-	
+
 		ptRequest = (REQUEST_t *)tRecvMsg.buf.msgq_buf;
 		ptResponse = (RESPONSE_t *)tSendMsg.buf.msgq_buf;
 
 		ptResponse->nMsgType = ptRequest->nMsgType;
-		ptResponse->nId = ptRequest->nId;
 		
 		tSendMsg.u.h.dst = tRecvMsg.u.h.src;
 		tSendMsg.u.h.src = tKey;
@@ -129,12 +139,15 @@ int main( int argc, char *argv[] )
 		{
 			case 1:
 			{
-				MPGLOG_SVC( "[RECV] MsgType: %d | Name: %s | JobTitle: %s | Team: %s | Phone: %s",
-				ptRequest->nMsgType, ptRequest->szName,
-				ptRequest->szJobTitle, ptRequest->szTeam, ptRequest->szPhone );
+				MPGLOG_SVC( "[RECV] %s: %d | %s: %s | %s: %s | %s: %s | %s: %s",
+							MSG_TYPE, ptRequest->nMsgType,
+							NAME, ptRequest->szName,
+							JOBTITLE, ptRequest->szJobTitle,
+							TEAM, ptRequest->szTeam,
+							PHONE, ptRequest->szPhone );
 
-				nRet = Insert( ptRequest );
-				if ( SUCCESS != nRet )
+				nRC = Insert( ptRequest );
+				if ( SUCCESS != nRC )
 				{
 					ptResponse->nResult = 0;
 					break;
@@ -145,10 +158,11 @@ int main( int argc, char *argv[] )
 				break;
 			case 2:
 			{
-				MPGLOG_SVC( "[RECV] MsgType: %d", ptRequest->nMsgType );
+				MPGLOG_SVC( "[RECV] %s: %d",
+							MSG_TYPE, ptRequest->nMsgType );
 
-				nRet = SelectAll( ptResponse );
-				if ( ID_NOT_EXIST == nRet || SUCCESS != nRet )
+				nRC = SelectAll( ptResponse );
+				if ( ID_NOT_EXIST == nRC || SUCCESS != nRC )
 				{
 					ptResponse->nResult = 0;
 					break;
@@ -159,25 +173,31 @@ int main( int argc, char *argv[] )
 				break;
 			case 3:
 			{
-				MPGLOG_SVC( "[RECV] MsgType: %d | Id: %d", ptRequest->nMsgType, ptRequest->nId );
+				MPGLOG_SVC( "[RECV] %s: %d | %s: %d",
+							MSG_TYPE, ptRequest->nMsgType,
+							ID, ptRequest->nId );
 
-				nRet = SelectOne( ptRequest, ptResponse );
-				if ( ID_NOT_EXIST == nRet || SUCCESS != nRet )
+				nRC = SelectOne( ptRequest, ptResponse );
+				if ( ID_NOT_EXIST == nRC || SUCCESS != nRC )
 				{
 					ptResponse->nResult = 0;
 					break;
 				}
-		
+				
 				ptResponse->nResult = 1;
 			}
 				break;
 			case 4:
 			{
-				MPGLOG_SVC( "[RECV] MsgType: %d | Id: %d | JobTitle: %s | Team: %s | Phone: %s",
-					ptRequest->nMsgType, ptRequest->nId, ptRequest->szJobTitle, ptRequest->szTeam, ptRequest->szPhone );
+				MPGLOG_SVC( "[RECV] %s: %d | %s: %d | %s: %s | %s: %s | %s: %s",
+							MSG_TYPE, ptRequest->nMsgType,
+							ID, ptRequest->nId,
+							JOBTITLE, ptRequest->szJobTitle,
+							TEAM, ptRequest->szTeam,
+							PHONE, ptRequest->szPhone );
 
-				nRet = Update( ptRequest );
-				if ( ID_NOT_EXIST == nRet || SUCCESS != nRet )
+				nRC = Update( ptRequest );
+				if ( ID_NOT_EXIST == nRC || SUCCESS != nRC )
 				{
 					ptResponse->nResult = 0;
 					break;
@@ -188,10 +208,12 @@ int main( int argc, char *argv[] )
 				break;
 			case 5:
 			{
-				MPGLOG_SVC( "[RECV] MsgType: %d | Id: %d", ptRequest->nMsgType, ptRequest->nId );
+				MPGLOG_SVC( "[RECV] %s: %d | %s: %d",
+							MSG_TYPE, ptRequest->nMsgType,
+							ID, ptRequest->nId );
 				
-				nRet = Delete( ptRequest );
-				if ( ID_NOT_EXIST == nRet || SUCCESS != nRet )
+				nRC = Delete( ptRequest );
+				if ( ID_NOT_EXIST == nRC || SUCCESS != nRC )
 				{
 					ptResponse->nResult = 0;
 					break;
@@ -203,36 +225,90 @@ int main( int argc, char *argv[] )
 			default:
 				break;
 		}
+		
+		switch ( nRC )
+		{
+			case SUCCESS:
+			{
+				STGEN_DTLITEM_1COUNT( RET_CODE_SUCCESS, SERVER_PROCNAME );
+				//STGEN_ITEM_1COUNT( RET_CODE_SUCCESS );
+			}
+				break;
+			case NULL_FAIL:
+			{
+				STGEN_DTLITEM_1COUNT( RET_CODE_INVALID_PARAMETER, SERVER_PROCNAME );
+				//STGEN_ITEM_1COUNT( RET_CODE_INVALID_PARAMETER );
+			}
+				break;
+			case DAL_FAIL:
+			{
+				STGEN_DTLITEM_1COUNT( RET_CODE_SYSTEM_FAIL, SERVER_PROCNAME );
+				//STGEN_ITEM_1COUNT( RET_CODE_SYSTEM_FAIL );
+			}
+				break;	
+			case ID_NOT_EXIST:
+			case NAME_NOT_EXIST:
+			{
+				STGEN_DTLITEM_1COUNT( RET_CODE_UNKNOWN_USER, SERVER_PROCNAME );
+				//STGEN_ITEM_1COUNT( RET_CODE_UNKNOWN_USER );
+			}
+				break;
+			default:
+				break;
+		}	
 
-		if ( ptResponse->nMsgType == 2 )
-			MPGLOG_SVC( "[SEND] MsgType: %d | Result: %d | CntSelectAll: %d", ptResponse->nMsgType, ptResponse->nResult, ptResponse->nCntSelectAll );
+		ptResponse->nId = ptRequest->nId;
+		
+		if ( 2 == ptResponse->nMsgType )
+		{
+			MPGLOG_SVC( "[SEND] %s: %d | %s: %s | Result: %d | CntSelectAll: %d",
+						MSG_TYPE, ptResponse->nMsgType,
+						ID, ALL,
+						ptResponse->nResult,
+						ptResponse->nCntSelectAll );
+		}
 		else
-			MPGLOG_SVC( "[SEND] MsgType: %d | Result: %d", ptResponse->nMsgType, ptResponse->nResult );
+		{
+			MPGLOG_SVC( "[SEND] %s: %d | %s: %d | Result: %d",
+						MSG_TYPE, ptResponse->nMsgType,
+						ID, ptResponse->nId,
+						ptResponse->nResult );
+		}
 
 		/*
 		 *	Send Message
 		 */
-		nRet = TAP_ipc_msgsnd( &tIpc, &tSendMsg, IPC_BLOCK );
-		if ( 0 > nRet )
+		nRC = TAP_ipc_msgsnd( &tIpc, &tSendMsg, IPC_BLOCK );
+		if ( 0 > nRC )
 		{
-			LogErr( __func__, ipc_errno );
+			MPGLOG_ERR( "%s:: TAP_ipc_msgsnd() fail=%d", __func__, ipc_errno );
 			continue;
+		}
+
+		nExit = 0;
+		printf( "서버 종료(1): " );
+		nRC = scanf( "%d", &nExit );
+		if ( 1 == nExit )
+		{
+			break;
 		}
 	}
 
-	nRet = dalDisconnect( g_ptConn );
-	if ( -1 == nRet )
+	nRC = dalDisconnect( g_ptConn );
+	if ( -1 == nRC )
 	{
-		LogErr( __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: dalDisconnect() fail=%d", __func__, dalErrno() );
 		return DAL_FAIL;
 	}
 	
-	nRet = TAP_ipc_close( &tIpc );
-	if ( 0 > nRet )
+	nRC = TAP_ipc_close( &tIpc );
+	if ( 0 > nRC )
 	{
-		LogErr(  __func__, ipc_errno );
+		MPGLOG_ERR( "%s:: TAP_ipc_close() fail=%d", __func__, ipc_errno );
 		return TAP_FAIL;
 	}
+
+	stgen_close();
 
 	return 0;
 }
@@ -258,7 +334,7 @@ int InitPreparedStatement()
 	g_ptPstmtInsert = dalPreparedStatement( g_ptConn, szQuery );
 	if ( NULL == g_ptPstmtInsert )
 	{
-		LogErr(  __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: dalPreparedStatement() fail=%d", __func__, dalErrno() );
 		return DAL_FAIL;
 	}
 
@@ -270,7 +346,7 @@ int InitPreparedStatement()
 	g_ptPstmtSelectAll = dalPreparedStatement( g_ptConn, szQuery );
 	if ( NULL == g_ptPstmtSelectAll )
 	{
-		LogErr( __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: dalPreparedStatement() fail=%d", __func__, dalErrno() );
 		return DAL_FAIL;
 	}
 
@@ -282,7 +358,7 @@ int InitPreparedStatement()
 	g_ptPstmtSelectOneById = dalPreparedStatement( g_ptConn, szQuery );
 	if ( NULL == g_ptPstmtSelectOneById )
 	{
-		LogErr( __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: dalPreparedStatement() fail=%d", __func__, dalErrno() );
 		return DAL_FAIL;
 	}
 
@@ -294,7 +370,7 @@ int InitPreparedStatement()
 	g_ptPstmtSelectOneByName = dalPreparedStatement( g_ptConn, szQuery );
 	if ( NULL == g_ptPstmtSelectOneByName )
 	{
-		LogErr( __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: dalPreparedStatement() fail=%d", __func__, dalErrno() );
 		return DAL_FAIL;
 	}
 
@@ -306,7 +382,7 @@ int InitPreparedStatement()
 	g_ptPstmtUpdate = dalPreparedStatement( g_ptConn, szQuery );
 	if ( NULL == g_ptPstmtUpdate )
 	{
-		LogErr( __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: dalPreparedStatement() fail=%d", __func__, dalErrno() );
 		return DAL_FAIL;
 	}
 
@@ -318,7 +394,7 @@ int InitPreparedStatement()
 	g_ptPstmtDelete = dalPreparedStatement( g_ptConn, szQuery );
 	if ( NULL == g_ptPstmtDelete )
 	{
-		LogErr( __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: dalPreparedStatement() fail=%d", __func__, dalErrno() );
 		return DAL_FAIL;
 	}
 
@@ -327,42 +403,42 @@ int InitPreparedStatement()
 
 void DestroyPreparedStatement()
 {
-	int nRet = 0;
+	int nRC = 0;
 
-	nRet = dalDestroyPreparedStmt( g_ptPstmtInsert );
-	if ( -1 == nRet )
+	nRC = dalDestroyPreparedStmt( g_ptPstmtInsert );
+	if ( -1 == nRC )
 	{
-		LogErr( __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: dalDestroyPreparedStmt() fail=%d", __func__, dalErrno() );
 	}
 
-	nRet = dalDestroyPreparedStmt( g_ptPstmtSelectAll );
-	if ( -1 == nRet )
+	nRC = dalDestroyPreparedStmt( g_ptPstmtSelectAll );
+	if ( -1 == nRC )
 	{
-		LogErr( __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: dalDestroyPreparedStmt() fail=%d", __func__, dalErrno() );
 	}
 
-	nRet = dalDestroyPreparedStmt( g_ptPstmtSelectOneById );
-	if ( -1 == nRet )
+	nRC = dalDestroyPreparedStmt( g_ptPstmtSelectOneById );
+	if ( -1 == nRC )
 	{
-		LogErr( __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: dalDestroyPreparedStmt() fail=%d", __func__, dalErrno() );
 	}
 
-	nRet = dalDestroyPreparedStmt( g_ptPstmtSelectOneByName );
-	if ( -1 == nRet )
+	nRC = dalDestroyPreparedStmt( g_ptPstmtSelectOneByName );
+	if ( -1 == nRC )
 	{
-		LogErr( __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: dalDestroyPreparedStmt() fail=%d", __func__, dalErrno() );
 	}
 
-	nRet = dalDestroyPreparedStmt( g_ptPstmtUpdate );
-	if ( -1 == nRet )
+	nRC = dalDestroyPreparedStmt( g_ptPstmtUpdate );
+	if ( -1 == nRC )
 	{
-		LogErr( __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: dalDestroyPreparedStmt() fail=%d", __func__, dalErrno() );
 	}
 
-	nRet = dalDestroyPreparedStmt( g_ptPstmtDelete );
-	if ( -1 == nRet )
+	nRC = dalDestroyPreparedStmt( g_ptPstmtDelete );
+	if ( -1 == nRC )
 	{
-		LogErr( __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: dalDestroyPreparedStmt() fail=%d", __func__, dalErrno() );
 	}
 
 	return;
@@ -372,49 +448,48 @@ int Insert( struct REQUEST_s *ptRequest )
 {
 	if ( NULL == ptRequest )
 	{
-		MPGLOG_ERR( "%s Parameter NULL\n", __func__ );
+		MPGLOG_ERR( "%s:: parameter NULL", __func__ );
 		return NULL_FAIL;		
 	}
 
-	int nRet = 0;
+	int nRC = 0;
 
-	nRet = dalSetStringByKey( g_ptPstmtInsert, NAME, ptRequest->szName );
-	if ( -1 == nRet )
+	nRC = dalSetStringByKey( g_ptPstmtInsert, NAME, ptRequest->szName );
+	if ( -1 == nRC )
 	{
-		LogErr( __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: dalSetStringByKey() fail=%d", __func__, dalErrno() );
 		return DAL_FAIL;
 	}
 
-	nRet = dalSetStringByKey( g_ptPstmtInsert, JOBTITLE, ptRequest->szJobTitle );
-	if ( -1 == nRet )
+	nRC = dalSetStringByKey( g_ptPstmtInsert, JOBTITLE, ptRequest->szJobTitle );
+	if ( -1 == nRC )
 	{
-		LogErr( __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: dalSetStringByKey() fail=%d", __func__, dalErrno() );
 		return DAL_FAIL;
 	}
 
-	nRet = dalSetStringByKey( g_ptPstmtInsert, TEAM, ptRequest->szTeam );
-	if ( -1 == nRet )
+	nRC = dalSetStringByKey( g_ptPstmtInsert, TEAM, ptRequest->szTeam );
+	if ( -1 == nRC )
 	{
-		LogErr( __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: dalSetStringByKey() fail=%d", __func__, dalErrno() );
 		return DAL_FAIL;
 	}
 
-	nRet = dalSetStringByKey( g_ptPstmtInsert, PHONE, ptRequest->szPhone );
-	if ( -1 == nRet )
+	nRC = dalSetStringByKey( g_ptPstmtInsert, PHONE, ptRequest->szPhone );
+	if ( -1 == nRC )
 	{
-		LogErr( __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: dalSetStringByKey() fail=%d", __func__, dalErrno() );
 		return DAL_FAIL;
 	}
 
-	nRet = dalPreparedExec( g_ptConn, g_ptPstmtInsert, NULL );
-	if ( -1 == nRet )
+	nRC = dalPreparedExec( g_ptConn, g_ptPstmtInsert, NULL );
+	if ( -1 == nRC )
 	{
-		LogErr( __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: dalPreparedExec() fail=%d", __func__, dalErrno() );
 		return DAL_FAIL;
 	}
-	else if ( 0 == nRet )
+	else if ( 0 == nRC )
 	{
-		LogErr( __func__, dalErrno() );
 		return ID_NOT_EXIST;
 	}
 
@@ -423,7 +498,7 @@ int Insert( struct REQUEST_s *ptRequest )
 
 int SelectAll( struct RESPONSE_s *ptResponse )
 {
-	int nRet = 0;
+	int nRC = 0;
 	int nCnt = 0;
 	int nGetId = 0;
 	char* pszGetName = NULL;
@@ -433,22 +508,22 @@ int SelectAll( struct RESPONSE_s *ptResponse )
 	
 	SELECT_ALL_t tSelectAll;
 
-	nRet = dalPreparedExec( g_ptConn, g_ptPstmtSelectAll, &ptResult );
-	if ( -1 == nRet )
+	nRC = dalPreparedExec( g_ptConn, g_ptPstmtSelectAll, &ptResult );
+	if ( -1 == nRC )
 	{
-		LogErr( __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: dalPreparedExec() fail=%d", __func__, dalErrno() );
 		return DAL_FAIL;
 	}
-	else if ( 0 == nRet )
+	else if ( 0 == nRC )
 	{
-		nRet = dalResFree( ptResult );
-		if ( -1 == nRet )
+		nRC = dalResFree( ptResult );
+		if ( -1 == nRC )
 		{
-			LogErr( __func__, dalErrno() );
+			MPGLOG_ERR( "%s:: dalResFree() fail=%d", __func__, dalErrno() );
 			return DAL_FAIL;
 		}
 	
-		MPGLOG_ERR( "%s:: NO INFO EXIST", __func__ );
+		MPGLOG_ERR( "%s:: no info exist", __func__ );
 		return ID_NOT_EXIST;
 	}
 
@@ -456,17 +531,17 @@ int SelectAll( struct RESPONSE_s *ptResponse )
 	{
 		memset( &tSelectAll, 0x00, sizeof(tSelectAll) );
 		
-		nRet = dalGetIntByKey( ptEntry, ID, &nGetId );
-		if ( -1 == nRet )
+		nRC = dalGetIntByKey( ptEntry, ID, &nGetId );
+		if ( -1 == nRC )
 		{
-			LogErr( __func__, dalErrno() );
+			MPGLOG_ERR( "%s:: dalGetIntByKey() fail=%d", __func__, dalErrno() );
 			goto error_return;
 		}
 
-		nRet = dalGetStringByKey( ptEntry, NAME, &pszGetName );
-		if ( -1 == nRet )
+		nRC = dalGetStringByKey( ptEntry, NAME, &pszGetName );
+		if ( -1 == nRC )
 		{
-			LogErr( __func__, dalErrno() );
+			MPGLOG_ERR( "%s:: dalGetStringByKey() fail=%d", __func__, dalErrno() );
 			goto error_return;
 		}	
 
@@ -475,7 +550,7 @@ int SelectAll( struct RESPONSE_s *ptResponse )
 	
 		MPGLOG_DBG( "ID: %d | Name: %s", tSelectAll.nId, tSelectAll.szName );
 	
-		/* 버퍼사이즈를 초과하여 중간에 메모리가 잘릴 가능성이 있으면 memcpy 하지 않고 break */
+		// 버퍼사이즈를 초과하여 중간에 메모리가 잘릴 가능성이 있으면 memcpy 하지 않고 break한다.
 		if ( ( (nCnt + 1) * sizeof(tSelectAll) ) > sizeof(ptResponse->szBuffer) )
 		{
 			MPGLOG_DBG( "현재까지 읽은 사이즈[%ld], 버퍼사이즈[%ld]: 버퍼 사이즈 초과될 가능성이 있어 memcpy 하지 않음", nCnt * sizeof(tSelectAll), sizeof(ptResponse->szBuffer) );
@@ -489,20 +564,20 @@ int SelectAll( struct RESPONSE_s *ptResponse )
 
 	ptResponse->nCntSelectAll = nCnt;
 
-	nRet = dalResFree( ptResult );
-	if ( -1 == nRet )
+	nRC = dalResFree( ptResult );
+	if ( -1 == nRC )
 	{
-		LogErr( __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: dalResFree() fail=%d", __func__, dalErrno() );
 		return DAL_FAIL;
 	}
 
 	return SUCCESS;
 
 error_return:
-	nRet = dalResFree( ptResult );
-	if ( -1 == nRet )
+	nRC = dalResFree( ptResult );
+	if ( -1 == nRC )
 	{
-		LogErr( __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: dalResFree() fail=%d", __func__, dalErrno() );
 	}
 
 	return DAL_FAIL;
@@ -516,7 +591,7 @@ int SelectOne( struct REQUEST_s *ptRequest, struct RESPONSE_s *ptResponse )
 		return NULL_FAIL;
 	}
 
-	int nRet = 0;
+	int nRC = 0;
 	DAL_RESULT_SET *ptResult = NULL;
 	DAL_ENTRY *ptEntry = NULL;
 
@@ -528,113 +603,113 @@ int SelectOne( struct REQUEST_s *ptRequest, struct RESPONSE_s *ptResponse )
 
 	if ( ptRequest->nId > 0 )
 	{
-		nRet = dalSetIntByKey( g_ptPstmtSelectOneById, ID, ptRequest->nId );
-		if ( -1 == nRet )
+		nRC = dalSetIntByKey( g_ptPstmtSelectOneById, ID, ptRequest->nId );
+		if ( -1 == nRC )
 		{
-			LogErr( __func__, dalErrno() );
+			MPGLOG_ERR( "%s:: dalSetIntByKey() fail=%d", __func__, dalErrno() );
 			return DAL_FAIL;
 		}
 
-		nRet = dalPreparedExec( g_ptConn, g_ptPstmtSelectOneById, &ptResult );
-		if ( -1 == nRet )
+		nRC = dalPreparedExec( g_ptConn, g_ptPstmtSelectOneById, &ptResult );
+		if ( -1 == nRC )
 		{
-			LogErr( __func__, dalErrno() );
+			MPGLOG_ERR( "%s:: dalPreparedExec() fail=%d", __func__, dalErrno() );
 			return DAL_FAIL;
 		}
-		else if ( 0 == nRet )
+		else if ( 0 == nRC )
 		{
-			nRet = dalResFree( ptResult );
-			if ( -1 == nRet )
+			nRC = dalResFree( ptResult );
+			if ( -1 == nRC )
 			{
-				LogErr( __func__, dalErrno() );
+				MPGLOG_ERR( "%s:: dalResFree() fail=%d", __func__, dalErrno() );
 				return DAL_FAIL;
 			}
 			
-			MPGLOG_ERR( "%s:: ID NOT EXIST", __func__ );
+			MPGLOG_ERR( "%s:: id not exist", __func__ );
 			return ID_NOT_EXIST;
 		}
 
 		ptEntry = dalFetchFirst( ptResult );
 		if ( NULL != ptEntry )
 		{
-			nRet = dalGetStringByKey( ptEntry, JOBTITLE, &pszJobTitle );
-			if ( -1 == nRet )
+			nRC = dalGetStringByKey( ptEntry, JOBTITLE, &pszJobTitle );
+			if ( -1 == nRC )
 			{
-				LogErr( __func__, dalErrno() );
+				MPGLOG_ERR( "%s:: dalGetStringByKey() fail=%d", __func__, dalErrno() );
 				goto error_return;
 			}
 
-			nRet = dalGetStringByKey( ptEntry, TEAM, &pszTeam );
-			if ( -1 == nRet )
+			nRC = dalGetStringByKey( ptEntry, TEAM, &pszTeam );
+			if ( -1 == nRC )
 			{
-				LogErr( __func__, dalErrno() );
+				MPGLOG_ERR( "%s:: dalGetStringByKey() fail=%d", __func__, dalErrno() );
 				goto error_return;
 			}	
 
-			nRet = dalGetStringByKey( ptEntry, PHONE, &pszPhone );
-			if ( -1 == nRet )
+			nRC = dalGetStringByKey( ptEntry, PHONE, &pszPhone );
+			if ( -1 == nRC )
 			{
-				LogErr( __func__, dalErrno() );
+				MPGLOG_ERR( "%s:: dalGetStringByKey() fail=%d", __func__, dalErrno() );
 				goto error_return;
 			}
 		}
 	}
 	else if ( ptRequest->nId == 0 && strlen(ptRequest->szName) > 0 )
 	{
-		nRet = dalSetStringByKey( g_ptPstmtSelectOneByName, NAME, ptRequest->szName );
-		if ( -1 == nRet )
+		nRC = dalSetStringByKey( g_ptPstmtSelectOneByName, NAME, ptRequest->szName );
+		if ( -1 == nRC )
 		{
-			LogErr( __func__, dalErrno() );
+			MPGLOG_ERR( "%s:: dalSetStringByKey() fail=%d", __func__, dalErrno() );
 			return DAL_FAIL;
 		}
 
-		nRet = dalPreparedExec( g_ptConn, g_ptPstmtSelectOneByName, &ptResult );
-		if ( -1 == nRet )
+		nRC = dalPreparedExec( g_ptConn, g_ptPstmtSelectOneByName, &ptResult );
+		if ( -1 == nRC )
 		{
-			LogErr( __func__, dalErrno() );
+			MPGLOG_ERR( "%s:: dalPreparedExec() fail=%d", __func__, dalErrno() );
 			goto error_return;
 		}
-		else if ( 0 == nRet )
+		else if ( 0 == nRC )
 		{
-			nRet = dalResFree( ptResult );
-			if ( -1 == nRet )
+			nRC = dalResFree( ptResult );
+			if ( -1 == nRC )
 			{
-				LogErr( __func__, dalErrno() );
+				MPGLOG_ERR( "%s:: dalResFree() fail=%d", __func__, dalErrno() );
 				return DAL_FAIL;
 			}
 		
-			MPGLOG_ERR( "%s:: NAME_NOT_EXIST", __func__ );
+			MPGLOG_ERR( "%s:: name not exist", __func__ );
 			return NAME_NOT_EXIST;
 		}
 
 		ptEntry = dalFetchFirst( ptResult );
 		if ( NULL != ptEntry )
 		{
-			nRet = dalGetStringByKey( ptEntry, JOBTITLE, &pszJobTitle );
-			if ( -1 == nRet )
+			nRC = dalGetStringByKey( ptEntry, JOBTITLE, &pszJobTitle );
+			if ( -1 == nRC )
 			{
-				LogErr( __func__, dalErrno() );
+				MPGLOG_ERR( "%s:: dalGetStringByKey() fail=%d", __func__, dalErrno() );
 				goto error_return;
 			}
 
-			nRet = dalGetStringByKey( ptEntry, TEAM, &pszTeam );
-			if ( -1 == nRet )
+			nRC = dalGetStringByKey( ptEntry, TEAM, &pszTeam );
+			if ( -1 == nRC )
 			{
-				LogErr( __func__, dalErrno() );
+				MPGLOG_ERR( "%s:: dalGetStringByKey() fail=%d", __func__, dalErrno() );
 				goto error_return;
 			}	
 
-			nRet = dalGetStringByKey( ptEntry, PHONE, &pszPhone );
-			if ( -1 == nRet )
+			nRC = dalGetStringByKey( ptEntry, PHONE, &pszPhone );
+			if ( -1 == nRC )
 			{
-				LogErr( __func__, dalErrno() );
+				MPGLOG_ERR( "%s:: dalGetStringByKey() fail=%d", __func__, dalErrno() );
 				goto error_return;
 			}
 		}
 	}
 	else if ( ptRequest->nId == 0 && strlen(ptRequest->szName) == 0 )
 	{
-		MPGLOG_ERR( "%s:: NO INPUT ID/NAME", __func__ );
+		MPGLOG_ERR( "%s:: no input id/name", __func__ );
 		return ID_NOT_EXIST;
 	}
 
@@ -644,20 +719,20 @@ int SelectOne( struct REQUEST_s *ptRequest, struct RESPONSE_s *ptResponse )
 
 	memcpy( ptResponse->szBuffer, &tSelectOne, sizeof(tSelectOne) );
 
-	nRet = dalResFree( ptResult );
-	if ( -1 == nRet )
+	nRC = dalResFree( ptResult );
+	if ( -1 == nRC )
 	{
-		LogErr( __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: dalResFree() fail=%d", __func__, dalErrno() );
 		return DAL_FAIL;
 	}
 
 	return SUCCESS;
 
 error_return:
-	nRet = dalResFree( ptResult );
-	if ( -1 == nRet )
+	nRC = dalResFree( ptResult );
+	if ( -1 == nRC )
 	{
-		LogErr( __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: dalResFree() fail=%d", __func__, dalErrno() );
 	}
 
 	return DAL_FAIL;
@@ -671,73 +746,73 @@ int Update( struct REQUEST_s *ptRequest )
 		return NULL_FAIL;
 	}
 
-	int nRet = 0;
+	int nRC = 0;
 
 	if ( strlen(ptRequest->szJobTitle) == 0 )
 	{
-		nRet = GetOriginalData( ptRequest->nId, JOBTITLE, ptRequest->szJobTitle, sizeof(ptRequest->szJobTitle) );
-		if ( SUCCESS != nRet )
+		nRC = GetOriginalData( ptRequest->nId, JOBTITLE, ptRequest->szJobTitle, sizeof(ptRequest->szJobTitle) );
+		if ( SUCCESS != nRC )
 		{
-			LogErr( __func__, dalErrno() );
-			return DAL_FAIL;
+			MPGLOG_ERR( "%s:: GetOriginalData() fail=%d", __func__, nRC );	
+			return FUNC_FAIL;
 		}	
 	}
 
 	if ( strlen(ptRequest->szTeam) == 0 )
 	{
-		nRet = GetOriginalData( ptRequest->nId, TEAM, ptRequest->szTeam, sizeof(ptRequest->szTeam) );
-		if ( SUCCESS != nRet )
+		nRC = GetOriginalData( ptRequest->nId, TEAM, ptRequest->szTeam, sizeof(ptRequest->szTeam) );
+		if ( SUCCESS != nRC )
 		{
-			LogErr( __func__, dalErrno() );
-			return DAL_FAIL;
+			MPGLOG_ERR( "%s:: GetOriginalData() fail=%d", __func__, nRC );
+			return FUNC_FAIL;
 		}	
 	}
 
 	if ( strlen(ptRequest->szPhone) == 0 )
 	{
-		nRet = GetOriginalData( ptRequest->nId, PHONE, ptRequest->szPhone, sizeof(ptRequest->szPhone) );
-		if ( SUCCESS != nRet )
+		nRC = GetOriginalData( ptRequest->nId, PHONE, ptRequest->szPhone, sizeof(ptRequest->szPhone) );
+		if ( SUCCESS != nRC )
 		{
-			LogErr( __func__, dalErrno() );
-			return DAL_FAIL;
+			MPGLOG_ERR( "%s:: GetOriginalData() fail=%d", __func__, nRC );
+			return FUNC_FAIL;
 		}	
 	}
 
-	nRet = dalSetIntByKey( g_ptPstmtUpdate, ID, ptRequest->nId );
-	if ( -1 == nRet )
+	nRC = dalSetIntByKey( g_ptPstmtUpdate, ID, ptRequest->nId );
+	if ( -1 == nRC )
 	{
-		LogErr( __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: dalSetIntByKey() fail=%d", __func__, dalErrno() );
 		return DAL_FAIL;
 	}
 
-	nRet = dalSetStringByKey( g_ptPstmtUpdate, JOBTITLE, ptRequest->szJobTitle );
-	if ( -1 == nRet )
+	nRC = dalSetStringByKey( g_ptPstmtUpdate, JOBTITLE, ptRequest->szJobTitle );
+	if ( -1 == nRC )
 	{
-		LogErr( __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: dalSetStringByKey() fail=%d", __func__, dalErrno() );
 		return DAL_FAIL;
 	}
 
-	nRet =  dalSetStringByKey( g_ptPstmtUpdate, TEAM, ptRequest->szTeam );
-	if ( -1 == nRet )
+	nRC =  dalSetStringByKey( g_ptPstmtUpdate, TEAM, ptRequest->szTeam );
+	if ( -1 == nRC )
 	{
-		LogErr( __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: dalSetStringByKey() fail=%d", __func__, dalErrno() );
 		return DAL_FAIL;
 	}
 
-	nRet = dalSetStringByKey( g_ptPstmtUpdate, PHONE, ptRequest->szPhone );
-	if ( -1 == nRet )
+	nRC = dalSetStringByKey( g_ptPstmtUpdate, PHONE, ptRequest->szPhone );
+	if ( -1 == nRC )
 	{
-		LogErr( __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: dalSetStringByKey() fail=%d", __func__, dalErrno() );
 		return DAL_FAIL;
 	}
 
-	nRet = dalPreparedExec( g_ptConn, g_ptPstmtUpdate, NULL );
-	if ( -1 == nRet )
+	nRC = dalPreparedExec( g_ptConn, g_ptPstmtUpdate, NULL );
+	if ( -1 == nRC )
 	{
-		LogErr( __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: dalPreparedExec() fail=%d", __func__, dalErrno() );
 		return DAL_FAIL;
 	}
-	else if ( 0 == nRet )
+	else if ( 0 == nRC )
 	{
 		MPGLOG_DBG( "%s:: NO INPUT ID EXIST", __func__ );
 		return ID_NOT_EXIST;
@@ -754,22 +829,22 @@ int Delete( struct REQUEST_s *ptRequest )
 		return NULL_FAIL;
 	}
 
-	int nRet = 0;
+	int nRC = 0;
 
-	nRet = dalSetIntByKey( g_ptPstmtDelete, ID, ptRequest->nId );
-	if ( -1 == nRet )
+	nRC = dalSetIntByKey( g_ptPstmtDelete, ID, ptRequest->nId );
+	if ( -1 == nRC )
 	{
-		LogErr( __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: dalSetIntByKey() fail=%d", __func__, dalErrno() );		
 		return DAL_FAIL;
 	}
 
-	nRet = dalPreparedExec( g_ptConn, g_ptPstmtDelete, NULL );
-	if ( -1 == nRet )
+	nRC = dalPreparedExec( g_ptConn, g_ptPstmtDelete, NULL );
+	if ( -1 == nRC )
 	{
-		LogErr( __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: dalPreparedExec() fail=%d", __func__, dalErrno() );
 		return DAL_FAIL;
 	}
-	else if ( 0 == nRet )
+	else if ( 0 == nRC )
 	{
 		MPGLOG_DBG( "%s:: NO INPUT ID EXIST", __func__ );
 		return ID_NOT_EXIST;
@@ -782,11 +857,11 @@ int GetOriginalData( int nId, char *pszAttribute, char *pszOriginal, int nSize )
 {
 	if ( NULL == pszAttribute )
 	{
-		MPGLOG_ERR( "pszAttribute NULL\n" );
+		MPGLOG_ERR( "%s:: pszAttribute NULL", __func__ );
 		return NULL_FAIL;
 	}
 
-	int nRet = 0;
+	int nRC = 0;
 	char *pszTemp = NULL;
 
 	DAL_RESULT_SET *ptResult = NULL;
@@ -794,41 +869,41 @@ int GetOriginalData( int nId, char *pszAttribute, char *pszOriginal, int nSize )
 
 	if ( dalSetIntByKey( g_ptPstmtSelectOneById, ID, nId ) == -1 )
 	{
-		LogErr( __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: dalSetIntByKey() fail=%d", __func__, dalErrno() );
 		return DAL_FAIL;
 	}
 
-	nRet = dalPreparedExec( g_ptConn, g_ptPstmtSelectOneById, &ptResult );
-	if ( -1 == nRet )
+	nRC = dalPreparedExec( g_ptConn, g_ptPstmtSelectOneById, &ptResult );
+	if ( -1 == nRC )
 	{
-		LogErr( __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: dalPreparedExec() fail=%d", __func__, dalErrno() );
 		return DAL_FAIL;
 	}
-	else if ( 0 == nRet )
+	else if ( 0 == nRC )
 	{
-		nRet = dalResFree( ptResult );
-		if ( -1 == nRet )
+		nRC = dalResFree( ptResult );
+		if ( -1 == nRC )
 		{
-			LogErr( __func__, dalErrno() );
+			MPGLOG_ERR( "%s:: dalResFree() fail=%d", __func__, dalErrno() );
 			return DAL_FAIL;
 		}
 
-		MPGLOG_SVC( "[%s] %d Tuple\n", __func__, nRet );
+		MPGLOG_SVC( "[%s] %d Tuple\n", __func__, nRC );
 		return ID_NOT_EXIST;
 	}
 
 	ptEntry = dalFetchFirst( ptResult );
 	if ( NULL != ptEntry )
 	{
-		nRet = dalGetStringByKey( ptEntry, pszAttribute, &pszTemp );
-		if ( -1 == nRet )
+		nRC = dalGetStringByKey( ptEntry, pszAttribute, &pszTemp );
+		if ( -1 == nRC )
 		{
-			LogErr( __func__, dalErrno() );
+			MPGLOG_ERR( "%s:: dalGetStringByKey() fail=%d", __func__, dalErrno() );
 
-			nRet = dalResFree( ptResult );
-			if ( -1 == nRet )
+			nRC = dalResFree( ptResult );
+			if ( -1 == nRC )
 			{
-				LogErr( __func__, dalErrno() );
+				MPGLOG_ERR( "%s:: dalResFree() fail=%d", __func__, dalErrno() );
 			}
 			return DAL_FAIL;
 		}
@@ -838,18 +913,12 @@ int GetOriginalData( int nId, char *pszAttribute, char *pszOriginal, int nSize )
 		}
 	}
 
-	nRet = dalResFree( ptResult );
-	if ( -1 == nRet )
+	nRC = dalResFree( ptResult );
+	if ( -1 == nRC )
 	{
-		LogErr( __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: dalResFree() fail=%d", __func__, dalErrno() );
 		return DAL_FAIL;
 	}
 
 	return SUCCESS;
-}
-
-void LogErr( const char* pszFuncName, int nError )
-{
-	MPGLOG_ERR( "%s errno[%d]\n", pszFuncName, nError );
-	return;
 }

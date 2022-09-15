@@ -13,7 +13,10 @@ include $(MAKECONFIG)
 # EXENAME: 실행 파일
 # MLIBS: 라이브러리 파일
 
-SRCS=	FW_Server.c
+#t=
+#o=
+
+SRCS=	 test_stat.c FW_Server.c
 
 
 MDEFS=-D_USE_STAT -D_LOCAL_DB -D_HANGUP_ALARM
@@ -23,13 +26,13 @@ MCFLAGS=-g -W -Wall
 #
 # executable file name for compiled objects.
 
-EXENAME=	svr
+EXENAME=	server
 
 # module-specific library list for loading.
 #
 ifeq "$(TGT_SYS_OS_TYPE)" "LINUX_OS"
 MLIBDIRS=-L$(TELCOBASE_HOME)/lib 
-MLIBS= -ltelcobase -lmplib -ltap -ltelpro
+MLIBS= -ltelcobase -lstctl -lmplib -ltap -ltelpro
 MLDFLAGS=
 endif
 
