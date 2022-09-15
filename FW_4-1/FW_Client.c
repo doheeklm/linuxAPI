@@ -3,7 +3,6 @@
 
 void SignalHandler( int nSig );
 void ClearStdin( char *pszTemp );
-void LogErr		( const char* pszFuncName, int nErrno );
 
 int	Insert		( struct REQUEST_s *ptRequest );
 int Select		( struct REQUEST_s *ptRequest );
@@ -56,18 +55,18 @@ int main( int argc, char *argv[] )
 	nRet = TAP_ipc_open( &tIpc, CLIENT_PROCNAME );
 	if ( 0 > nRet )
 	{
-		LogErr( __func__, ipc_errno );
+		MPGLOG_ERR( "%s:: TAP_ipc_open() fail=%d", __func__, ipc_errno );
 		return TAP_FAIL;
 	}	
 
 	tDstKey = TAP_ipc_getkey( &tIpc, SERVER_PROCNAME );
 	if ( IPC_NOPROC == tDstKey )
 	{
-		LogErr( __func__, ipc_errno );
+		MPGLOG_ERR( "%s:: TAP_ipc_getkey() fail=%d", __func__, ipc_errno );
 		nRet = TAP_ipc_close( &tIpc );
 		if ( 0 > nRet )
 		{
-			LogErr( __func__, ipc_errno );
+			MPGLOG_ERR( "%s:: TAP_ipc_close() fail=%d", __func__, ipc_errno );
 		}
 		return TAP_FAIL;
 	}
@@ -75,11 +74,11 @@ int main( int argc, char *argv[] )
 	tSrcKey = TAP_ipc_getkey( &tIpc, CLIENT_PROCNAME );
 	if ( IPC_NOPROC == tSrcKey )
 	{
-		LogErr( __func__, ipc_errno );
+		MPGLOG_ERR( "%s:: TAP_ipc_getkey() fail=%d", __func__, ipc_errno );
 		nRet = TAP_ipc_close( &tIpc );
 		if ( 0 > nRet )
 		{
-			LogErr( __func__, ipc_errno );
+			MPGLOG_ERR( "%s:: TAP_ipc_close() fail=%d", __func__, ipc_errno );
 		}
 		return TAP_FAIL;
 	}
@@ -111,7 +110,7 @@ int main( int argc, char *argv[] )
 			pszRet = fgets( szPickMenu, sizeof(szPickMenu), stdin );
 			if ( NULL == pszRet )
 			{
-				LogErr( __func__, dalErrno() );	
+				MPGLOG_ERR( "%s:: fgets() fail", __func__ );
 				return FGETS_FAIL;
 			}
 			ClearStdin( szPickMenu );
@@ -212,11 +211,11 @@ int main( int argc, char *argv[] )
 		nRet = TAP_ipc_msgsnd( &tIpc, &tSendMsg, IPC_BLOCK );
 		if ( 0 > nRet )
 		{
-			LogErr( __func__, ipc_errno );
+			MPGLOG_ERR( "%s:: TAP_ipc_msgsnd() fail=%d", __func__, ipc_errno );
 			nRet = TAP_ipc_close( &tIpc );
 			if ( 0 > nRet )
 			{
-				LogErr( __func__, ipc_errno );
+				MPGLOG_ERR( "%s:: TAP_ipc_close() fail=%d", __func__, ipc_errno );
 			}
 			return TAP_FAIL;
 		}
@@ -227,11 +226,11 @@ int main( int argc, char *argv[] )
 		nRet = TAP_ipc_msgrcv( &tIpc, &tRecvMsg, IPC_BLOCK );
 		if ( 0 > nRet )
 		{
-			LogErr( __func__, ipc_errno );
+			MPGLOG_ERR( "%s:: TAP_ipc_msgrcv() fail=%d", __func__, ipc_errno );
 			nRet = TAP_ipc_close( &tIpc );
 			if ( 0 > nRet )
 			{
-				LogErr( __func__, ipc_errno );
+				MPGLOG_ERR( "%s:: TAP_ipc_close() fail=%d", __func__, ipc_errno );
 			}
 			return TAP_FAIL;
 		}
@@ -285,17 +284,11 @@ end_of_function:
 	nRet = TAP_ipc_close( &tIpc );
 	if ( 0 > nRet )
 	{
-		LogErr( __func__, ipc_errno );
+		MPGLOG_ERR( "%s:: TAP_ipc_close() fail=%d", __func__, ipc_errno );
 		return TAP_FAIL;
 	}
 
 	return 0;
-}
-
-void LogErr( const char* pszFuncName, int nErrno )
-{
-	MPGLOG_ERR( "%s:: errno[%d]\n", pszFuncName, nErrno );
-	return;
 }
 
 void SignalHandler( int nSig )
@@ -340,7 +333,7 @@ int Insert( struct REQUEST_s *ptRequest )
 	pszRet = fgets( ptRequest->szName, sizeof(ptRequest->szName), stdin );
 	if ( NULL == pszRet )
 	{
-		LogErr( __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: fgets() fail", __func__ );	
 		return FGETS_FAIL;
 	}
 	ClearStdin( ptRequest->szName );
@@ -349,7 +342,7 @@ int Insert( struct REQUEST_s *ptRequest )
 	pszRet = fgets( ptRequest->szJobTitle, sizeof(ptRequest->szJobTitle), stdin );
 	if ( NULL == pszRet )
 	{
-		LogErr( __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: fgets() fail", __func__ );
 		return FGETS_FAIL;
 	}
 	ClearStdin( ptRequest->szJobTitle );
@@ -358,7 +351,7 @@ int Insert( struct REQUEST_s *ptRequest )
 	pszRet = fgets( ptRequest->szTeam, sizeof(ptRequest->szTeam), stdin );
 	if ( NULL == pszRet )
 	{
-		LogErr( __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: fgets() fail", __func__ );
 		return FGETS_FAIL;
 	}
 	ClearStdin( ptRequest->szTeam );
@@ -367,7 +360,7 @@ int Insert( struct REQUEST_s *ptRequest )
 	pszRet = fgets( ptRequest->szPhone, sizeof(ptRequest->szPhone), stdin );
 	if ( NULL == pszRet )
 	{
-		LogErr( __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: fgets() fail", __func__ );
 		return FGETS_FAIL;
 	}
 	ClearStdin( ptRequest->szPhone );
@@ -406,7 +399,7 @@ int Select( struct REQUEST_s *ptRequest )
 		pszRet = fgets( szPickSelect, sizeof(szPickSelect), stdin );
 		if ( NULL == pszRet )
 		{
-			LogErr( __func__, dalErrno() );
+			MPGLOG_ERR( "%s:: fgets() fail", __func__ );
 			return FGETS_FAIL;
 		}
 		ClearStdin( szPickSelect );
@@ -431,7 +424,7 @@ int Select( struct REQUEST_s *ptRequest )
 			pszRet = fgets( szInputId, sizeof(szInputId), stdin );
 			if ( NULL == pszRet )
 			{
-				LogErr( __func__, dalErrno() );
+				MPGLOG_ERR( "%s:: fgets() fail", __func__ );
 				return FGETS_FAIL;
 			}
 			ClearStdin( szInputId );
@@ -443,7 +436,7 @@ int Select( struct REQUEST_s *ptRequest )
 				pszRet = fgets( szInputName, sizeof(szInputName), stdin );
 				if ( NULL == pszRet )
 				{
-					LogErr( __func__, dalErrno() );
+					MPGLOG_ERR( "%s:: fgets() fail", __func__ );
 					return FGETS_FAIL;
 				}
 				ClearStdin( szInputName );
@@ -496,7 +489,7 @@ int Update( struct REQUEST_s *ptRequest )
 	pszRet = fgets( szInput, sizeof(szInput), stdin );
 	if ( NULL == pszRet )
 	{
-		LogErr( __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: fgets() fail", __func__ );
 		return FGETS_FAIL;
 	}
 	ClearStdin( szInput );
@@ -510,11 +503,20 @@ int Update( struct REQUEST_s *ptRequest )
 		return INPUT_FAIL;
 	}
 
+	printf( "[%s] Name: ", __func__ );
+	pszRet = fgets( ptRequest->szName, sizeof(ptRequest->szName), stdin );
+	if ( NULL == pszRet )
+	{
+		MPGLOG_ERR( "%s:: fgets() fail", __func__ );
+		return FGETS_FAIL;
+	}
+	ClearStdin( ptRequest->szName );
+
 	printf( "[%s] Job Title: ", __func__ );
 	pszRet = fgets( ptRequest->szJobTitle, sizeof(ptRequest->szJobTitle), stdin );
 	if ( NULL == pszRet )
 	{
-		LogErr( __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: fgets() fail", __func__ );
 		return FGETS_FAIL;
 	}
 	ClearStdin( ptRequest->szJobTitle );
@@ -523,7 +525,7 @@ int Update( struct REQUEST_s *ptRequest )
 	pszRet = fgets( ptRequest->szTeam, sizeof(ptRequest->szTeam), stdin );
 	if ( NULL == pszRet )
 	{
-		LogErr( __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: fgets() fail", __func__ );
 		return FGETS_FAIL;
 	}
 	ClearStdin( ptRequest->szTeam );
@@ -532,7 +534,7 @@ int Update( struct REQUEST_s *ptRequest )
 	pszRet = fgets( ptRequest->szPhone, sizeof(ptRequest->szPhone), stdin );
 	if ( NULL == pszRet )
 	{
-		LogErr( __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: fgets() fail", __func__ );
 		return FGETS_FAIL;
 	}
 	ClearStdin( ptRequest->szPhone );
@@ -557,7 +559,7 @@ int Delete( struct REQUEST_s *ptRequest )
 	pszRet = fgets( szInput, sizeof(szInput), stdin );
 	if ( NULL == pszRet )
 	{
-		LogErr( __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: fgets() fail", __func__ );
 		return FGETS_FAIL;
 	}
 	ClearStdin( szInput );

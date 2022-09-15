@@ -28,6 +28,7 @@
 #define SELECT						"Select"
 #define UPDATE						"Update"
 #define DELETE						"Delete"
+#define NUMTUPLES					"NUMTUPLES"
 
 #define FLAG_RUN					100
 #define FLAG_STOP					99
@@ -46,13 +47,17 @@
 #define TEAM						"team"
 #define PHONE						"phone"
 
+#define RET_CODE_SUCCESS			"RET_CODE_SUCCESS"
+#define RET_CODE_INVALID_PARAMETER	"RET_CODE_INVALID_PARAMETER"
+#define RET_CODE_SYSTEM_FAIL		"RET_CODE_SYSTEM_FAIL"
+#define RET_CODE_UNKNOWN_USER		"RET_CODE_UNKNOWN_USER"
+
 typedef enum
 {
 	SUCCESS = 1, INPUT_FAIL = 2,
 	DAL_FAIL = -2, FGETS_FAIL = -3, TAP_FAIL = -4,
-	NULL_FAIL = -5, MPGLOG_FAIL = -6,
-	ID_NOT_EXIST = -7, NAME_NOT_EXIST = -8,
-	STAT_FAIL = -9, FUNC_FAIL = -10
+	NULL_FAIL = -5, MPGLOG_FAIL = -6, STAT_FAIL = -7,
+	ID_NOT_EXIST = 30, NAME_NOT_EXIST = 31
 } ReturnCode_t;
 
 typedef struct REQUEST_s
@@ -63,7 +68,6 @@ typedef struct REQUEST_s
 	char	szJobTitle	[SIZE_JOBTITLE + 1];
 	char	szTeam		[SIZE_TEAM + 1];
 	char	szPhone		[SIZE_PHONE + 1];
-
 } REQUEST_t;
 
 typedef struct RESPONSE_s
@@ -98,5 +102,6 @@ DAL_PSTMT	*g_ptPstmtSelectOneById = NULL;
 DAL_PSTMT	*g_ptPstmtSelectOneByName = NULL;
 DAL_PSTMT	*g_ptPstmtUpdate = NULL;
 DAL_PSTMT	*g_ptPstmtDelete = NULL;
+DAL_PSTMT	*g_ptPstmtNumtuples = NULL;
 
 #endif /*_FW_INC_H_*/
