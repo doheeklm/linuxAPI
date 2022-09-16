@@ -1,4 +1,4 @@
-/* created by stmake utility, 2022-09-15-15:32:46 */
+/* created by stmake utility, 2022-09-16-10:42:39 */
 #include <stdio.h>
 #include <stdlib.h>
 #include "stctl/stctl.h"
@@ -8,14 +8,16 @@
 stctl_dtl_type_desc_t stctl_dtl_type_list[] = {
     {"HOSTID", 128},
     {"PROCESS", 128},
-    {"RET_CODE", 128},
     {NULL, 0}
 };
 
 /* item list */
 stctl_item_desc_t stctl_item_list[] = {
     {"TCP_RCV_TOTAL_INV", TCP_RCV_TOTAL_INV, STCTL_VTYPE_UINT, STCTL_CTYPE_SUM, "PROCESS"},
-    {"RETURN", RETURN, STCTL_VTYPE_UINT, STCTL_CTYPE_SUM, "RET_CODE"},
+    {"RET_CODE_SUCCESS", RET_CODE_SUCCESS, STCTL_VTYPE_UINT, STCTL_CTYPE_SUM, "PROCESS"},
+    {"RET_CODE_INVALID_PARAMETER", RET_CODE_INVALID_PARAMETER, STCTL_VTYPE_UINT, STCTL_CTYPE_SUM, "PROCESS"},
+    {"RET_CODE_SYSTEM_FAIL", RET_CODE_SYSTEM_FAIL, STCTL_VTYPE_UINT, STCTL_CTYPE_SUM, "PROCESS"},
+    {"RET_CODE_UNKNOWN_USER", RET_CODE_UNKNOWN_USER, STCTL_VTYPE_UINT, STCTL_CTYPE_SUM, "PROCESS"},
     {NULL, 0, 0, 0, NULL}
 };
 

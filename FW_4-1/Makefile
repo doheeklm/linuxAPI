@@ -32,7 +32,7 @@ EXENAME=	server
 #
 ifeq "$(TGT_SYS_OS_TYPE)" "LINUX_OS"
 MLIBDIRS=-L$(TELCOBASE_HOME)/lib 
-MLIBS= -ltelcobase -lstctl -lmplib -ltap -ltelpro
+MLIBS= -ltelcobase -lstctl -lmplib -ltap -ltelpro -loam
 MLDFLAGS=
 endif
 

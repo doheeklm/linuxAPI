@@ -1,4 +1,4 @@
-/* created by stmake utility, 2022-09-15-15:32:46 */
+/* created by stmake utility, 2022-09-16-10:42:39 */
 #ifndef __test_stat_H__
 #define __test_stat_H__
 
@@ -12,7 +12,10 @@
 /* enumerated type for item list */
 typedef enum {
     TCP_RCV_TOTAL_INV,
-    RETURN,
+    RET_CODE_SUCCESS,
+    RET_CODE_INVALID_PARAMETER,
+    RET_CODE_SYSTEM_FAIL,
+    RET_CODE_UNKNOWN_USER,
     __ITEM_END__
 }en_item_index_t;
 
