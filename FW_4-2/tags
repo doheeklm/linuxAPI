@@ -75,6 +75,7 @@ SUCCESS	FW_Inc.h	/^	SUCCESS = 1, INPUT_FAIL = 2,$/;"	e	enum:__anon3
 Select	FW_Client.c	/^int Select( struct REQUEST_s *ptRequest )$/;"	f
 SelectAll	FW_Server.c	/^int SelectAll( struct RESPONSE_s *ptResponse )$/;"	f
 SelectOne	FW_Server.c	/^int SelectOne( struct REQUEST_s *ptRequest, struct RESPONSE_s *ptResponse )$/;"	f
+SetAlarmStatus	FW_Server.c	/^void SetAlarmStatus( int nCntEmployee, int *pnAlarmStatus )$/;"	f
 SignalHandler	FW_Client.c	/^void SignalHandler( int nSig )$/;"	f
 SignalHandler	FW_Server.c	/^void SignalHandler( int nSig )$/;"	f
 TABLE_NAME	FW_Inc.h	43;"	d

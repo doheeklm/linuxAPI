@@ -34,7 +34,7 @@ int main( int argc, char *argv[] )
 	RESPONSE_t *ptResponse = NULL;
 	
 	int nRC = 0;
-	int nExit = 0;
+	//int nExit = 0;
 	int nCntEmployee = 0;
 	int nAlarmStatus = 0;
 	
@@ -352,13 +352,13 @@ int main( int argc, char *argv[] )
 			continue;
 		}
 		
-		nExit = 0;
+		/*nExit = 0;
 		printf( "서버 종료(1): " );
 		nRC = scanf( "%d", &nExit );
 		if ( 1 == nExit )
 		{
 			break;
-		}
+		}*/
 	}
 
 end_of_function:
@@ -1064,20 +1064,19 @@ void SetAlarmStatus( int nCntEmployee, int *pnAlarmStatus )
 {
 	if ( 0 <= nCntEmployee && 9 >= nCntEmployee )
 	{
-		//TODO Define된 것으로 변경 Normal
-		*pnAlarmStatus = 0;
+		*pnAlarmStatus = NORMAL;
 	}
 	else if ( 10 <= nCntEmployee && 20 >= nCntEmployee )
 	{
-		*pnAlarmStatus = 1;
+		*pnAlarmStatus = MINOR;
 	}
 	else if ( 21 <= nCntEmployee && 30 >= nCntEmployee )
 	{
-		*pnAlarmStatus = 2;
+		*pnAlarmStatus = MAJOR;
 	}
 	else if ( 31 <= nCntEmployee )	
 	{
-		*pnAlarmStatus = 3;
+		*pnAlarmStatus = CRITICAL;
 	}
 	else
 	{
