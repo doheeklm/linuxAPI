@@ -1,4 +1,4 @@
-/* FW_4-1/FW_Inc.h */
+/* FW_4-2/FW_Inc.h */
 #ifndef _FW_INC_H_
 #define _FW_INC_H_
 
@@ -20,6 +20,8 @@
 #include <mplog.h>
 #include "stctl/stctl.h"
 #include "test_stat.h"
+#include "oam_uda.h"
+#include "sfm_alarm.h"
 
 #define SERVER_PROCNAME				"MIPCSVR"
 #define CLIENT_PROCNAME				"MIPCCLI"
@@ -47,12 +49,17 @@
 #define TEAM						"team"
 #define PHONE						"phone"
 
+#define UDA_UPP_GNAME				"FW_TEST"
+#define UDA_LOW_GNAME				"CNT"
+#define UDA_ITEM_NAME				"CNT_EMPLOYEE_ALARM"
+
 typedef enum
 {
 	SUCCESS = 1, INPUT_FAIL = 2,
 	DAL_FAIL = -2, FGETS_FAIL = -3, TAP_FAIL = -4,
 	NULL_FAIL = -5, MPGLOG_FAIL = -6, STAT_FAIL = -7,
-	ID_NOT_EXIST = 30, NAME_NOT_EXIST = 31
+	ID_NOT_EXIST = 30, NAME_NOT_EXIST = 31,
+	UDA_FAIL = -8
 } ReturnCode_t;
 
 typedef struct REQUEST_s
