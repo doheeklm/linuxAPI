@@ -58,8 +58,9 @@ typedef enum
 	NOT_EXIST = 0, SUCCESS = 1, INPUT_FAIL = 2,
 	FGETS_FAIL = -3, TAP_FAIL = -4, NULL_FAIL = -5,
 	MPGLOG_FAIL = -6, MPCONF_FAIL = -7, OVER_MAX_FAIL = -8,
-	FUNC_FAIL = -9, HASH_FAIL = -10, ID_EXIST = 30,
-	ID_NOT_EXIST = 31, FILE_EMPTY = 32, HASH_EMPTY = 33,
+	FUNC_FAIL = -9, LIST_FAIL = -10, HASH_FAIL = -11,
+	ID_EXIST = 30, ID_NOT_EXIST = 31,
+	FILE_EMPTY = 32, HASH_EMPTY = 33,
 	INDEX_NOT_FOUND = -2002
 } ReturnCode_t;
 
@@ -87,14 +88,6 @@ typedef struct ID_NAME_s
 	int		nId;
 	char	szName		[SIZE_NAME + 1];
 } ID_NAME_t;
-
-typedef struct OLD_INFO_s
-{
-	char	szName		[SIZE_NAME + 1];
-	char	szJobTitle	[SIZE_JOBTITLE + 1];
-	char	szTeam		[SIZE_TEAM + 1];
-	char	szPhone		[SIZE_PHONE + 1];
-} OLD_INFO_t;
 
 typedef struct INFO_s
 {

@@ -23,6 +23,7 @@ int main( int argc, char *argv[] )
 	REQUEST_t *ptRequest = NULL;
 	RESPONSE_t *ptResponse = NULL;
 
+	int i = 0;
 	int nRet = 0;
 	int nPickMenu = 0;
 	char szPickMenu[8];
@@ -33,6 +34,12 @@ int main( int argc, char *argv[] )
 	iipc_key_t	tDstKey;
 	iipc_msg_t	tSendMsg;
 	iipc_msg_t	tRecvMsg;
+
+	INFO_t tInfo;
+	memset( &tInfo, 0x00, sizeof(tInfo) );
+
+	ID_NAME_t tIdName;
+	memset( &tIdName, 0x00, sizeof(tIdName) );
 
 	/*
 	 *	MPLOG
@@ -220,21 +227,33 @@ int main( int argc, char *argv[] )
 
 		ptResponse = (RESPONSE_t *)tRecvMsg.buf.msgq_buf;	
 
-		INFO_t tInfo;
-		memset( &tInfo, 0x00, sizeof(tInfo) );
-		memcpy( &tInfo, ptResponse->szBuffer, sizeof(tInfo) );
+		switch ( ptResponse->nMsgType )
+		{
+			case 2:
+			{
+				MPGLOG_SVC( "[RECV] MsgType: %d | Result: %d | CntSelectAll: %d", ptResponse->nMsgType, ptResponse->nResult, ptResponse->nCntSelectAll );
 
-		if ( 2 == ptResponse->nMsgType )
-		{
-			MPGLOG_SVC( "[RECV] MsgType: %d | Result: %d | CntSelectAll: %d", ptResponse->nMsgType, ptResponse->nResult, ptResponse->nCntSelectAll );
-		}
-		else if ( 3 == ptResponse->nMsgType )
-		{
-			MPGLOG_SVC( "[RECV] MsgType: %d | Id: %d | Result: %d | Buffer: %s, %s, %s, %s", ptResponse->nMsgType, ptResponse->nId, ptResponse->nResult, tInfo.szName, tInfo.szJobTitle, tInfo.szTeam, tInfo.szPhone );
-		}
-		else
-		{
-			MPGLOG_SVC( "[RECV] MsgType: %d | Id: %d | Result: %d", ptResponse->nMsgType, ptResponse->nId, ptResponse->nResult );
+				for ( i = 0; i < ptResponse->nCntSelectAll; i++ )
+				{
+					memset( &tIdName, 0x00, sizeof(tIdName) );
+					memcpy( &tIdName, ptResponse->szBuffer + (i * sizeof(tIdName)), sizeof(tIdName) );
+
+					MPGLOG_SVC( "Buffer: %d, %s", tIdName.nId, tIdName.szName );
+				}
+			}
+				break;
+			case 3:
+			{
+				memcpy( &tInfo, ptResponse->szBuffer, sizeof(tInfo) );
+
+				MPGLOG_SVC( "[RECV] MsgType: %d | Id: %d | Result: %d | Buffer: %s, %s, %s, %s", ptResponse->nMsgType, ptResponse->nId, ptResponse->nResult, tInfo.szName, tInfo.szJobTitle, tInfo.szTeam, tInfo.szPhone );
+			}
+				break;
+			default:
+			{	
+				MPGLOG_SVC( "[RECV] MsgType: %d | Id: %d | Result: %d", ptResponse->nMsgType, ptResponse->nId, ptResponse->nResult );
+			}
+				break;
 		}
 	}
 

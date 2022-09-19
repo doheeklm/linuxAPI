@@ -22,7 +22,7 @@ MCFLAGS=-g -W -Wall
 #
 # executable file name for compiled objects.
 
-EXENAME=	svr
+EXENAME=	server
 
 # module-specific library list for loading.
 #

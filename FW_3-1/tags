@@ -14,22 +14,23 @@ FGETS_FAIL	FW_Inc.h	/^	FGETS_FAIL = -3, TAP_FAIL = -4, NULL_FAIL = -5,$/;"	e	enu
 FILE_EMPTY	FW_Inc.h	/^	ID_NOT_EXIST = 31, FILE_EMPTY = 32, HASH_EMPTY = 33,$/;"	e	enum:__anon1
 FLAG_RUN	FW_Inc.h	32;"	d
 FLAG_STOP	FW_Inc.h	33;"	d
-FUNC_FAIL	FW_Inc.h	/^	FUNC_FAIL = -9, HASH_FAIL = -10, ID_EXIST = 30,$/;"	e	enum:__anon1
+FUNC_FAIL	FW_Inc.h	/^	FUNC_FAIL = -9, LIST_FAIL = -10, HASH_FAIL = -11,$/;"	e	enum:__anon1
 HASH_EMPTY	FW_Inc.h	/^	ID_NOT_EXIST = 31, FILE_EMPTY = 32, HASH_EMPTY = 33,$/;"	e	enum:__anon1
-HASH_FAIL	FW_Inc.h	/^	FUNC_FAIL = -9, HASH_FAIL = -10, ID_EXIST = 30,$/;"	e	enum:__anon1
-HASH_LoadFile	FW_Server.c	/^int HASH_LoadFile( hash_table_t *ptHash )$/;"	f
-HASH_SaveInFile	FW_Server.c	/^int HASH_SaveInFile( hash_table_t *ptHash )$/;"	f
+HASH_FAIL	FW_Inc.h	/^	FUNC_FAIL = -9, LIST_FAIL = -10, HASH_FAIL = -11,$/;"	e	enum:__anon1
 ID	FW_Inc.h	44;"	d
-ID_EXIST	FW_Inc.h	/^	FUNC_FAIL = -9, HASH_FAIL = -10, ID_EXIST = 30,$/;"	e	enum:__anon1
+ID_EXIST	FW_Inc.h	/^	ID_EXIST = 30,$/;"	e	enum:__anon1
 ID_NAME_s	FW_Inc.h	/^typedef struct ID_NAME_s$/;"	s
 ID_NAME_t	FW_Inc.h	/^} ID_NAME_t;$/;"	t	typeref:struct:ID_NAME_s
 ID_NOT_EXIST	FW_Inc.h	/^	ID_NOT_EXIST = 31, FILE_EMPTY = 32, HASH_EMPTY = 33,$/;"	e	enum:__anon1
 INDEX_NOT_FOUND	FW_Inc.h	/^	INDEX_NOT_FOUND = -2002$/;"	e	enum:__anon1
+INFO_s	FW_Inc.h	/^typedef struct INFO_s$/;"	s
+INFO_t	FW_Inc.h	/^} INFO_t;$/;"	t	typeref:struct:INFO_s
 INPUT_FAIL	FW_Inc.h	/^	NOT_EXIST = 0, SUCCESS = 1, INPUT_FAIL = 2,$/;"	e	enum:__anon1
 INSERT	FW_Inc.h	27;"	d
 Insert	FW_Client.c	/^int Insert( struct REQUEST_s *ptRequest )$/;"	f
-Insert	FW_Server.c	/^int Insert( hash_table_t *ptHash, struct REQUEST_s *ptRequest, int nSize, struct RESPONSE_s *ptResponse )$/;"	f
+Insert	FW_Server.c	/^int Insert( hash_table_t *ptHash, struct REQUEST_s *ptRequest, struct RESPONSE_s *ptResponse )$/;"	f
 JOBTITLE	FW_Inc.h	46;"	d
+LIST_FAIL	FW_Inc.h	/^	FUNC_FAIL = -9, LIST_FAIL = -10, HASH_FAIL = -11,$/;"	e	enum:__anon1
 ListFree	FW_Server.c	/^static void ListFree( mpconf_list_t *ptSectList, mpconf_list_t *ptItemList, mpconf_list_t *ptValueList )$/;"	f	file:
 LogErr	FW_Client.c	/^void LogErr( const char* pszFuncName, int nErrno )$/;"	f
 LogErr	FW_Server.c	/^void LogErr( const char* pszFuncName, int nErrno )$/;"	f
@@ -67,7 +68,7 @@ SRCS	Makefile	/^SRCS= FW_Server.c$/;"	m
 SUCCESS	FW_Inc.h	/^	NOT_EXIST = 0, SUCCESS = 1, INPUT_FAIL = 2,$/;"	e	enum:__anon1
 Select	FW_Client.c	/^int Select( struct REQUEST_s *ptRequest )$/;"	f
 SelectAll	FW_Server.c	/^int SelectAll( hash_table_t *ptHash, struct RESPONSE_s *ptResponse )$/;"	f
-SelectOne	FW_Server.c	/^int SelectOne( hash_table_t *ptHash, struct REQUEST_s *ptRequest, int nSize, struct RESPONSE_s *ptResponse )$/;"	f
+SelectOne	FW_Server.c	/^int SelectOne( hash_table_t *ptHash, struct REQUEST_s *ptRequest, struct RESPONSE_s *ptResponse )$/;"	f
 SetUniqueId	FW_Server.c	/^int SetUniqueId( int *pnId )$/;"	f
 SignalHandler	FW_Client.c	/^void SignalHandler( int nSig )$/;"	f
 SignalHandler	FW_Server.c	/^void SignalHandler( int nSig )$/;"	f
@@ -75,14 +76,17 @@ TABLE_NAME	FW_Inc.h	43;"	d
 TAP_FAIL	FW_Inc.h	/^	FGETS_FAIL = -3, TAP_FAIL = -4, NULL_FAIL = -5,$/;"	e	enum:__anon1
 TEAM	FW_Inc.h	47;"	d
 UPDATE	FW_Inc.h	29;"	d
+UTIL_LoadFile	FW_Server.c	/^int UTIL_LoadFile( linked_list_t *ptList, hash_table_t *ptHash )$/;"	f
+UTIL_SaveInFile	FW_Server.c	/^int UTIL_SaveInFile( hash_table_t *ptHash )$/;"	f
 Update	FW_Client.c	/^int Update( struct REQUEST_s *ptRequest )$/;"	f
-Update	FW_Server.c	/^int Update( hash_table_t *ptHash, struct REQUEST_s *ptRequest, int nSize )$/;"	f
-_TAP_INC_H_	FW_Inc.h	3;"	d
+Update	FW_Server.c	/^int Update( hash_table_t *ptHash, struct REQUEST_s *ptRequest )$/;"	f
+_FW_INC_H_	FW_Inc.h	3;"	d
 g_nFlag	FW_Inc.h	/^int g_nFlag = FLAG_RUN;$/;"	v
 g_pszBackup	FW_Inc.h	/^char *g_pszBackup = "\/home1\/sepp\/user\/dhkim\/FW_3-1\/FW_Backup.ini";$/;"	v
 g_pszFile	FW_Inc.h	/^char *g_pszFile = "\/home1\/sepp\/user\/dhkim\/FW_3-1\/FW_Config.ini";$/;"	v
 main	FW_Client.c	/^int main( int argc, char *argv[] )$/;"	f
 main	FW_Server.c	/^int main( int argc, char *argv[] )$/;"	f
+nCntSelectAll	FW_Inc.h	/^	int		nCntSelectAll;$/;"	m	struct:RESPONSE_s
 nId	FW_Inc.h	/^	int		nId;$/;"	m	struct:ID_NAME_s
 nId	FW_Inc.h	/^	int		nId;$/;"	m	struct:REQUEST_s
 nId	FW_Inc.h	/^	int		nId;$/;"	m	struct:RESPONSE_s
@@ -90,12 +94,16 @@ nMsgType	FW_Inc.h	/^	int		nMsgType;$/;"	m	struct:REQUEST_s
 nMsgType	FW_Inc.h	/^	int		nMsgType;$/;"	m	struct:RESPONSE_s
 nResult	FW_Inc.h	/^	int		nResult;$/;"	m	struct:RESPONSE_s
 szBuffer	FW_Inc.h	/^	char	szBuffer	[2048];$/;"	m	struct:RESPONSE_s
+szJobTitle	FW_Inc.h	/^	char	szJobTitle	[SIZE_JOBTITLE + 1];$/;"	m	struct:INFO_s
 szJobTitle	FW_Inc.h	/^	char	szJobTitle	[SIZE_JOBTITLE + 1];$/;"	m	struct:OLD_INFO_s
 szJobTitle	FW_Inc.h	/^	char	szJobTitle	[SIZE_JOBTITLE + 1];$/;"	m	struct:REQUEST_s
 szName	FW_Inc.h	/^	char	szName		[SIZE_NAME + 1];$/;"	m	struct:ID_NAME_s
+szName	FW_Inc.h	/^	char	szName		[SIZE_NAME + 1];$/;"	m	struct:INFO_s
 szName	FW_Inc.h	/^	char	szName		[SIZE_NAME + 1];$/;"	m	struct:OLD_INFO_s
 szName	FW_Inc.h	/^	char	szName		[SIZE_NAME + 1];$/;"	m	struct:REQUEST_s
+szPhone	FW_Inc.h	/^	char	szPhone		[SIZE_PHONE + 1];$/;"	m	struct:INFO_s
 szPhone	FW_Inc.h	/^	char	szPhone		[SIZE_PHONE + 1];$/;"	m	struct:OLD_INFO_s
 szPhone	FW_Inc.h	/^	char	szPhone		[SIZE_PHONE + 1];$/;"	m	struct:REQUEST_s
+szTeam	FW_Inc.h	/^	char	szTeam		[SIZE_TEAM + 1];$/;"	m	struct:INFO_s
 szTeam	FW_Inc.h	/^	char	szTeam		[SIZE_TEAM + 1];$/;"	m	struct:OLD_INFO_s
 szTeam	FW_Inc.h	/^	char	szTeam		[SIZE_TEAM + 1];$/;"	m	struct:REQUEST_s
