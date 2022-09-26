@@ -1,4 +1,4 @@
-/* FW_4-2/FW_Inc.h */
+/* FW_4-3/FW_Inc.h */
 #ifndef _FW_INC_H_
 #define _FW_INC_H_
 
@@ -23,7 +23,8 @@
 #include "oam_uda.h"
 #include "sfm_alarm.h"
 #include "oammmc.h"
-#include "oammmc_mmt.h"
+
+#include "FW_mmc.h"
 
 #define SERVER_PROCNAME				"MIPCSVR"
 #define CLIENT_PROCNAME				"MIPCCLI"
@@ -54,6 +55,10 @@
 #define UDA_UPP_GNAME				"FW_TEST"
 #define UDA_LOW_GNAME				"CNT"
 #define UDA_ITEM_NAME				"CNT_EMPLOYEE_ALARM"
+
+#define MODULE_CONF					"/home1/sepp/release/R1.0.0/etc/ini/OAM/sfwcs.ini"
+#define MMT_PORT					"mmt_port"
+#define MMT_ENABLE					"mmt_enable"
 
 typedef enum
 {
