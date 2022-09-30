@@ -18,16 +18,20 @@
 #include <dal.h>
 #include <TAP_Ipc.h>
 #include <mplog.h>
+#include "mpsignal.h"
 #include "stctl/stctl.h"
 #include "test_stat.h"
 #include "oam_uda.h"
 #include "sfm_alarm.h"
 #include "oammmc.h"
+#include "oammmc_mmt.h"
+#include "oammmc_mml.h"
+#include "mpenum.h"
 
-#include "FW_mmc.h"
+#include "FW_Mmc.h"
+#include "FW_Pstmt.h"
 
-#define SERVER_PROCNAME				"MIPCSVR"
-#define CLIENT_PROCNAME				"MIPCCLI"
+#define MODULE						"MIPCSVR"
 
 #define INSERT						"Insert"
 #define SELECT						"Select"
@@ -39,16 +43,17 @@
 #define FLAG_STOP					99
 
 #define SIZE_NAME					32
-#define SIZE_JOBTITLE				32
+#define SIZE_POSITION				32
 #define SIZE_TEAM					32
 #define SIZE_PHONE					13
 
 #define TABLE_NAME					"EmployeeInfos"
 #define MSG_TYPE					"MsgType"
 #define ALL							"{ALL}"
+
 #define ID							"id"
 #define NAME						"name"
-#define JOBTITLE					"jobTitle"
+#define POSITION					"position"
 #define TEAM						"team"
 #define PHONE						"phone"
 
@@ -56,17 +61,34 @@
 #define UDA_LOW_GNAME				"CNT"
 #define UDA_ITEM_NAME				"CNT_EMPLOYEE_ALARM"
 
-#define MODULE_CONF					"/home1/sepp/release/R1.0.0/etc/ini/OAM/sfwcs.ini"
+#define PROCESS_INI					"./MIPCSVR.ini"
 #define MMT_PORT					"mmt_port"
 #define MMT_ENABLE					"mmt_enable"
+#define MML_ENABLE					"mml_enable"
+#define MMT_CONN_MAX				"mmt_conn_max"
+#define MMT_LOCAL_ONLY				"mmt_local_only"
+#define MMT_IS_QUIET				"mmt_is_quiet"
+
+//[OMP]~etc/ini/OAM/command.ut
+#define MSG_ID_ADD					7741
+#define MSG_ID_DIS					7742
+#define MSG_ID_CHG					7743
+#define MSG_ID_DEL					7744
+
+//[OMP]~etc/ini/OAM/enum.ut
+#define ENUM_ID						63000
+#define ENUM_NAME					63001
+#define ENUM_POSITION				63002
+#define ENUM_TEAM					63003
+#define ENUM_PHONE					63004
 
 typedef enum
 {
-	SUCCESS = 1, INPUT_FAIL = 2,
-	DAL_FAIL = -2, FGETS_FAIL = -3, TAP_FAIL = -4,
-	NULL_FAIL = -5, MPGLOG_FAIL = -6, STAT_FAIL = -7,
+	SUCCESS = 1, INPUT_FAIL = 2, DAL_FAIL = -2,
+	FGETS_FAIL = -3, IPC_FAIL = -4, NULL_FAIL = -5,
+	MPGLOG_FAIL = -6, STAT_FAIL = -7,
 	ID_NOT_EXIST = 30, NAME_NOT_EXIST = 31,
-	UDA_FAIL = -8
+	UDA_FAIL = -8, MMC_FAIL = -9, MPCONF_FAIL = -10
 } ReturnCode_t;
 
 typedef struct REQUEST_s
@@ -74,7 +96,7 @@ typedef struct REQUEST_s
 	int		nMsgType;
 	int		nId;
 	char	szName		[SIZE_NAME + 1];
-	char	szJobTitle	[SIZE_JOBTITLE + 1];
+	char	szPosition	[SIZE_POSITION + 1];
 	char	szTeam		[SIZE_TEAM + 1];
 	char	szPhone		[SIZE_PHONE + 1];
 } REQUEST_t;
@@ -97,20 +119,9 @@ typedef struct SELECT_ALL_s
 typedef struct SELECT_ONE_s
 {
 	char	szName		[SIZE_NAME + 1];
-	char	szJobTitle	[SIZE_JOBTITLE + 1];
+	char	szPosition	[SIZE_POSITION + 1];
 	char	szTeam		[SIZE_TEAM + 1];
 	char	szPhone		[SIZE_PHONE + 1];
 } SELECT_ONE_t;
-
-int g_nFlag = FLAG_RUN;
-
-DAL_CONN	*g_ptConn= NULL;
-DAL_PSTMT	*g_ptPstmtInsert = NULL;
-DAL_PSTMT	*g_ptPstmtSelectAll = NULL;
-DAL_PSTMT	*g_ptPstmtSelectOneById = NULL;
-DAL_PSTMT	*g_ptPstmtSelectOneByName = NULL;
-DAL_PSTMT	*g_ptPstmtUpdate = NULL;
-DAL_PSTMT	*g_ptPstmtDelete = NULL;
-DAL_PSTMT	*g_ptPstmtNumtuples = NULL;
 
 #endif /*_FW_INC_H_*/

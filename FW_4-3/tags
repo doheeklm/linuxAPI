@@ -4,24 +4,25 @@
 !_TAG_PROGRAM_NAME	Exuberant Ctags	//
 !_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
 !_TAG_PROGRAM_VERSION	5.8	//
-ALL	FW_Inc.h	45;"	d
-CLIENT_PROCNAME	FW_Inc.h	27;"	d
+ALL	FW_Inc.h	50;"	d
+CLIENT_PROCNAME	FW_Inc.h	32;"	d
 ClearStdin	FW_Client.c	/^void ClearStdin( char *pszTemp )$/;"	f
 CntCurrentEmployee	FW_Server.c	/^int CntCurrentEmployee( int *pnCntEmployee )$/;"	f
-DAL_FAIL	FW_Inc.h	/^	DAL_FAIL = -2, FGETS_FAIL = -3, TAP_FAIL = -4,$/;"	e	enum:__anon3
-DELETE	FW_Inc.h	32;"	d
+DAL_FAIL	FW_Inc.h	/^	DAL_FAIL = -2, FGETS_FAIL = -3, TAP_FAIL = -4,$/;"	e	enum:__anon2
+DEFAULT_VAL	FW_Inc.h	69;"	d
+DELETE	FW_Inc.h	37;"	d
 Delete	FW_Client.c	/^int Delete( struct REQUEST_s *ptRequest )$/;"	f
 Delete	FW_Server.c	/^int Delete( struct REQUEST_s *ptRequest )$/;"	f
 DestroyPreparedStatement	FW_Server.c	/^void DestroyPreparedStatement()$/;"	f
 EXENAME	Makefile	/^EXENAME=	server$/;"	m
-FGETS_FAIL	FW_Inc.h	/^	DAL_FAIL = -2, FGETS_FAIL = -3, TAP_FAIL = -4,$/;"	e	enum:__anon3
-FLAG_RUN	FW_Inc.h	35;"	d
-FLAG_STOP	FW_Inc.h	36;"	d
+FGETS_FAIL	FW_Inc.h	/^	DAL_FAIL = -2, FGETS_FAIL = -3, TAP_FAIL = -4,$/;"	e	enum:__anon2
+FLAG_RUN	FW_Inc.h	40;"	d
+FLAG_STOP	FW_Inc.h	41;"	d
 GetOldData	FW_Server.c	/^int GetOldData( int nId, char *pszAttribute, char *pszOldData, int nSizeOldData )$/;"	f
-ID	FW_Inc.h	46;"	d
-ID_NOT_EXIST	FW_Inc.h	/^	ID_NOT_EXIST = 30, NAME_NOT_EXIST = 31,$/;"	e	enum:__anon3
-INPUT_FAIL	FW_Inc.h	/^	SUCCESS = 1, INPUT_FAIL = 2,$/;"	e	enum:__anon3
-INSERT	FW_Inc.h	29;"	d
+ID	FW_Inc.h	51;"	d
+ID_NOT_EXIST	FW_Inc.h	/^	ID_NOT_EXIST = 30, NAME_NOT_EXIST = 31,$/;"	e	enum:__anon2
+INPUT_FAIL	FW_Inc.h	/^	SUCCESS = 1, INPUT_FAIL = 2,$/;"	e	enum:__anon2
+INSERT	FW_Inc.h	34;"	d
 ITEM1	__st_sample.h	/^    ITEM1,$/;"	e	enum:__anon1
 ITEM2	__st_sample.h	/^    ITEM2,$/;"	e	enum:__anon1
 ITEM3	__st_sample.h	/^    ITEM3,$/;"	e	enum:__anon1
@@ -34,68 +35,83 @@ ITEM9	__st_sample.h	/^    ITEM9,$/;"	e	enum:__anon1
 InitPreparedStatement	FW_Server.c	/^int InitPreparedStatement()$/;"	f
 Insert	FW_Client.c	/^int Insert( struct REQUEST_s *ptRequest )$/;"	f
 Insert	FW_Server.c	/^int Insert( struct REQUEST_s *ptRequest )$/;"	f
-JOBTITLE	FW_Inc.h	48;"	d
+JOBTITLE	FW_Inc.h	53;"	d
 MCFLAGS	Makefile	/^MCFLAGS=-g -W -Wall$/;"	m
 MDEFS	Makefile	/^MDEFS=-D_USE_STAT -D_LOCAL_DB -D_HANGUP_ALARM$/;"	m
 MINCLUDES	Makefile	/^MINCLUDES=-I$(TELCOBASE_HOME)\/include$/;"	m
 MLDFLAGS	Makefile	/^MLDFLAGS=$/;"	m
 MLIBDIRS	Makefile	/^MLIBDIRS=-L$(TELCOBASE_HOME)\/lib $/;"	m
 MLIBS	Makefile	/^MLIBS= -ltelcobase -lstctl -lmplib -ltap -ltelpro -loam$/;"	m
-MPGLOG_FAIL	FW_Inc.h	/^	NULL_FAIL = -5, MPGLOG_FAIL = -6, STAT_FAIL = -7,$/;"	e	enum:__anon3
-MSG_TYPE	FW_Inc.h	44;"	d
-NAME	FW_Inc.h	47;"	d
-NAME_NOT_EXIST	FW_Inc.h	/^	ID_NOT_EXIST = 30, NAME_NOT_EXIST = 31,$/;"	e	enum:__anon3
-NULL_FAIL	FW_Inc.h	/^	NULL_FAIL = -5, MPGLOG_FAIL = -6, STAT_FAIL = -7,$/;"	e	enum:__anon3
-NUMTUPLES	FW_Inc.h	33;"	d
-PHONE	FW_Inc.h	50;"	d
+MMC_Handler_Add	FW_mmc.c	/^static int MMC_Handler_Add( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd, oammmc_arg_t *ptArgList, int nArg, void *ptUarg )$/;"	f	file:
+MMC_Handler_Chg	FW_mmc.c	/^static int MMC_Handler_Chg( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd, oammmc_arg_t *ptArgList, int nArg, void *ptUarg )$/;"	f	file:
+MMC_Handler_Del	FW_mmc.c	/^static int MMC_Handler_Del( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd, oammmc_arg_t *ptArgList, int nArg, void *ptUarg )$/;"	f	file:
+MMC_Handler_Dis	FW_mmc.c	/^static int MMC_Handler_Dis( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd, oammmc_arg_t *ptArgList, int nArg, void *ptUarg )$/;"	f	file:
+MMC_Init	FW_mmc.c	/^int MMC_Init( char *pszModule, oammmc_t *ptOammmc, iipc_ds_t *ptIpc )$/;"	f
+MMT_CONN_MAX	FW_Inc.h	64;"	d
+MMT_ENABLE	FW_Inc.h	63;"	d
+MMT_IS_QUIET	FW_Inc.h	66;"	d
+MMT_LOCAL_ONLY	FW_Inc.h	65;"	d
+MMT_PORT	FW_Inc.h	62;"	d
+MPCONF_FAIL	FW_Inc.h	/^	UDA_FAIL = -8, OAMMMC_FAIL = -9, MPCONF_FAIL = -10$/;"	e	enum:__anon2
+MPGLOG_FAIL	FW_Inc.h	/^	NULL_FAIL = -5, MPGLOG_FAIL = -6, STAT_FAIL = -7,$/;"	e	enum:__anon2
+MSG_TYPE	FW_Inc.h	49;"	d
+NAME	FW_Inc.h	52;"	d
+NAME_NOT_EXIST	FW_Inc.h	/^	ID_NOT_EXIST = 30, NAME_NOT_EXIST = 31,$/;"	e	enum:__anon2
+NULL_FAIL	FW_Inc.h	/^	NULL_FAIL = -5, MPGLOG_FAIL = -6, STAT_FAIL = -7,$/;"	e	enum:__anon2
+NUMTUPLES	FW_Inc.h	38;"	d
+OAMMMC_FAIL	FW_Inc.h	/^	UDA_FAIL = -8, OAMMMC_FAIL = -9, MPCONF_FAIL = -10$/;"	e	enum:__anon2
+OAM_SFSWC_INI_FILE	FW_Inc.h	61;"	d
+PHONE	FW_Inc.h	55;"	d
 REQUEST_s	FW_Inc.h	/^typedef struct REQUEST_s$/;"	s
 REQUEST_t	FW_Inc.h	/^} REQUEST_t;$/;"	t	typeref:struct:REQUEST_s
 RESPONSE_s	FW_Inc.h	/^typedef struct RESPONSE_s$/;"	s
 RESPONSE_t	FW_Inc.h	/^} RESPONSE_t;$/;"	t	typeref:struct:RESPONSE_s
-RET_CODE_INVALID_PARAMETER	test_stat.h	/^    RET_CODE_INVALID_PARAMETER,$/;"	e	enum:__anon2
-RET_CODE_SUCCESS	test_stat.h	/^    RET_CODE_SUCCESS,$/;"	e	enum:__anon2
-RET_CODE_SYSTEM_FAIL	test_stat.h	/^    RET_CODE_SYSTEM_FAIL,$/;"	e	enum:__anon2
-RET_CODE_UNKNOWN_USER	test_stat.h	/^    RET_CODE_UNKNOWN_USER,$/;"	e	enum:__anon2
-ReturnCode_t	FW_Inc.h	/^} ReturnCode_t;$/;"	t	typeref:enum:__anon3
-SELECT	FW_Inc.h	30;"	d
+RET_CODE_INVALID_PARAMETER	test_stat.h	/^    RET_CODE_INVALID_PARAMETER,$/;"	e	enum:__anon3
+RET_CODE_SUCCESS	test_stat.h	/^    RET_CODE_SUCCESS,$/;"	e	enum:__anon3
+RET_CODE_SYSTEM_FAIL	test_stat.h	/^    RET_CODE_SYSTEM_FAIL,$/;"	e	enum:__anon3
+RET_CODE_UNKNOWN_USER	test_stat.h	/^    RET_CODE_UNKNOWN_USER,$/;"	e	enum:__anon3
+ReturnCode_t	FW_Inc.h	/^} ReturnCode_t;$/;"	t	typeref:enum:__anon2
+SELECT	FW_Inc.h	35;"	d
 SELECT_ALL_s	FW_Inc.h	/^typedef struct SELECT_ALL_s$/;"	s
 SELECT_ALL_t	FW_Inc.h	/^} SELECT_ALL_t;$/;"	t	typeref:struct:SELECT_ALL_s
 SELECT_ONE_s	FW_Inc.h	/^typedef struct SELECT_ONE_s$/;"	s
 SELECT_ONE_t	FW_Inc.h	/^} SELECT_ONE_t;$/;"	t	typeref:struct:SELECT_ONE_s
-SERVER_PROCNAME	FW_Inc.h	26;"	d
-SIZE_JOBTITLE	FW_Inc.h	39;"	d
-SIZE_NAME	FW_Inc.h	38;"	d
-SIZE_PHONE	FW_Inc.h	41;"	d
-SIZE_TEAM	FW_Inc.h	40;"	d
-SRCS	Makefile	/^SRCS=	 test_stat.c FW_Server.c$/;"	m
+SERVER_PROCNAME	FW_Inc.h	31;"	d
+SIZE_JOBTITLE	FW_Inc.h	44;"	d
+SIZE_NAME	FW_Inc.h	43;"	d
+SIZE_PHONE	FW_Inc.h	46;"	d
+SIZE_TEAM	FW_Inc.h	45;"	d
+SRCS	Makefile	/^SRCS=	 test_stat.c FW_Server.c FW_mmc.c$/;"	m
 STATMIPCSVR	test_stat.h	10;"	d
-STAT_FAIL	FW_Inc.h	/^	NULL_FAIL = -5, MPGLOG_FAIL = -6, STAT_FAIL = -7,$/;"	e	enum:__anon3
+STAT_FAIL	FW_Inc.h	/^	NULL_FAIL = -5, MPGLOG_FAIL = -6, STAT_FAIL = -7,$/;"	e	enum:__anon2
 STAT_STYPE_MIPCSVR	test_stat.h	9;"	d
-SUCCESS	FW_Inc.h	/^	SUCCESS = 1, INPUT_FAIL = 2,$/;"	e	enum:__anon3
+SUCCESS	FW_Inc.h	/^	SUCCESS = 1, INPUT_FAIL = 2,$/;"	e	enum:__anon2
 Select	FW_Client.c	/^int Select( struct REQUEST_s *ptRequest )$/;"	f
 SelectAll	FW_Server.c	/^int SelectAll( struct RESPONSE_s *ptResponse )$/;"	f
 SelectOne	FW_Server.c	/^int SelectOne( struct REQUEST_s *ptRequest, struct RESPONSE_s *ptResponse )$/;"	f
 SetAlarmStatus	FW_Server.c	/^void SetAlarmStatus( int nCntEmployee, int *pnAlarmStatus )$/;"	f
 SignalHandler	FW_Client.c	/^void SignalHandler( int nSig )$/;"	f
 SignalHandler	FW_Server.c	/^void SignalHandler( int nSig )$/;"	f
-TABLE_NAME	FW_Inc.h	43;"	d
-TAP_FAIL	FW_Inc.h	/^	DAL_FAIL = -2, FGETS_FAIL = -3, TAP_FAIL = -4,$/;"	e	enum:__anon3
-TCP_RCV_TOTAL_INV	test_stat.h	/^    TCP_RCV_TOTAL_INV,$/;"	e	enum:__anon2
-TEAM	FW_Inc.h	49;"	d
-UDA_FAIL	FW_Inc.h	/^	UDA_FAIL = -8$/;"	e	enum:__anon3
-UDA_ITEM_NAME	FW_Inc.h	54;"	d
-UDA_LOW_GNAME	FW_Inc.h	53;"	d
-UDA_UPP_GNAME	FW_Inc.h	52;"	d
-UPDATE	FW_Inc.h	31;"	d
+TABLE_NAME	FW_Inc.h	48;"	d
+TAP_FAIL	FW_Inc.h	/^	DAL_FAIL = -2, FGETS_FAIL = -3, TAP_FAIL = -4,$/;"	e	enum:__anon2
+TCP_RCV_TOTAL_INV	test_stat.h	/^    TCP_RCV_TOTAL_INV,$/;"	e	enum:__anon3
+TEAM	FW_Inc.h	54;"	d
+UDA_FAIL	FW_Inc.h	/^	UDA_FAIL = -8, OAMMMC_FAIL = -9, MPCONF_FAIL = -10$/;"	e	enum:__anon2
+UDA_ITEM_NAME	FW_Inc.h	59;"	d
+UDA_LOW_GNAME	FW_Inc.h	58;"	d
+UDA_UPP_GNAME	FW_Inc.h	57;"	d
+UPDATE	FW_Inc.h	36;"	d
+USE_DEFAULT	FW_Inc.h	68;"	d
 Update	FW_Client.c	/^int Update( struct REQUEST_s *ptRequest )$/;"	f
 Update	FW_Server.c	/^int Update( struct REQUEST_s *ptRequest )$/;"	f
 _FW_INC_H_	FW_Inc.h	3;"	d
+_FW_MMC_H_	FW_mmc.h	3;"	d
 __ITEM_END__	__st_sample.h	/^    __ITEM_END__$/;"	e	enum:__anon1
-__ITEM_END__	test_stat.h	/^    __ITEM_END__$/;"	e	enum:__anon2
+__ITEM_END__	test_stat.h	/^    __ITEM_END__$/;"	e	enum:__anon3
 ____st_sample_H__	__st_sample.h	3;"	d
 __test_stat_H__	test_stat.h	3;"	d
 en_item_index_t	__st_sample.h	/^}en_item_index_t;$/;"	t	typeref:enum:__anon1
-en_item_index_t	test_stat.h	/^}en_item_index_t;$/;"	t	typeref:enum:__anon2
+en_item_index_t	test_stat.h	/^}en_item_index_t;$/;"	t	typeref:enum:__anon3
 g_nFlag	FW_Inc.h	/^int g_nFlag = FLAG_RUN;$/;"	v
 g_ptConn	FW_Inc.h	/^DAL_CONN	*g_ptConn= NULL;$/;"	v
 g_ptPstmtDelete	FW_Inc.h	/^DAL_PSTMT	*g_ptPstmtDelete = NULL;$/;"	v
@@ -127,3 +143,8 @@ szPhone	FW_Inc.h	/^	char	szPhone		[SIZE_PHONE + 1];$/;"	m	struct:REQUEST_s
 szPhone	FW_Inc.h	/^	char	szPhone		[SIZE_PHONE + 1];$/;"	m	struct:SELECT_ONE_s
 szTeam	FW_Inc.h	/^	char	szTeam		[SIZE_TEAM + 1];$/;"	m	struct:REQUEST_s
 szTeam	FW_Inc.h	/^	char	szTeam		[SIZE_TEAM + 1];$/;"	m	struct:SELECT_ONE_s
+tMmcArgsAdd	FW_mmc.c	/^static oammmc_arg_info_t tMmcArgsAdd[] =$/;"	v	file:
+tMmcArgsChg	FW_mmc.c	/^static oammmc_arg_info_t tMmcArgsChg[] =$/;"	v	file:
+tMmcArgsDel	FW_mmc.c	/^static oammmc_arg_info_t tMmcArgsDel[] =$/;"	v	file:
+tMmcArgsDis	FW_mmc.c	/^static oammmc_arg_info_t tMmcArgsDis[] =$/;"	v	file:
+tMmcTable	FW_mmc.c	/^static oammmc_cmd_t tMmcTable[] =$/;"	v	file:

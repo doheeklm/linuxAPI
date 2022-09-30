@@ -1,71 +1,80 @@
 /* FW_4-3/FW_Server.c */
 #include "FW_Inc.h"
 
-int InitPreparedStatement();
-void DestroyPreparedStatement();
+int g_nFlag = FLAG_RUN;
 
-int Insert				( struct REQUEST_s *ptRequest );
-int SelectAll			( struct RESPONSE_s *ptResponse );
-int SelectOne			( struct REQUEST_s *ptRequest, struct RESPONSE_s *ptResponse );
-int Update				( struct REQUEST_s *ptRequest );
-int Delete				( struct REQUEST_s *ptRequest );
+int		oammmc_proc_tap_msg				(oammmc_t *mmc, iipc_msg_t *tap_mml_msg);
 
-void SignalHandler		( int nSig );
-int GetOldData			( int nId, char *pszAttribute, char *pszOldData, int nSizeOldData );
-int CntCurrentEmployee	( int *pnCntEmployee );
-void SetAlarmStatus		( int nCntEmployee, int *pnAlarmStatus );
+/*
+int		Insert							( struct REQUEST_s *ptRequest);
+int		SelectAll						( struct RESPONSE_s *ptResponse );
+int		SelectOne						( struct REQUEST_s *ptRequest, struct RESPONSE_s *ptResponse );
+int		Update							( struct REQUEST_s *ptRequest );
+int		Delete							( struct REQUEST_s *ptRequest );
+*/
+void	SignalHandler					( int nSig );
+//int	GetOldData						( int nId, char *pszAttribute, char *pszOldData, int nSizeOldData );
+//int 	CntCurrentEmployee				( int *pnCntEmployee );
+//void	SetAlarmStatus					( int nCntEmployee, int *pnAlarmStatus );
 
 int main( int argc, char *argv[] )
 {
 	argc = argc;
 	argv = argv;
 
-	tb_signal( SIGHUP, SignalHandler ); //1
-	tb_signal( SIGINT, SignalHandler ); //2
-	tb_signal( SIGQUIT, SignalHandler ); //3
-	tb_signal( SIGTERM, SignalHandler ); //15
+	mpsignal( SIGHUP, SignalHandler ); //1
+	mpsignal( SIGINT, SignalHandler ); //2
+	mpsignal( SIGQUIT, SignalHandler ); //3
+	mpsignal( SIGTERM, SignalHandler ); //15
 
-	iipc_msg_t tSendMsg;
-	iipc_msg_t tRecvMsg;
-	iipc_ds_t tIpc;
-	iipc_key_t tKey;
-
-	REQUEST_t *ptRequest = NULL;
-	RESPONSE_t *ptResponse = NULL;
-	oammmc_t *ptOAM = NULL;
-	
 	int nRC = 0;
-	//int nExit = 0;
-	int nCntEmployee = 0;
-	int nAlarmStatus = 0;
+	//int nCntEmployee = 0;
+	//int nAlarmStatus = 0;
+
+	iipc_ds_t tIpc;
+	memset( &tIpc, 0x00, sizeof(tIpc) );
 	
-	char szModuleInfo[1024];
-	memset( szModuleInfo, 0x00, sizeof(szModuleInfo) );
+	iipc_key_t tIpcKey;
+	memset( &tIpcKey, 0x00, sizeof(tIpcKey) );
+	
+	iipc_msg_t tIpcRecvMsg;
+	memset( &tIpcRecvMsg, 0x00, sizeof(tIpcRecvMsg) );
+
+	oammmc_t *ptMmc = NULL;
+
+	DAL_CONN *ptDal= NULL;
+	DAL_PSTMT *ptPstmtInsert = NULL;
+	DAL_PSTMT *ptPstmtSelectAll = NULL;
+	DAL_PSTMT *ptPstmtSelectOne = NULL;
+	DAL_PSTMT *ptPstmtUpdate = NULL;
+	DAL_PSTMT *ptPstmtDelete = NULL;
+	DAL_PSTMT *ptPstmtNumTuples = NULL;
+
+	//char szAlarmModuleInfo[1024];
+	//memset( szAlarmModuleInfo, 0x00, sizeof(szAlarmModuleInfo) );
 
 	/*
 	 *	MPLOG
 	 */
-	nRC = MPGLOG_INIT( SERVER_PROCNAME, NULL,
-			LOG_MODE_DAILY | LOG_MODE_NO_DATE | LOG_MODE_LEVEL_TAG,
-			LOG_LEVEL_DBG );
+	nRC = MPGLOG_INIT( MODULE, NULL, LOG_MODE_DAILY | LOG_MODE_NO_DATE | LOG_MODE_LEVEL_TAG, LOG_LEVEL_DBG );
 	if ( 0 > nRC )
 	{
-		printf( "%s MPGLOG_INIT() ERROR\n", __func__ );
-		return MPGLOG_FAIL;
+		printf( "%s MPGLOG_INIT() fail\n", __func__ );
+		exit( EXIT_FAILURE );
 	}
 
 	/*
-	 *	TAP_IPC
+	 *	IPC
 	 */
-	nRC = TAP_ipc_open( &tIpc, SERVER_PROCNAME );
+	nRC = TAP_ipc_open( &tIpc, MODULE );
 	if ( 0 > nRC )
 	{
 		MPGLOG_ERR( "%s:: TAP_ipc_open() fail=%d", __func__, ipc_errno );
-		return TAP_FAIL;
+		exit( EXIT_FAILURE );
 	}
 
-	tKey = TAP_ipc_getkey( &tIpc, SERVER_PROCNAME );
-	if ( IPC_NOPROC == tKey )
+	tIpcKey = TAP_ipc_getkey( &tIpc, MODULE );
+	if ( IPC_NOPROC == tIpcKey )
 	{
 		MPGLOG_ERR( "%s:: TAP_ipc_getkey() fail=%d", __func__, ipc_errno );
 		nRC = TAP_ipc_close( &tIpc );
@@ -73,23 +82,49 @@ int main( int argc, char *argv[] )
 		{
 			MPGLOG_ERR( "%s:: TAP_ipc_close() fail=%d", __func__, ipc_errno );
 		}
-		return TAP_FAIL;
+		exit( EXIT_FAILURE );
 	}
 
 	/*
-	 *	dalConnect
+	 *	MMC
 	 */
-	g_ptConn = dalConnect( NULL );
-	if ( NULL == g_ptConn )
+	nRC = MMC_Init( MODULE, ptMmc, &tIpc );
+	if ( SUCCESS != nRC )
 	{
-		MPGLOG_ERR( "%s:: dalConnect() fail=%d", __func__, dalErrno() );
-		return DAL_FAIL;
+		MPGLOG_ERR( "%s:: MMC_Init() fail=%d", __func__, nRC );
+		nRC = TAP_ipc_close( &tIpc );
+		if ( 0 > nRC )
+		{
+			MPGLOG_ERR( "%s:: TAP_ipc_close() fail=%d", __func__, ipc_errno );
+		}
+		exit( EXIT_FAILURE );
+	}
+
+	/*
+	 *	Prepared Statement
+	 */
+	nRC = PSTMT_Init( ptDal, ptPstmtInsert, ptPstmtSelectAll, ptPstmtSelectOne, ptPstmtUpdate, ptPstmtDelete, ptPstmtNumTuples );
+	if ( SUCCESS != nRC )
+	{
+		MPGLOG_ERR( "%s:: PSTMT_Init() fail=%d", __func__, nRC );
+		nRC = dalDisconnect( ptDal );
+		if ( -1 == nRC )
+		{
+			MPGLOG_ERR( "%s:: dalDisconnect() fail=%d", __func__, dalErrno() );
+		}
+		MMC_Destroy( ptMmc );
+		nRC = TAP_ipc_close( &tIpc );
+		if ( 0 > nRC )
+		{
+			MPGLOG_ERR( "%s:: TAP_ipc_close() fail=%d", __func__, ipc_errno );
+		}
+		exit( EXIT_FAILURE );
 	}
 
 	/*
 	 *	STAT
 	 */
-	nRC = stgen_open( SERVER_PROCNAME, stctl_item_list, stctl_dtl_type_list );
+	/*nRC = stgen_open( MODULE, stctl_item_list, stctl_dtl_type_list );
 	if ( 0 > nRC )
 	{
 		MPGLOG_ERR( "%s:: stgen_open() fail=%d(%s)", __func__, nRC, stctl_strerror(nRC) );
@@ -97,85 +132,115 @@ int main( int argc, char *argv[] )
 		if ( -1 == nRC )
 		{
 			MPGLOG_ERR( "%s:: dalDisconnect() fail=%d", __func__, dalErrno() );
-			return DAL_FAIL;
 		}
+		MMC_Destroy( ptMmc );
 		nRC = TAP_ipc_close( &tIpc );
 		if ( 0 > nRC )
 		{
 			MPGLOG_ERR( "%s:: TAP_ipc_close() fail=%d", __func__, ipc_errno );
-			return TAP_FAIL;
 		}
-		return STAT_FAIL;
-	}
-
-	/*
-	 *	Init PreparedStatement
-	 */
-	nRC = InitPreparedStatement();
-	if ( SUCCESS != nRC )
-	{
-		goto end_of_function;
-	}
-	
-	nRC = CntCurrentEmployee( &nCntEmployee );
-	if ( SUCCESS != nRC )
-	{
-		goto end_of_function;
-	}
-	MPGLOG_DBG( "%s:: Cnt Current Employee=%d", __func__, nCntEmployee );
+		return SYSTEM_FAIL;
+	}*/
 
 	/*
 	 *	Alarm
 	 */
-	SetAlarmStatus( nCntEmployee, &nAlarmStatus );	
+	/*SetAlarmStatus( nCntEmployee, &nAlarmStatus );	
 
-	snprintf( szModuleInfo, sizeof(szModuleInfo),
+	snprintf( szAlarmModuleInfo, sizeof(szAlarmModuleInfo),
 			"UNIT NAME	: %s/%s\n"
 			"ITEM NAME	: %s\n"
 			"STATUS		: %d\n"
 			"CNT EMP	: %d",
-			UDA_UPP_GNAME, UDA_LOW_GNAME,
-		   	UDA_ITEM_NAME,
-			nAlarmStatus,
-			nCntEmployee );
-	szModuleInfo[ strlen(szModuleInfo) ] = '\0';
+			UDA_UPP_GNAME, UDA_LOW_GNAME, UDA_ITEM_NAME, nAlarmStatus, nCntEmployee );
+	szAlarmModuleInfo[ strlen(szAlarmModuleInfo) ] = '\0';
 
-	nRC = oam_uda_crte_alarm( &tIpc, UDA_UPP_GNAME, UDA_LOW_GNAME, UDA_ITEM_NAME, nAlarmStatus, OAM_SFM_UDA_NOTI_OFF, szModuleInfo );
+	nRC = oam_uda_crte_alarm( &tIpc, UDA_UPP_GNAME, UDA_LOW_GNAME, UDA_ITEM_NAME, nAlarmStatus, OAM_SFM_UDA_NOTI_OFF, szAlarmModuleInfo );
 	if ( 0 > nRC )
 	{
 		MPGLOG_ERR( "%s:: oam_uda_crte_alarm() fail=%d", __func__, nRC );
-		goto end_of_function;	
+		stgen_close();
+		nRC = dalDisconnect( g_ptConn );
+		if ( -1 == nRC )
+		{
+			MPGLOG_ERR( "%s:: dalDisconnect() fail=%d", __func__, dalErrno() );
+		}
+		MMC_Destroy( ptMmc );
+		nRC = TAP_ipc_close( &tIpc );
+		if ( 0 > nRC )
+		{
+			MPGLOG_ERR( "%s:: TAP_ipc_close() fail=%d", __func__, ipc_errno );
+		}
+		return SYSTEM_FAIL;
 	}
 
 	nRC = oam_uda_crte_alarm_noti( &tIpc, UDA_UPP_GNAME, UDA_LOW_GNAME );
 	if ( 0 > nRC )
 	{
 		MPGLOG_ERR( "%s:: oam_uda_crte_alarm_noti() fail=%d", __func__, nRC );
-		goto end_of_function;
+		goto _exit_failure;
 	}
+*/
 
-	/*
-	 *	OAMMMC
-	 */
-	ptOAM = oammmc_init( SERVER_PROCNAME );
-	if ( NULL == ptOAM )
+	/*nRC = CntCurrentEmployee( &nCntEmployee );
+	if ( SUCCESS != nRC )
 	{
-		MPGLOG_ERR( "%s:: oammmc_init() fail", __func__ );
-		goto end_of_function;
-	}
+		goto _exit_failure;
+	}*/
 
-	
+	//MPGLOG_DBG( "%s:: Cnt Current Employee=%d", __func__, nCntEmployee );
+
 	/*
-	 *	Run Program (Server)
+	 *	Run
 	 */
 	while ( FLAG_RUN == g_nFlag )
 	{
-		memset( &tSendMsg, 0x00, sizeof(iipc_msg_t) );
-		memset( &tRecvMsg, 0x00, sizeof(iipc_msg_t) );
-	
-		SetAlarmStatus( nCntEmployee, &nAlarmStatus );
+		memset( &tIpcRecvMsg, 0x00, sizeof(tIpcRecvMsg) );
 
-		snprintf( szModuleInfo, sizeof(szModuleInfo),
+		/*
+		 *	Receive Message
+		 */
+		nRC = TAP_ipc_msgrcv( &tIpc, &tIpcRecvMsg, IPC_BLOCK );
+		if ( 0 > nRC )
+		{
+			MPGLOG_ERR( "%s:: TAP_ipc_msgrcv() fail=%d", __func__, ipc_errno );
+			mpthr_sleep_msec(100);
+			continue;
+		}
+
+		/*
+		 *	OAMMMC 메시지인지 확인
+		 */
+		nRC = oammmc_is_my_tap_msg( ptMmc, tIpcRecvMsg.buf.mtype );
+		if ( 1 == nRC )
+		{
+			//TODO oammmc_mpipc_hdlr를 사용행햐ㅏㅁ
+			/*
+			 *	실제 MML 메시지 처리
+			 */
+			nRC = oammmc_proc_tap_msg( ptMmc, &tIpcRecvMsg );
+			if ( 1 == nRC ) //MPIPC_HDLR_RET_NOT_FOR_ME 값과 같음
+			{
+				printf( "not for me\n" );
+				goto _exit_failure;
+			}
+			else if ( 0 == nRC ) //MPIPC_HDLR_RET_DONE
+			{
+				printf( "success\n" );
+				break;
+			}
+			else if ( 0 > nRC ) //MPIPC_HDLR_RET_ERROR
+			{
+				printf( "mine but error occurred\n" );
+				goto _exit_failure;
+			}
+		}
+
+		//printf( "size of msg buf=%ld\n", sizeof(tIpcRecvMsg.buf.msgq_buf) );
+
+	/*	SetAlarmStatus( nCntEmployee, &nAlarmStatus );
+
+		snprintf( szAlarmModuleInfo, sizeof(szAlarmModuleInfo),
 				"UNIT NAME	: %s/%s\n"
 				"ITEM NAME	: %s\n"
 				"STATUS		: %d\n"
@@ -184,9 +249,9 @@ int main( int argc, char *argv[] )
 				UDA_ITEM_NAME,
 				nAlarmStatus,
 				nCntEmployee );
-		szModuleInfo[ strlen(szModuleInfo) ] = '\0';
+		szAlarmModuleInfo[ strlen(szAlarmModuleInfo) ] = '\0';
 
-		nRC = oam_uda_rpt_alarm_sts( &tIpc, UDA_UPP_GNAME, UDA_LOW_GNAME, UDA_ITEM_NAME, nAlarmStatus, szModuleInfo );
+		nRC = oam_uda_rpt_alarm_sts( &tIpc, UDA_UPP_GNAME, UDA_LOW_GNAME, UDA_ITEM_NAME, nAlarmStatus, szAlarmModuleInfo );
 		if ( 0 > nRC )
 		{
 			MPGLOG_ERR( "%s:: oam_uda_rpt_alarm_sts() fail=%d", __func__, nRC );
@@ -194,121 +259,6 @@ int main( int argc, char *argv[] )
 		}
 		MPGLOG_DBG( "%s:: %s|%s|%s|%d", __func__, UDA_UPP_GNAME, UDA_LOW_GNAME, UDA_ITEM_NAME, nAlarmStatus );
 
-		/*
-		 *	Receive Message
-		 */	
-		nRC = TAP_ipc_msgrcv( &tIpc, &tRecvMsg, IPC_BLOCK );
-		if ( 0 > nRC )
-		{
-			MPGLOG_ERR( "%s:: TAP_ipc_msgrcv() fail=%d", __func__, ipc_errno );
-			continue;
-		}
-
-		STGEN_DTLITEM_1COUNT( TCP_RCV_TOTAL_INV, CLIENT_PROCNAME );
-
-		ptRequest = (REQUEST_t *)tRecvMsg.buf.msgq_buf;
-		ptResponse = (RESPONSE_t *)tSendMsg.buf.msgq_buf;
-
-		ptResponse->nMsgType = ptRequest->nMsgType;
-		
-		tSendMsg.u.h.dst = tRecvMsg.u.h.src;
-		tSendMsg.u.h.src = tKey;
-		tSendMsg.u.h.len = sizeof(struct RESPONSE_s);
-
-		switch ( ptRequest->nMsgType )
-		{
-			case 1:
-			{
-				MPGLOG_SVC( "[RECV] %s: %d | %s: %s | %s: %s | %s: %s | %s: %s",
-							MSG_TYPE, ptRequest->nMsgType,
-							NAME, ptRequest->szName,
-							JOBTITLE, ptRequest->szJobTitle,
-							TEAM, ptRequest->szTeam,
-							PHONE, ptRequest->szPhone );
-
-				nRC = Insert( ptRequest );
-				if ( SUCCESS != nRC )
-				{
-					ptResponse->nResult = 0;
-					break;
-				}
-
-				ptResponse->nResult = 1;
-				nCntEmployee++;
-			}
-				break;
-			case 2:
-			{
-				MPGLOG_SVC( "[RECV] %s: %d",
-							MSG_TYPE, ptRequest->nMsgType );
-
-				nRC = SelectAll( ptResponse );
-				if ( ID_NOT_EXIST == nRC || SUCCESS != nRC )
-				{
-					ptResponse->nResult = 0;
-					break;
-				}
-
-				ptResponse->nResult = 1;
-			}
-				break;
-			case 3:
-			{
-				MPGLOG_SVC( "[RECV] %s: %d | %s: %d",
-							MSG_TYPE, ptRequest->nMsgType,
-							ID, ptRequest->nId );
-
-				nRC = SelectOne( ptRequest, ptResponse );
-				if ( ID_NOT_EXIST == nRC || SUCCESS != nRC )
-				{
-					ptResponse->nResult = 0;
-					break;
-				}
-				
-				ptResponse->nResult = 1;
-			}
-				break;
-			case 4:
-			{
-				MPGLOG_SVC( "[RECV] %s: %d | %s: %d | %s: %s | %s: %s | %s: %s | %s: %s",
-							MSG_TYPE, ptRequest->nMsgType,
-							ID, ptRequest->nId,
-							NAME, ptRequest->szName,
-							JOBTITLE, ptRequest->szJobTitle,
-							TEAM, ptRequest->szTeam,
-							PHONE, ptRequest->szPhone );
-
-				nRC = Update( ptRequest );
-				if ( ID_NOT_EXIST == nRC || SUCCESS != nRC )
-				{
-					ptResponse->nResult = 0;
-					break;
-				}
-
-				ptResponse->nResult = 1;
-			}
-				break;
-			case 5:
-			{
-				MPGLOG_SVC( "[RECV] %s: %d | %s: %d",
-							MSG_TYPE, ptRequest->nMsgType,
-							ID, ptRequest->nId );
-				
-				nRC = Delete( ptRequest );
-				if ( ID_NOT_EXIST == nRC || SUCCESS != nRC )
-				{
-					ptResponse->nResult = 0;
-					break;
-				}
-
-				ptResponse->nResult = 1;
-				nCntEmployee--;
-			}
-				break;
-			default:
-				break;
-		}
-	
 		switch ( nRC )
 		{
 			case SUCCESS:
@@ -336,59 +286,27 @@ int main( int argc, char *argv[] )
 				break;
 		}	
 		
-		ptResponse->nId = ptRequest->nId;
-		
-		if ( 2 == ptResponse->nMsgType )
-		{
-			MPGLOG_SVC( "[SEND] %s: %d | %s: %s | Result: %d | CntSelectAll: %d",
-						MSG_TYPE, ptResponse->nMsgType,
-						ID, ALL,
-						ptResponse->nResult,
-						ptResponse->nCntSelectAll );
-		}
-		else
-		{
-			MPGLOG_SVC( "[SEND] %s: %d | %s: %d | Result: %d",
-						MSG_TYPE, ptResponse->nMsgType,
-						ID, ptResponse->nId,
-						ptResponse->nResult );
-		}
-
-		/*
-		 *	Send Message
-		 */
-		nRC = TAP_ipc_msgsnd( &tIpc, &tSendMsg, IPC_BLOCK );
-		if ( 0 > nRC )
-		{
-			MPGLOG_ERR( "%s:: TAP_ipc_msgsnd() fail=%d", __func__, ipc_errno );
-			continue;
-		}
-		
-		/*nExit = 0;
-		printf( "서버 종료(1): " );
-		nRC = scanf( "%d", &nExit );
-		if ( 1 == nExit )
-		{
-			break;
-		}*/
+		nCntEmployee++;
+		*/		
 	}
 
-end_of_function:
-	stgen_close();
+	PSTMT_Destroy( ptPstmtInsert, ptPstmtSelectAll, ptPstmtSelectOne, ptPstmtUpdate, ptPstmtDelete, ptPstmtNumTuples );
 
-	mmc_destroy( ptOAM );
-
-	nRC = oam_uda_del_alarm( &tIpc, UDA_UPP_GNAME, UDA_LOW_GNAME, UDA_ITEM_NAME, OAM_SFM_UDA_NOTI_ON );
+	/*nRC = oam_uda_del_alarm( &tIpc, UDA_UPP_GNAME, UDA_LOW_GNAME, UDA_ITEM_NAME, OAM_SFM_UDA_NOTI_ON );
 	if ( 0 > nRC )
 	{
 		MPGLOG_ERR( "%s:: oam_uda_del_alarm() fail=%d", __func__, nRC );
 	}
 
-	nRC = dalDisconnect( g_ptConn );
+	stgen_close();
+*/
+	nRC = dalDisconnect( ptDal );
 	if ( -1 == nRC )
 	{
 		MPGLOG_ERR( "%s:: dalDisconnect() fail=%d", __func__, dalErrno() );
 	}
+	
+	MMC_Destroy( ptMmc );
 	
 	nRC = TAP_ipc_close( &tIpc );
 	if ( 0 > nRC )
@@ -396,7 +314,34 @@ end_of_function:
 		MPGLOG_ERR( "%s:: TAP_ipc_close() fail=%d", __func__, ipc_errno );
 	}
 
-	return 0;
+	exit( EXIT_SUCCESS );
+
+_exit_failure:
+	PSTMT_Destroy( ptPstmtInsert, ptPstmtSelectAll, ptPstmtSelectOne, ptPstmtUpdate, ptPstmtDelete, ptPstmtNumTuples );
+/*
+	nRC = oam_uda_del_alarm( &tIpc, UDA_UPP_GNAME, UDA_LOW_GNAME, UDA_ITEM_NAME, OAM_SFM_UDA_NOTI_ON );
+	if ( 0 > nRC )
+	{
+		MPGLOG_ERR( "%s:: oam_uda_del_alarm() fail=%d", __func__, nRC );
+	}
+
+	stgen_close();
+*/
+	nRC = dalDisconnect( ptDal );
+	if ( -1 == nRC )
+	{
+		MPGLOG_ERR( "%s:: dalDisconnect() fail=%d", __func__, dalErrno() );
+	}
+	
+	MMC_Destroy( ptMmc );
+	
+	nRC = TAP_ipc_close( &tIpc );
+	if ( 0 > nRC )
+	{
+		MPGLOG_ERR( "%s:: TAP_ipc_close() fail=%d", __func__, ipc_errno );
+	}
+	
+	exit( EXIT_FAILURE );
 }
 
 void SignalHandler( int nSig )
@@ -407,141 +352,7 @@ void SignalHandler( int nSig )
 
 	exit( -1 );
 }
-
-int InitPreparedStatement()
-{
-	char szQuery[256];
-	
-	//INSERT
-	memset( szQuery, 0x00, sizeof(szQuery) );
-	snprintf( szQuery, sizeof(szQuery), "insert into %s (%s, %s, %s, %s) values (?%s, ?%s, ?%s, ?%s);", TABLE_NAME, NAME, JOBTITLE, TEAM, PHONE, NAME, JOBTITLE, TEAM, PHONE );
-	szQuery[ strlen(szQuery) ] = '\0';
-
-	g_ptPstmtInsert = dalPreparedStatement( g_ptConn, szQuery );
-	if ( NULL == g_ptPstmtInsert )
-	{
-		MPGLOG_ERR( "%s:: dalPreparedStatement() fail=%d", __func__, dalErrno() );
-		return DAL_FAIL;
-	}
-
-	//SELECT ALL
-	memset( szQuery, 0x00, sizeof(szQuery) );
-	snprintf( szQuery, sizeof(szQuery), "select %s, %s from %s;", ID, NAME, TABLE_NAME );
-	szQuery[ strlen(szQuery) ] = '\0';
-
-	g_ptPstmtSelectAll = dalPreparedStatement( g_ptConn, szQuery );
-	if ( NULL == g_ptPstmtSelectAll )
-	{
-		MPGLOG_ERR( "%s:: dalPreparedStatement() fail=%d", __func__, dalErrno() );
-		return DAL_FAIL;
-	}
-
-	//SELECT ONE BY ID
-	memset( szQuery, 0x00, sizeof(szQuery) );
-	snprintf( szQuery, sizeof(szQuery), "select %s, %s, %s from %s where %s = ?%s;", JOBTITLE, TEAM, PHONE, TABLE_NAME, ID, ID );
-	szQuery[ strlen(szQuery) ] = '\0';
-
-	g_ptPstmtSelectOneById = dalPreparedStatement( g_ptConn, szQuery );
-	if ( NULL == g_ptPstmtSelectOneById )
-	{
-		MPGLOG_ERR( "%s:: dalPreparedStatement() fail=%d", __func__, dalErrno() );
-		return DAL_FAIL;
-	}
-
-	//SELECT ONE BY NAME
-	memset( szQuery, 0x00, sizeof(szQuery) );
-	snprintf( szQuery, sizeof(szQuery), "select %s, %s, %s from %s where %s = ?%s;", JOBTITLE, TEAM, PHONE, TABLE_NAME, NAME, NAME );
-	szQuery[ strlen(szQuery) ] = '\0';
-
-	g_ptPstmtSelectOneByName = dalPreparedStatement( g_ptConn, szQuery );
-	if ( NULL == g_ptPstmtSelectOneByName )
-	{
-		MPGLOG_ERR( "%s:: dalPreparedStatement() fail=%d", __func__, dalErrno() );
-		return DAL_FAIL;
-	}
-
-	//UPDATE
-	memset( szQuery, 0x00, sizeof(szQuery) );
-	snprintf( szQuery, sizeof(szQuery), "update %s set %s = ?%s, %s = ?%s, %s = ?%s where %s = ?%s;", TABLE_NAME, JOBTITLE, JOBTITLE, TEAM, TEAM, PHONE, PHONE, ID, ID );
-	szQuery[ strlen(szQuery) ] = '\0';
-
-	g_ptPstmtUpdate = dalPreparedStatement( g_ptConn, szQuery );
-	if ( NULL == g_ptPstmtUpdate )
-	{
-		MPGLOG_ERR( "%s:: dalPreparedStatement() fail=%d", __func__, dalErrno() );
-		return DAL_FAIL;
-	}
-
-	//DELETE
-	memset( szQuery, 0x00, sizeof(szQuery) );
-	snprintf( szQuery, sizeof(szQuery), "delete from %s where %s = ?%s;", TABLE_NAME, ID, ID );
-	szQuery[ strlen(szQuery) ] = '\0';
-
-	g_ptPstmtDelete = dalPreparedStatement( g_ptConn, szQuery );
-	if ( NULL == g_ptPstmtDelete )
-	{
-		MPGLOG_ERR( "%s:: dalPreparedStatement() fail=%d", __func__, dalErrno() );
-		return DAL_FAIL;
-	}
-
-	//NUMTUPLES
-	memset( szQuery, 0x00, sizeof(szQuery) );
-	snprintf( szQuery, sizeof(szQuery), "select %s from __SYS_TABLES__ where TABLE_NAME='%s'", NUMTUPLES, TABLE_NAME );
-	szQuery[ strlen(szQuery) ] = '\0';
-
-	g_ptPstmtNumtuples = dalPreparedStatement( g_ptConn, szQuery );
-	if ( NULL == g_ptPstmtNumtuples )
-	{
-		MPGLOG_ERR( "%s:: dalPreparedStatement() fail=%d", __func__, dalErrno() );
-		return DAL_FAIL;
-	}
-
-	return SUCCESS;
-}
-
-void DestroyPreparedStatement()
-{
-	int nRC = 0;
-
-	nRC = dalDestroyPreparedStmt( g_ptPstmtInsert );
-	if ( -1 == nRC )
-	{
-		MPGLOG_ERR( "%s:: dalDestroyPreparedStmt() fail=%d", __func__, dalErrno() );
-	}
-
-	nRC = dalDestroyPreparedStmt( g_ptPstmtSelectAll );
-	if ( -1 == nRC )
-	{
-		MPGLOG_ERR( "%s:: dalDestroyPreparedStmt() fail=%d", __func__, dalErrno() );
-	}
-
-	nRC = dalDestroyPreparedStmt( g_ptPstmtSelectOneById );
-	if ( -1 == nRC )
-	{
-		MPGLOG_ERR( "%s:: dalDestroyPreparedStmt() fail=%d", __func__, dalErrno() );
-	}
-
-	nRC = dalDestroyPreparedStmt( g_ptPstmtSelectOneByName );
-	if ( -1 == nRC )
-	{
-		MPGLOG_ERR( "%s:: dalDestroyPreparedStmt() fail=%d", __func__, dalErrno() );
-	}
-
-	nRC = dalDestroyPreparedStmt( g_ptPstmtUpdate );
-	if ( -1 == nRC )
-	{
-		MPGLOG_ERR( "%s:: dalDestroyPreparedStmt() fail=%d", __func__, dalErrno() );
-	}
-
-	nRC = dalDestroyPreparedStmt( g_ptPstmtDelete );
-	if ( -1 == nRC )
-	{
-		MPGLOG_ERR( "%s:: dalDestroyPreparedStmt() fail=%d", __func__, dalErrno() );
-	}
-
-	return;
-}
-
+/*
 int Insert( struct REQUEST_s *ptRequest )
 {
 	if ( NULL == ptRequest )
@@ -559,7 +370,7 @@ int Insert( struct REQUEST_s *ptRequest )
 		return DAL_FAIL;
 	}
 
-	nRC = dalSetStringByKey( g_ptPstmtInsert, JOBTITLE, ptRequest->szJobTitle );
+	nRC = dalSetStringByKey( g_ptPstmtInsert, POSITION, ptRequest->szPosition );
 	if ( -1 == nRC )
 	{
 		MPGLOG_ERR( "%s:: dalSetStringByKey() fail=%d", __func__, dalErrno() );
@@ -693,7 +504,7 @@ int SelectOne( struct REQUEST_s *ptRequest, struct RESPONSE_s *ptResponse )
 	DAL_RESULT_SET *ptResult = NULL;
 	DAL_ENTRY *ptEntry = NULL;
 
-	char* pszJobTitle = NULL;
+	char* pszPosition = NULL;
 	char* pszTeam = NULL;
 	char* pszPhone = NULL;
 
@@ -730,7 +541,7 @@ int SelectOne( struct REQUEST_s *ptRequest, struct RESPONSE_s *ptResponse )
 		ptEntry = dalFetchFirst( ptResult );
 		if ( NULL != ptEntry )
 		{
-			nRC = dalGetStringByKey( ptEntry, JOBTITLE, &pszJobTitle );
+			nRC = dalGetStringByKey( ptEntry, POSITION, &pszPosition );
 			if ( -1 == nRC )
 			{
 				MPGLOG_ERR( "%s:: dalGetStringByKey() fail=%d", __func__, dalErrno() );
@@ -783,7 +594,7 @@ int SelectOne( struct REQUEST_s *ptRequest, struct RESPONSE_s *ptResponse )
 		ptEntry = dalFetchFirst( ptResult );
 		if ( NULL != ptEntry )
 		{
-			nRC = dalGetStringByKey( ptEntry, JOBTITLE, &pszJobTitle );
+			nRC = dalGetStringByKey( ptEntry, POSITION, &pszPosition );
 			if ( -1 == nRC )
 			{
 				MPGLOG_ERR( "%s:: dalGetStringByKey() fail=%d", __func__, dalErrno() );
@@ -811,7 +622,7 @@ int SelectOne( struct REQUEST_s *ptRequest, struct RESPONSE_s *ptResponse )
 		return ID_NOT_EXIST;
 	}
 
-	strlcpy( tSelectOne.szJobTitle, pszJobTitle, sizeof(tSelectOne.szJobTitle) );
+	strlcpy( tSelectOne.szPosition, pszPosition, sizeof(tSelectOne.szPosition) );
 	strlcpy( tSelectOne.szTeam, pszTeam, sizeof(tSelectOne.szTeam) );
 	strlcpy( tSelectOne.szPhone, pszPhone, sizeof(tSelectOne.szPhone) );
 
@@ -856,9 +667,9 @@ int Update( struct REQUEST_s *ptRequest )
 		}	
 	}
 
-	if ( strlen(ptRequest->szJobTitle) == 0 )
+	if ( strlen(ptRequest->szPosition) == 0 )
 	{
-		nRC = GetOldData( ptRequest->nId, JOBTITLE, ptRequest->szJobTitle, sizeof(ptRequest->szJobTitle) );
+		nRC = GetOldData( ptRequest->nId, POSITION, ptRequest->szPosition, sizeof(ptRequest->szPosition) );
 		if ( SUCCESS != nRC )
 		{
 			MPGLOG_ERR( "%s:: GetOldData() fail=%d", __func__, nRC );	
@@ -900,7 +711,7 @@ int Update( struct REQUEST_s *ptRequest )
 		return DAL_FAIL;
 	}
 
-	nRC = dalSetStringByKey( g_ptPstmtUpdate, JOBTITLE, ptRequest->szJobTitle );
+	nRC = dalSetStringByKey( g_ptPstmtUpdate, POSITION, ptRequest->szPosition );
 	if ( -1 == nRC )
 	{
 		MPGLOG_ERR( "%s:: dalSetStringByKey() fail=%d", __func__, dalErrno() );
@@ -1036,7 +847,8 @@ int GetOldData( int nId, char *pszAttribute, char *pszOldData, int nSizeOldData 
 
 	return SUCCESS;
 }
-
+*/
+/*
 int CntCurrentEmployee( int *pnCntEmployee )
 {
 	int nRC = 0;
@@ -1099,3 +911,4 @@ void SetAlarmStatus( int nCntEmployee, int *pnAlarmStatus )
 
 	MPGLOG_DBG( "%s:: nCntEmployee=%d, nAlarmStatus=%d", __func__, nCntEmployee, *pnAlarmStatus );
 }
+*/
