@@ -16,6 +16,7 @@
 
 /* FRAMEWORK */
 #include <dal.h>
+#include "mpipc.h"
 #include <TAP_Ipc.h>
 #include <mplog.h>
 #include "mpsignal.h"
@@ -27,9 +28,6 @@
 #include "oammmc_mmt.h"
 #include "oammmc_mml.h"
 #include "mpenum.h"
-
-#include "FW_Mmc.h"
-#include "FW_Pstmt.h"
 
 #define MODULE						"MIPCSVR"
 
@@ -48,20 +46,18 @@
 #define SIZE_PHONE					13
 
 #define TABLE_NAME					"EmployeeInfos"
-#define MSG_TYPE					"MsgType"
-#define ALL							"{ALL}"
+#define TABLE_ATT_ID				"id"
+#define TABLE_ATT_NAME				"name"
+#define TABLE_ATT_POSITION			"position"
+#define TABLE_ATT_TEAM				"team"
+#define TABLE_ATT_PHONE				"phone"
 
-#define ID							"id"
-#define NAME						"name"
-#define POSITION					"position"
-#define TEAM						"team"
-#define PHONE						"phone"
-
+//Alarm
 #define UDA_UPP_GNAME				"FW_TEST"
 #define UDA_LOW_GNAME				"CNT"
 #define UDA_ITEM_NAME				"CNT_EMPLOYEE_ALARM"
 
-#define PROCESS_INI					"./MIPCSVR.ini"
+#define PROCESS_INI					"/home1/sepp/user/dhkim/FW_4-3/MIPCSVR.ini"
 #define MMT_PORT					"mmt_port"
 #define MMT_ENABLE					"mmt_enable"
 #define MML_ENABLE					"mml_enable"
@@ -69,59 +65,80 @@
 #define MMT_LOCAL_ONLY				"mmt_local_only"
 #define MMT_IS_QUIET				"mmt_is_quiet"
 
-//[OMP]~etc/ini/OAM/command.ut
-#define MSG_ID_ADD					7741
-#define MSG_ID_DIS					7742
-#define MSG_ID_CHG					7743
-#define MSG_ID_DEL					7744
+//[SEPP-OMP] ~etc/ini/OAM/command.ut
+#define MMC_ADD						"add-empl-info"
+#define MMC_ADD_ID					7741
+#define MMC_DIS						"dis-empl-info"
+#define MMC_DIS_ID					7742
+#define MMC_CHG						"chg-emp;-info"
+#define MMC_CHG_ID					7743
+#define MMC_DEL						"del-emp;-info"
+#define MMC_DEL_ID					7744
 
-//[OMP]~etc/ini/OAM/enum.ut
-#define ENUM_ID						63000
-#define ENUM_NAME					63001
-#define ENUM_POSITION				63002
-#define ENUM_TEAM					63003
-#define ENUM_PHONE					63004
+//[SEPP-OMP] ~etc/ini/OAM/enum.ut
+#define EMPL_ID						"EMPL_ID"
+#define EMPL_ID_ID					63000
+#define EMPL_NAME					"EMPL_NAME"
+#define EMPL_NAME_ID				63001
+#define EMPL_POSITION				"EMPL_POSITION"
+#define EMPL_POSITION_ID			63002
+#define EMPL_TEAM					"EMPL_TEAM"
+#define EMPL_TEAM_ID				63003
+#define EMPL_PHONE					"EMPL_PHONE"
+#define EMPL_PHONE_ID				63004
 
 typedef enum
 {
-	SUCCESS = 1, INPUT_FAIL = 2, DAL_FAIL = -2,
+	MMC_SUCCESS = 0, MMC_FAIL = 1,
+	SUCCESS = 0, INPUT_FAIL = -1, DAL_FAIL = -2,
 	FGETS_FAIL = -3, IPC_FAIL = -4, NULL_FAIL = -5,
-	MPGLOG_FAIL = -6, STAT_FAIL = -7,
-	ID_NOT_EXIST = 30, NAME_NOT_EXIST = 31,
-	UDA_FAIL = -8, MMC_FAIL = -9, MPCONF_FAIL = -10
+	MPGLOG_FAIL = -6, STAT_FAIL = -7, UDA_FAIL = -8,
+	OAMMMC_FAIL = -9, MPCONF_FAIL = -10, SYSTEM_FAIL = -11,
+	SQL_EXEC_FAIL = 30
 } ReturnCode_t;
 
-typedef struct REQUEST_s
+oammmc_arg_info_t atArgsAdd[] =
 {
-	int		nMsgType;
-	int		nId;
-	char	szName		[SIZE_NAME + 1];
-	char	szPosition	[SIZE_POSITION + 1];
-	char	szTeam		[SIZE_TEAM + 1];
-	char	szPhone		[SIZE_PHONE + 1];
-} REQUEST_t;
+	{ 1, EMPL_NAME, "<EMPL_NAME>", OAMMMC_STR, EMPL_NAME_ID, 1, 32, NULL, "Process Name to (De)Activate" },
+	{ 2, EMPL_POSITION, "<EMPL_POSITION>", OAMMMC_STR, EMPL_POSITION_ID, 1, 32, NULL, "Process Name to (De)Activate" },
+	{ 3, EMPL_TEAM, "<EMPL_TEAM>", OAMMMC_STR, EMPL_TEAM_ID, 1, 32, NULL, "Process Name to (De)Activate" },
+	{ 4, EMPL_PHONE, "<EMPL_PHONE>", OAMMMC_STR, EMPL_PHONE_ID, 1, 32, NULL, "Process Name to (De)Activate" },
+	{ 0, NULL, NULL, 0, 0, 0, 0, NULL, NULL }
+};
 
-typedef struct RESPONSE_s
+oammmc_arg_info_t atArgsDis[] =
 {
-	int		nMsgType;
-	int		nId;
-	int		nResult;
-	char	szBuffer	[2048];
-	int		nCntSelectAll;
-} RESPONSE_t;
+	{ 1, EMPL_ID, "<EMPL_ID>", OAMMMC_INT, EMPL_ID_ID, 1, 1000, NULL, "Process Name to (De)Activate" },
+	{ 2, EMPL_NAME, "<EMPL_NAME>", OAMMMC_STR, EMPL_NAME_ID, 1, 32, NULL, "Process Name to (De)Activate" },
+	{ 3, EMPL_POSITION, "<EMPL_POSITION>", OAMMMC_STR, EMPL_POSITION_ID, 1, 32, NULL, "Process Name to (De)Activate" },
+	{ 4, EMPL_TEAM, "<EMPL_TEAM>", OAMMMC_STR, EMPL_TEAM_ID, 1, 32, NULL, "Process Name to (De)Activate" },
+	{ 5, EMPL_PHONE, "<EMPL_PHONE>", OAMMMC_STR, EMPL_PHONE_ID, 1, 32, NULL, "Process Name to (De)Activate" },
+	{ 0, NULL, NULL, 0, 0, 0, 0, NULL, NULL }
+};
 
-typedef struct SELECT_ALL_s
+oammmc_arg_info_t atArgsChg[] =
 {
-	int		nId;
-	char	szName		[SIZE_NAME + 1];
-} SELECT_ALL_t;
+	{ 1, EMPL_ID, "<EMPL_ID>", OAMMMC_INT, EMPL_ID_ID, 1, 1000, NULL, "Process Name to (De)Activate" },
+	{ 2, EMPL_NAME, "<EMPL_NAME>", OAMMMC_STR, EMPL_NAME_ID, 1, 32, NULL, "Process Name to (De)Activate" },
+	{ 3, EMPL_POSITION, "<EMPL_POSITION>", OAMMMC_STR, EMPL_POSITION_ID, 1, 32, NULL, "Process Name to (De)Activate" },
+	{ 4, EMPL_TEAM, "<EMPL_TEAM>", OAMMMC_STR, EMPL_TEAM_ID, 1, 32, NULL, "Process Name to (De)Activate" },
+	{ 5, EMPL_PHONE, "<EMPL_PHONE>", OAMMMC_STR, EMPL_PHONE_ID, 1, 32, NULL, "Process Name to (De)Activate" },
+	{ 0, NULL, NULL, 0, 0, 0, 0, NULL, NULL }
+};
 
-typedef struct SELECT_ONE_s
+oammmc_arg_info_t atArgsDel[] =
 {
-	char	szName		[SIZE_NAME + 1];
-	char	szPosition	[SIZE_POSITION + 1];
-	char	szTeam		[SIZE_TEAM + 1];
-	char	szPhone		[SIZE_PHONE + 1];
-} SELECT_ONE_t;
+	{ 1, EMPL_ID, "<EMPL_ID>", OAMMMC_INT, EMPL_ID_ID, 1, 1000, NULL, "Process Name to (De)Activate" },
+	{ 0, NULL, NULL, 0, 0, 0, 0, NULL, NULL }
+};
+
+DAL_CONN *g_ptDalConn = NULL;
+DAL_PSTMT *g_ptPstmtInsert = NULL;
+DAL_PSTMT *g_ptPstmtSelectAll = NULL;
+DAL_PSTMT *g_ptPstmtUpdate = NULL;
+DAL_PSTMT *g_ptPstmtDelete = NULL;
+DAL_PSTMT *g_ptPstmtNumTuples = NULL;
+
+int g_nFlag = FLAG_RUN;
 
 #endif /*_FW_INC_H_*/
