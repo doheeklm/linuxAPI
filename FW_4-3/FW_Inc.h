@@ -89,12 +89,12 @@
 
 typedef enum
 {
-	MMC_SUCCESS = 0, MMC_FAIL = 1,
+	MMC_SUCCESS = 0, MMC_FAIL = 1, DAL_EXEC_ZERO = 2,
 	SUCCESS = 0, INPUT_FAIL = -1, DAL_FAIL = -2,
 	FGETS_FAIL = -3, IPC_FAIL = -4, NULL_FAIL = -5,
 	MPGLOG_FAIL = -6, STAT_FAIL = -7, UDA_FAIL = -8,
 	OAMMMC_FAIL = -9, MPCONF_FAIL = -10, SYSTEM_FAIL = -11,
-	SQL_EXEC_FAIL = 30
+	UTIL_FAIL = -12
 } ReturnCode_t;
 
 oammmc_arg_info_t atArgsAdd[] =
