@@ -135,7 +135,6 @@ oammmc_arg_info_t atArgsDel[] =
 DAL_CONN *g_ptDalConn = NULL;
 DAL_PSTMT *g_ptPstmtInsert = NULL;
 DAL_PSTMT *g_ptPstmtSelectAll = NULL;
-DAL_PSTMT *g_ptPstmtUpdate = NULL;
 DAL_PSTMT *g_ptPstmtDelete = NULL;
 DAL_PSTMT *g_ptPstmtNumTuples = NULL;
 
