@@ -1,0 +1,126 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.8	//
+DAL_EXEC_ZERO	FW_Header.h	/^	MMC_SUCCESS = 0, MMC_FAIL = 1, DAL_EXEC_ZERO = 2,$/;"	e	enum:__anon3
+DAL_FAIL	FW_Header.h	/^	SUCCESS = 0, INPUT_FAIL = -1, DAL_FAIL = -2,$/;"	e	enum:__anon3
+DELETE	FW_Header.h	38;"	d
+EMPL_ID	FW_Header.h	80;"	d
+EMPL_ID_ID	FW_Header.h	81;"	d
+EMPL_NAME	FW_Header.h	82;"	d
+EMPL_NAME_ID	FW_Header.h	83;"	d
+EMPL_PHONE	FW_Header.h	88;"	d
+EMPL_PHONE_ID	FW_Header.h	89;"	d
+EMPL_POSITION	FW_Header.h	84;"	d
+EMPL_POSITION_ID	FW_Header.h	85;"	d
+EMPL_TEAM	FW_Header.h	86;"	d
+EMPL_TEAM_ID	FW_Header.h	87;"	d
+EXENAME	Makefile	/^EXENAME=	server$/;"	m
+FGETS_FAIL	FW_Header.h	/^	FGETS_FAIL = -3, IPC_FAIL = -4, NULL_FAIL = -5,$/;"	e	enum:__anon3
+FLAG_RUN	FW_Header.h	41;"	d
+FLAG_STOP	FW_Header.h	42;"	d
+INPUT_FAIL	FW_Header.h	/^	SUCCESS = 0, INPUT_FAIL = -1, DAL_FAIL = -2,$/;"	e	enum:__anon3
+INSERT	FW_Header.h	35;"	d
+IPC_Destroy	FW_Server.c	/^void IPC_Destroy( mpipc_t *ptMpipc )$/;"	f
+IPC_FAIL	FW_Header.h	/^	FGETS_FAIL = -3, IPC_FAIL = -4, NULL_FAIL = -5,$/;"	e	enum:__anon3
+IPC_Handler	FW_Server.c	/^int IPC_Handler( mpipc_t *ptMpipc, iipc_msg_t *ptIpcMsg, void *pvData )$/;"	f
+ITEM1	__st_sample.h	/^    ITEM1,$/;"	e	enum:__anon1
+ITEM2	__st_sample.h	/^    ITEM2,$/;"	e	enum:__anon1
+ITEM3	__st_sample.h	/^    ITEM3,$/;"	e	enum:__anon1
+ITEM4	__st_sample.h	/^    ITEM4,$/;"	e	enum:__anon1
+ITEM5	__st_sample.h	/^    ITEM5,$/;"	e	enum:__anon1
+ITEM6	__st_sample.h	/^    ITEM6,$/;"	e	enum:__anon1
+ITEM7	__st_sample.h	/^    ITEM7,$/;"	e	enum:__anon1
+ITEM8	__st_sample.h	/^    ITEM8,$/;"	e	enum:__anon1
+ITEM9	__st_sample.h	/^    ITEM9,$/;"	e	enum:__anon1
+MCFLAGS	Makefile	/^MCFLAGS=-g -W -Wall$/;"	m
+MDEFS	Makefile	/^MDEFS=-D_USE_STAT -D_LOCAL_DB -D_HANGUP_ALARM$/;"	m
+MINCLUDES	Makefile	/^MINCLUDES=-I$(TELCOBASE_HOME)\/include$/;"	m
+MLDFLAGS	Makefile	/^MLDFLAGS=$/;"	m
+MLIBDIRS	Makefile	/^MLIBDIRS=-L$(TELCOBASE_HOME)\/lib $/;"	m
+MLIBS	Makefile	/^MLIBS= -ltelcobase -lstctl -lmplib -ltap -ltelpro -loam$/;"	m
+MMC_ADD	FW_Header.h	70;"	d
+MMC_ADD_ID	FW_Header.h	71;"	d
+MMC_CHG	FW_Header.h	74;"	d
+MMC_CHG_ID	FW_Header.h	75;"	d
+MMC_DEL	FW_Header.h	76;"	d
+MMC_DEL_ID	FW_Header.h	77;"	d
+MMC_DIS	FW_Header.h	72;"	d
+MMC_DIS_ID	FW_Header.h	73;"	d
+MMC_Destroy	FW_Server.c	/^void MMC_Destroy( oammmc_t *ptOammmc )$/;"	f
+MMC_FAIL	FW_Header.h	/^	MMC_SUCCESS = 0, MMC_FAIL = 1, DAL_EXEC_ZERO = 2,$/;"	e	enum:__anon3
+MMC_Handler_Add	FW_Server.c	/^int MMC_Handler_Add( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd, oammmc_arg_t *ptArgList, int nArg, void *ptUarg )$/;"	f
+MMC_Handler_Chg	FW_Server.c	/^int MMC_Handler_Chg( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd, oammmc_arg_t *ptArgList, int nArg, void *ptUarg )$/;"	f
+MMC_Handler_Del	FW_Server.c	/^int MMC_Handler_Del( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd, oammmc_arg_t *ptArgList, int nArg, void *ptUarg )$/;"	f
+MMC_Handler_Dis	FW_Server.c	/^int MMC_Handler_Dis( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd, oammmc_arg_t *ptArgList, int nArg, void *ptUarg )$/;"	f
+MMC_Init	FW_Server.c	/^int MMC_Init( char *pszModule, oammmc_t *ptOammmc, mpipc_t *ptMpipc )$/;"	f
+MMC_SUCCESS	FW_Header.h	/^	MMC_SUCCESS = 0, MMC_FAIL = 1, DAL_EXEC_ZERO = 2,$/;"	e	enum:__anon3
+MML_ENABLE	FW_Header.h	64;"	d
+MMT_CONN_MAX	FW_Header.h	65;"	d
+MMT_ENABLE	FW_Header.h	63;"	d
+MMT_IS_QUIET	FW_Header.h	67;"	d
+MMT_LOCAL_ONLY	FW_Header.h	66;"	d
+MMT_PORT	FW_Header.h	62;"	d
+MODULE	FW_Header.h	33;"	d
+MPCONF_FAIL	FW_Header.h	/^	OAMMMC_FAIL = -9, MPCONF_FAIL = -10, SYSTEM_FAIL = -11,$/;"	e	enum:__anon3
+MPGLOG_FAIL	FW_Header.h	/^	MPGLOG_FAIL = -6, STAT_FAIL = -7, UDA_FAIL = -8,$/;"	e	enum:__anon3
+NULL_FAIL	FW_Header.h	/^	FGETS_FAIL = -3, IPC_FAIL = -4, NULL_FAIL = -5,$/;"	e	enum:__anon3
+NUMTUPLES	FW_Header.h	39;"	d
+OAMMMC_FAIL	FW_Header.h	/^	OAMMMC_FAIL = -9, MPCONF_FAIL = -10, SYSTEM_FAIL = -11,$/;"	e	enum:__anon3
+PROCESS_INI	FW_Header.h	61;"	d
+PSTMT_Destroy	FW_Pstmt.c	/^void PSTMT_Destroy()$/;"	f
+PSTMT_Init	FW_Pstmt.c	/^int PSTMT_Init()$/;"	f
+RET_CODE_INVALID_PARAMETER	test_stat.h	/^    RET_CODE_INVALID_PARAMETER,$/;"	e	enum:__anon2
+RET_CODE_SUCCESS	test_stat.h	/^    RET_CODE_SUCCESS,$/;"	e	enum:__anon2
+RET_CODE_SYSTEM_FAIL	test_stat.h	/^    RET_CODE_SYSTEM_FAIL,$/;"	e	enum:__anon2
+RET_CODE_UNKNOWN_USER	test_stat.h	/^    RET_CODE_UNKNOWN_USER,$/;"	e	enum:__anon2
+ReturnCode_t	FW_Header.h	/^} ReturnCode_t;$/;"	t	typeref:enum:__anon3
+SELECT	FW_Header.h	36;"	d
+SIZE_NAME	FW_Header.h	44;"	d
+SIZE_PHONE	FW_Header.h	47;"	d
+SIZE_POSITION	FW_Header.h	45;"	d
+SIZE_TEAM	FW_Header.h	46;"	d
+SRCS	Makefile	/^SRCS=	 test_stat.c FW_Server.c FW_Pstmt.c$/;"	m
+STATMIPCSVR	test_stat.h	10;"	d
+STAT_FAIL	FW_Header.h	/^	MPGLOG_FAIL = -6, STAT_FAIL = -7, UDA_FAIL = -8,$/;"	e	enum:__anon3
+STAT_STYPE_MIPCSVR	test_stat.h	9;"	d
+SUCCESS	FW_Header.h	/^	SUCCESS = 0, INPUT_FAIL = -1, DAL_FAIL = -2,$/;"	e	enum:__anon3
+SYSTEM_FAIL	FW_Header.h	/^	OAMMMC_FAIL = -9, MPCONF_FAIL = -10, SYSTEM_FAIL = -11,$/;"	e	enum:__anon3
+SignalHandler	FW_Server.c	/^void SignalHandler( int nSig )$/;"	f
+TABLE_ATT_ID	FW_Header.h	50;"	d
+TABLE_ATT_NAME	FW_Header.h	51;"	d
+TABLE_ATT_PHONE	FW_Header.h	54;"	d
+TABLE_ATT_POSITION	FW_Header.h	52;"	d
+TABLE_ATT_TEAM	FW_Header.h	53;"	d
+TABLE_NAME	FW_Header.h	49;"	d
+TCP_RCV_TOTAL_INV	test_stat.h	/^    TCP_RCV_TOTAL_INV,$/;"	e	enum:__anon2
+UDA_FAIL	FW_Header.h	/^	MPGLOG_FAIL = -6, STAT_FAIL = -7, UDA_FAIL = -8,$/;"	e	enum:__anon3
+UDA_ITEM_NAME	FW_Header.h	59;"	d
+UDA_LOW_GNAME	FW_Header.h	58;"	d
+UDA_UPP_GNAME	FW_Header.h	57;"	d
+UPDATE	FW_Header.h	37;"	d
+UTIL_FAIL	FW_Header.h	/^	UTIL_FAIL = -12$/;"	e	enum:__anon3
+_FW_HEADER_H_	FW_Header.h	3;"	d
+__ITEM_END__	__st_sample.h	/^    __ITEM_END__$/;"	e	enum:__anon1
+__ITEM_END__	test_stat.h	/^    __ITEM_END__$/;"	e	enum:__anon2
+____st_sample_H__	__st_sample.h	3;"	d
+__test_stat_H__	test_stat.h	3;"	d
+atArgsAdd	FW_Header.h	/^oammmc_arg_info_t atArgsAdd[] =$/;"	v
+atArgsChg	FW_Header.h	/^oammmc_arg_info_t atArgsChg[] =$/;"	v
+atArgsDel	FW_Header.h	/^oammmc_arg_info_t atArgsDel[] =$/;"	v
+atArgsDis	FW_Header.h	/^oammmc_arg_info_t atArgsDis[] =$/;"	v
+en_item_index_t	__st_sample.h	/^}en_item_index_t;$/;"	t	typeref:enum:__anon1
+en_item_index_t	test_stat.h	/^}en_item_index_t;$/;"	t	typeref:enum:__anon2
+g_nFlag	FW_Header.h	/^int g_nFlag = FLAG_RUN;$/;"	v
+g_ptDalConn	FW_Header.h	/^DAL_CONN *g_ptDalConn = NULL;$/;"	v
+g_ptPstmtDelete	FW_Header.h	/^DAL_PSTMT *g_ptPstmtDelete = NULL;$/;"	v
+g_ptPstmtInsert	FW_Header.h	/^DAL_PSTMT *g_ptPstmtInsert = NULL;$/;"	v
+g_ptPstmtNumTuples	FW_Header.h	/^DAL_PSTMT *g_ptPstmtNumTuples = NULL;$/;"	v
+g_ptPstmtSelectAll	FW_Header.h	/^DAL_PSTMT *g_ptPstmtSelectAll = NULL;$/;"	v
+main	FW_Server.c	/^int main( int argc, char *argv[] )$/;"	f
+stctl_dtl_type_list	test_stat.c	/^stctl_dtl_type_desc_t stctl_dtl_type_list[] = {$/;"	v
+stctl_item_list	__st_sample.c	/^stctl_item_desc_t stctl_item_list[] = {$/;"	v
+stctl_item_list	test_stat.c	/^stctl_item_desc_t stctl_item_list[] = {$/;"	v
+tCommandTable	FW_Header.h	/^oammmc_cmd_t tCommandTable[] =$/;"	v
