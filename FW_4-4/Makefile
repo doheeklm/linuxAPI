@@ -16,7 +16,8 @@ include $(MAKECONFIG)
 #t=
 #o=
 
-SRCS=	 test_stat.c FW_Server.c FW_Pstmt.c FW_Ipc.c FW_Mmc.c FW_Trace.c
+SRCS=	FW_Server.c test_stat.c FW_Pstmt.c FW_Ipc.c FW_Mmc.c FW_DB.c FW_Util.c FW_Regi.c FW_Trace.c
+#SRCS=	FW_Client.c
 
 MDEFS=-D_USE_STAT -D_LOCAL_DB -D_HANGUP_ALARM
 MINCLUDES=-I$(TELCOBASE_HOME)/include

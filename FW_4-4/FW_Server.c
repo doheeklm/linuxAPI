@@ -1,13 +1,15 @@
 /* FW_Server.c */
 #include "FW_Header.h"
 
+int g_nFlag = FLAG_RUN;
+
 DAL_CONN *g_ptDalConn = NULL;
 DAL_PSTMT *g_ptPstmtInsert = NULL;
 DAL_PSTMT *g_ptPstmtSelectAll = NULL;
 DAL_PSTMT *g_ptPstmtDelete = NULL;
 DAL_PSTMT *g_ptPstmtNumTuples = NULL;
 
-int g_nFlag = FLAG_RUN;
+mpipc_t *ptMpipc = NULL;
 
 int main( int argc, char *argv[] )
 {
@@ -20,14 +22,16 @@ int main( int argc, char *argv[] )
 	tb_signal( SIGTERM, SignalHandler ); //15
 
 	int nRC = 0;
+	int nPort = 0;
+	char szIp[SIZE_IP + 1];
+	memset( szIp, 0x00, sizeof(szIp) );
 
 	oammmc_t *ptOammmc = NULL;
-	mpipc_t *ptMpipc = NULL;
-
+	
 	/*
 	 *	MPGLOG
 	 */
-	nRC = MPGLOG_INIT( MODULE, NULL, LOG_MODE_DAILY | LOG_MODE_NO_DATE | LOG_MODE_LEVEL_TAG, LOG_LEVEL_DBG );
+	nRC = MPGLOG_INIT( PROCNAME_SERVER, NULL, LOG_MODE_DAILY | LOG_MODE_NO_DATE | LOG_MODE_LEVEL_TAG, LOG_LEVEL_DBG );
 	if ( 0 > nRC )
 	{
 		printf( "%s MPGLOG_INIT() fail\n", __func__ );
@@ -37,7 +41,7 @@ int main( int argc, char *argv[] )
 	/*
 	 *	Init MPIPC
 	 */
-	ptMpipc = mpipc_init( MODULE, 100, 300 );
+	ptMpipc = mpipc_init( PROCNAME_SERVER, 100, 300 );
 	if ( NULL == ptMpipc )
 	{
 		MPGLOG_ERR( "%s:: mpipc_init() fail", __func__ );
@@ -73,8 +77,8 @@ int main( int argc, char *argv[] )
 	/*
 	 *	MMC
 	 */
-	nRC = MMC_Init( MODULE, ptOammmc, ptMpipc );
-	if ( SUCCESS != nRC )
+	nRC = MMC_Init( PROCNAME_SERVER, ptOammmc, ptMpipc );
+	if ( RC_SUCCESS != nRC )
 	{
 		MPGLOG_ERR( "%s:: MMC_Init() fail=%d", __func__, nRC );
 		IPC_Destroy( ptMpipc );
@@ -95,7 +99,7 @@ int main( int argc, char *argv[] )
 	 *	Prepared Statement
 	 */
 	nRC = PSTMT_Init();	
-	if ( SUCCESS != nRC )
+	if ( RC_SUCCESS != nRC )
 	{
 		MPGLOG_ERR( "%s:: PSTMT_Init() fail=%d", __func__, nRC );
 		nRC = dalDisconnect( g_ptDalConn );
@@ -107,8 +111,31 @@ int main( int argc, char *argv[] )
 	}
 
 	/*
+	 * 	MPCONF
+	 */
+	nRC = UTIL_GetConfig( szIp, &nPort, sizeof(szIp) );
+	if ( RC_SUCCESS != nRC )
+	{
+		MPGLOG_ERR( "%s:: UTIL_GetConfig() fail", __func__ );
+		goto _exit_failure;
+	}
+
+	/*
+	 *	Registry
+	 */
+	nRC = TAP_Registry_udp_open( szIp, nPort, '0', REGI_MAN_SYSTEM_ID );
+	if ( -1 == nRC )
+	{
+		MPGLOG_ERR( "%s:: TAP_Registry_udp_open() fail=%d", __func__, nRC );
+		goto _exit_failure;
+	}
+
+	/*
 	 *	Trace
 	 */
+
+
+
 
 	while ( FLAG_RUN == g_nFlag )
 	{

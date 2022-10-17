@@ -9,7 +9,8 @@ int PSTMT_Init()
 	memset( szQuery, 0x00, sizeof(szQuery) );
 	snprintf( szQuery, sizeof(szQuery),
 			"insert into %s (%s, %s, %s, %s) values (?%s, ?%s, ?%s, ?%s);",
-			TABLE_NAME, TABLE_ATT_NAME, TABLE_ATT_POSITION, TABLE_ATT_TEAM, TABLE_ATT_PHONE,
+			TABLE_NAME,
+			TABLE_ATT_NAME, TABLE_ATT_POSITION, TABLE_ATT_TEAM, TABLE_ATT_PHONE,
 			TABLE_ATT_NAME, TABLE_ATT_POSITION, TABLE_ATT_TEAM, TABLE_ATT_PHONE );
 	szQuery[ strlen(szQuery) ] = '\0';
 	g_ptPstmtInsert = dalPreparedStatement( g_ptDalConn, szQuery );
@@ -56,7 +57,7 @@ int PSTMT_Init()
 		return DAL_FAIL;
 	}
 
-	return SUCCESS;
+	return RC_SUCCESS;
 }
 
 void PSTMT_Destroy()

@@ -15,22 +15,27 @@
 #include <unistd.h>
 
 /* FRAMEWORK */
-#include <dal.h>			//Telcobase Dal
+#include <dal.h>
 #include "mpipc.h"
-#include <TAP_Ipc.h>		//TAP Ipc
-#include <mplog.h>			//TAP MPLOG
+#include <TAP_Ipc.h>
+#include <mplog.h>
 #include "mpsignal.h"
 #include "stctl/stctl.h"
-#include "test_stat.h"		//OAM Stat
-#include "oam_uda.h"		//OAM Alarm
-#include "sfm_alarm.h"		//OAM Alarm
-#include "oammmc.h"			//OAM
-#include "oammmc_mmt.h"		//OAM Mmt
-#include "oammmc_mml.h"		//OAM Mml
-#include "mpenum.h"			//OAM
-#include "trace.h"			//OAM Trace
+#include "test_stat.h"
+#include "oam_uda.h"
+#include "sfm_alarm.h"
+#include "oammmc.h"
+#include "oammmc_mmt.h"
+#include "oammmc_mml.h"
+#include "mpenum.h"
+#include "trace.h"
+#include "TAP_Registry.h"
+#include "TAP_Registry_udp.h"
+#include "TAP_Registry_P.h"			//$TAP_HOME/include
 
-#define MODULE						"MIPCSVR"
+// MODULE
+#define PROCNAME_SERVER				"MIPCSVR"
+#define PROCNAME_CLIENT				"MIPCCLI"
 
 #define INSERT						"Insert"
 #define SELECT						"Select"
@@ -38,14 +43,24 @@
 #define DELETE						"Delete"
 #define NUMTUPLES					"NUMTUPLES"
 
+// MSGTYPE
+#define MTYPE_INSERT				1
+#define MTYPE_SELECTALL				21
+#define MTYPE_SELECTONE				22
+#define MTYPE_UPDATE				3
+#define MTYPE_DELETE				4
+
+// SIGNAL
 #define FLAG_RUN					100
 #define FLAG_STOP					99
 
 #define SIZE_NAME					32
 #define SIZE_POSITION				32
 #define SIZE_TEAM					32
-#define SIZE_PHONE					13
+#define SIZE_PHONE					11
+#define SIZE_IP						15
 
+// DB
 #define TABLE_NAME					"EmployeeInfos"
 #define TABLE_ATT_ID				"id"
 #define TABLE_ATT_NAME				"name"
@@ -53,10 +68,12 @@
 #define TABLE_ATT_TEAM				"team"
 #define TABLE_ATT_PHONE				"phone"
 
+// ALARM
 #define UDA_UPP_GNAME				"FW_TEST"
 #define UDA_LOW_GNAME				"CNT"
 #define UDA_ITEM_NAME				"CNT_EMPLOYEE_ALARM"
 
+// MMC
 #define PROCESS_INI					"/home1/sepp/user/dhkim/FW_4-4/MIPCSVR.ini"
 #define MMT_PORT					"mmt_port"
 #define MMT_ENABLE					"mmt_enable"
@@ -65,17 +82,34 @@
 #define MMT_LOCAL_ONLY				"mmt_local_only"
 #define MMT_IS_QUIET				"mmt_is_quiet"
 
-//[SEPP-OMP] ~etc/ini/OAM/command.ut
-#define MMC_ADD						"add-empl-info"
-#define MMC_ADD_ID					7741
-#define MMC_DIS						"dis-empl-info"
-#define MMC_DIS_ID					7742
-#define MMC_CHG						"chg-emp;-info"
-#define MMC_CHG_ID					7743
-#define MMC_DEL						"del-emp;-info"
-#define MMC_DEL_ID					7744
+// CONFIG
+#define CONF_PATH					"/home1/sepp/etc/ini/config.ut"
+#define CONF_SECTION_NAME			"MP1"
+#define CONF_ITEM_NAME_IP			"ip_address"
+#define CONF_ITEM_NAME_PORT			"PORT"
 
-//[SEPP-OMP] ~etc/ini/OAM/enum.ut
+// REGISTRY
+#define REGI_KEY_DIR				"/EMPLOYEE_TRACE/"
+#define REGI_MAN_SYSTEM_ID			1
+#define REGI_VALUE_SIZE				1024
+
+// [SEPP-OMP] ~etc/ini/OAM/command.ut
+#define MMC_ADD_INFO				"add-empl-info"
+#define MMC_ADD_INFO_ID				7741
+#define MMC_DIS_INFO				"dis-empl-info"
+#define MMC_DIS_INFO_ID				7742
+#define MMC_CHG_INFO				"chg-empl-info"
+#define MMC_CHG_INFO_ID				7743
+#define MMC_DEL_INFO				"del-empl-info"
+#define MMC_DEL_INFO_ID				7744
+#define MMC_ADD_TRC					"add-empl-trace"
+#define MMC_ADD_TRC_ID				7745
+#define MMC_DIS_TRC					"dis-empl-trace"
+#define MMC_DIS_TRC_ID				7746
+#define MMC_DEL_TRC					"del-empl-trace"
+#define MMC_DEL_TRC_ID				7747
+
+// [SEPP-OMP] ~etc/ini/OAM/enum.ut
 #define EMPL_ID						"EMPL_ID"
 #define EMPL_ID_ID					63000
 #define EMPL_NAME					"EMPL_NAME"
@@ -86,6 +120,10 @@
 #define EMPL_TEAM_ID				63003
 #define EMPL_PHONE					"EMPL_PHONE"
 #define EMPL_PHONE_ID				63004
+#define EMPL_TRC_NUM				"EMPL_TRC_NUM"
+#define EMPL_TRC_NUM_ID				63005
+
+#define DELIM						":"
 
 extern DAL_CONN *g_ptDalConn;
 extern DAL_PSTMT *g_ptPstmtInsert;
@@ -93,31 +131,117 @@ extern DAL_PSTMT *g_ptPstmtSelectAll;
 extern DAL_PSTMT *g_ptPstmtDelete;
 extern DAL_PSTMT *g_ptPstmtNumTuples;
 
+extern mpipc_t *ptMpipc;
+
 typedef enum
 {
-	MMC_HANDLER_SUCCESS = 0,	MMC_FAIL = 1,		DAL_EXEC_ZERO = 2,
-	SUCCESS = 0,				INPUT_FAIL = -1,	DAL_FAIL = -2,
-	FGETS_FAIL = -3,			IPC_FAIL = -4,		NULL_FAIL = -5,
-	MPGLOG_FAIL = -6,			STAT_FAIL = -7,		UDA_FAIL = -8,
-	OAMMMC_FAIL = -9,			MPCONF_FAIL = -10,	SYSTEM_FAIL = -11,
-	MMC_HANDLER_FAIL = -12
+	MMC_HANDLER_SUCCESS		= 0,	//Must be 0
+	RC_SUCCESS				= 1,
+	CLIENT_INSERT_SUCCESS	= 2,
+	CLIENT_SELECT_SUCCESS	= 3,
+	CLIENT_UPDATE_SUCCESS	= 4,
+	CLIENT_DELETE_SUCCESS	= 5,
+	REGI_SUCCESS			= 6,
+	REGI_KEY_EXIST			= 7,
+	REGI_KEY_NOT_EXIST		= 8,
+	DAL_EXEC_ZERO			= -1,
+	DAL_FAIL				= -2,
+	INPUT_FAIL				= -3,
+	DB_FAIL					= -4,
+	IPC_FAIL				= -5,
+	NULL_FAIL				= -6,
+	MPGLOG_FAIL				= -7,
+	STAT_FAIL				= -8,	
+	UDA_FAIL				= -9,
+	OAMMMC_FAIL				= -10,
+	MPCONF_FAIL				= -11,
+	SYSTEM_FAIL				= -12,
+	MMC_HANDLER_FAIL		= -13,
+	RC_FAIL					= -14,
+	INPUT_MENU_FAIL			= -15,
+	CLIENT_INSERT_FAIL		= -16,
+	CLIENT_SELECT_FAIL		= -17,
+	CLIENT_UPDATE_FAIL 		= -18,
+	CLIENT_DELETE_FAIL		= -19,
+	REGI_FAIL				= -20
 } ReturnCode_t;
+
+typedef struct REQUEST_s
+{
+	int		nMsgType;
+	int		nId;
+	char	szName		[SIZE_NAME + 1];
+	char	szPosition	[SIZE_POSITION + 1];
+	char	szTeam		[SIZE_TEAM + 1];
+	char	szPhone		[SIZE_PHONE + 1];
+} REQUEST_t;
+
+typedef struct RESPONSE_s
+{
+	int		nMsgType;
+	int		nId;
+	int		nRC;
+	char	szBuffer[2048];
+	int		nCntSelectAll;
+} RESPONSE_t;
+
+typedef struct SELECT_s
+{
+	int		nId;
+	char	szName		[SIZE_NAME + 1];
+	char	szPosition	[SIZE_POSITION + 1];
+	char	szTeam		[SIZE_TEAM + 1];
+	char	szPhone		[SIZE_PHONE + 1];
+} SELECT_t;
 
 void SignalHandler( int nSigno );
 
-int IPC_Handler( mpipc_t *ptMpipc, iipc_msg_t *ptIpcMsg, void *pvData );
+//////////////////////////////////////////////////////////
+
+int IPC_Handler( mpipc_t *ptMpipc, iipc_msg_t *ptRecvMsg, void *pvData );
 void IPC_Destroy( mpipc_t *ptMpipc );
 
 int MMC_Init( char *pszModule, oammmc_t *ptOammmc, mpipc_t *ptMpipc );
+int MMC_Handler_Add( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
+		oammmc_arg_t *ptArgList, int nArg, void *ptUarg );
+int MMC_Handler_Dis( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
+		oammmc_arg_t *ptArgList, int nArg, void *ptUarg );
+int MMC_Handler_Chg( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
+		oammmc_arg_t *ptArgList, int nArg, void *ptUarg );
+int MMC_Handler_Del( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
+		oammmc_arg_t *ptArgList, int nArg, void *ptUarg );
+int MMC_Handler_AddTrace( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
+		oammmc_arg_t *ptArgList, int nArg, void *ptUarg );
+int MMC_Handler_DisTrace( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
+		oammmc_arg_t *ptArgList, int nArg, void *ptUarg );
+int MMC_Handler_DelTrace( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
+		oammmc_arg_t *ptArgList, int nArg, void *ptUarg );
 void MMC_Destroy( oammmc_t *ptOammmc );
-int MMC_Handler_Add( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd, oammmc_arg_t *ptArgList, int nArg, void *ptUarg );
-int MMC_Handler_Dis( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd, oammmc_arg_t *ptArgList, int nArg, void *ptUarg );
-int MMC_Handler_Chg( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd, oammmc_arg_t *ptArgList, int nArg, void *ptUarg );
-int MMC_Handler_Del( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd, oammmc_arg_t *ptArgList, int nArg, void *ptUarg );
 
 int PSTMT_Init();
 void PSTMT_Destroy();
 
-int TRACE_Init();
+int DB_CheckDuplicate( char *pszPhone );
+int DB_Insert( struct REQUEST_s *ptRequestFromClient );
+int DB_Select( struct REQUEST_s *ptRequestFromClient, struct RESPONSE_s *ptResponseToClient );
+int DB_Update( struct REQUEST_s *ptRequestFromClient );
+int DB_Delete( struct REQUEST_s *ptRequestFromClient );
+
+int UTIL_GetConfig( char *pszIp, int *pnPort, int nSizeIp );
+void UTIL_FreeList( mpconf_list_t *ptSectList, mpconf_list_t *ptItemList, mpconf_list_t *ptValueList );
+
+int REGI_CheckKey( char *pszKey );
+
+int TRACE_AddTrace( char *pszKey );
+int TRACE_DisTrace( char *pszKey );
+int TRACE_DelTrace( char *pszKey );
+
+/////////////////////////////////////////////////////////
+
+void ClearStdin( char *pszTemp );
+int	Insert( struct REQUEST_s *ptRequestToServer );
+int Select( struct REQUEST_s *ptRequestToServer );
+int Update( struct REQUEST_s *ptRequestToServer );
+int Delete( struct REQUEST_s *ptRequestToServer );
 
 #endif /*_FW_HEADER_H_*/
