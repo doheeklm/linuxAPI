@@ -130,13 +130,6 @@ int main( int argc, char *argv[] )
 		goto _exit_failure;
 	}
 
-	/*
-	 *	Trace
-	 */
-
-
-
-
 	while ( FLAG_RUN == g_nFlag )
 	{
 		mpthr_sleep_msec(500);

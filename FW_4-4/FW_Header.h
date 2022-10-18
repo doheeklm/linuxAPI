@@ -54,11 +54,12 @@
 #define FLAG_RUN					100
 #define FLAG_STOP					99
 
+#define SIZE_ID						4  //1000
 #define SIZE_NAME					32
 #define SIZE_POSITION				32
 #define SIZE_TEAM					32
-#define SIZE_PHONE					11
-#define SIZE_IP						15
+#define SIZE_PHONE					11 //01012345678
+#define SIZE_IP						15 //000.000.000.000
 
 // DB
 #define TABLE_NAME					"EmployeeInfos"
@@ -89,7 +90,7 @@
 #define CONF_ITEM_NAME_PORT			"PORT"
 
 // REGISTRY
-#define REGI_KEY_DIR				"/EMPLOYEE_TRACE/"
+#define REGI_KEY_DIR				"/EMPLOYEE_TRACE"
 #define REGI_MAN_SYSTEM_ID			1
 #define REGI_VALUE_SIZE				1024
 
@@ -120,10 +121,12 @@
 #define EMPL_TEAM_ID				63003
 #define EMPL_PHONE					"EMPL_PHONE"
 #define EMPL_PHONE_ID				63004
-#define EMPL_TRC_NUM				"EMPL_TRC_NUM"
-#define EMPL_TRC_NUM_ID				63005
+#define EMPL_TRC_KEY				"EMPL_TRC_KEY"
+#define EMPL_TRC_KEY_ID				63005
+#define PERIOD_MIN					"PERIOD_MIN"
+#define PERIOD_MIN_ID				63006
 
-#define DELIM						":"
+#define STRTOK_KEY_DELIM			":"
 
 extern DAL_CONN *g_ptDalConn;
 extern DAL_PSTMT *g_ptPstmtInsert;
@@ -137,13 +140,9 @@ typedef enum
 {
 	MMC_HANDLER_SUCCESS		= 0,	//Must be 0
 	RC_SUCCESS				= 1,
-	CLIENT_INSERT_SUCCESS	= 2,
-	CLIENT_SELECT_SUCCESS	= 3,
-	CLIENT_UPDATE_SUCCESS	= 4,
-	CLIENT_DELETE_SUCCESS	= 5,
-	REGI_SUCCESS			= 6,
-	REGI_KEY_EXIST			= 7,
-	REGI_KEY_NOT_EXIST		= 8,
+	REGI_SUCCESS			= 2,
+	REGI_KEY_EXIST			= 3,
+	REGI_KEY_NOT_EXIST		= 4,
 	DAL_EXEC_ZERO			= -1,
 	DAL_FAIL				= -2,
 	INPUT_FAIL				= -3,
@@ -159,12 +158,9 @@ typedef enum
 	MMC_HANDLER_FAIL		= -13,
 	RC_FAIL					= -14,
 	INPUT_MENU_FAIL			= -15,
-	CLIENT_INSERT_FAIL		= -16,
-	CLIENT_SELECT_FAIL		= -17,
-	CLIENT_UPDATE_FAIL 		= -18,
-	CLIENT_DELETE_FAIL		= -19,
-	REGI_FAIL				= -20
-} ReturnCode_t;
+	REGI_FAIL				= -16,
+	DATA_OVERFLOW_FAIL		= -17
+} ReturnCode_e;
 
 typedef struct REQUEST_s
 {
@@ -203,19 +199,19 @@ void IPC_Destroy( mpipc_t *ptMpipc );
 
 int MMC_Init( char *pszModule, oammmc_t *ptOammmc, mpipc_t *ptMpipc );
 int MMC_Handler_Add( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
-		oammmc_arg_t *ptArgList, int nArg, void *ptUarg );
+		oammmc_arg_t *patArgList, int nArgNum, void *ptUarg );
 int MMC_Handler_Dis( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
-		oammmc_arg_t *ptArgList, int nArg, void *ptUarg );
+		oammmc_arg_t *patArgList, int nArgNum, void *ptUarg );
 int MMC_Handler_Chg( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
-		oammmc_arg_t *ptArgList, int nArg, void *ptUarg );
+		oammmc_arg_t *patArgList, int nArgNum, void *ptUarg );
 int MMC_Handler_Del( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
-		oammmc_arg_t *ptArgList, int nArg, void *ptUarg );
+		oammmc_arg_t *patArgList, int nArgNum, void *ptUarg );
 int MMC_Handler_AddTrace( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
-		oammmc_arg_t *ptArgList, int nArg, void *ptUarg );
+		oammmc_arg_t *patArgList, int nArgNum, void *ptUarg );
 int MMC_Handler_DisTrace( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
-		oammmc_arg_t *ptArgList, int nArg, void *ptUarg );
+		oammmc_arg_t *patArgList, int nArgNum, void *ptUarg );
 int MMC_Handler_DelTrace( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
-		oammmc_arg_t *ptArgList, int nArg, void *ptUarg );
+		oammmc_arg_t *patArgList, int nArgNum, void *ptUarg );
 void MMC_Destroy( oammmc_t *ptOammmc );
 
 int PSTMT_Init();
@@ -223,18 +219,17 @@ void PSTMT_Destroy();
 
 int DB_CheckDuplicate( char *pszPhone );
 int DB_Insert( struct REQUEST_s *ptRequestFromClient );
-int DB_Select( struct REQUEST_s *ptRequestFromClient, struct RESPONSE_s *ptResponseToClient );
+int DB_Select( struct REQUEST_s *ptRequestFromClient,
+		struct RESPONSE_s *ptResponseToClient );
 int DB_Update( struct REQUEST_s *ptRequestFromClient );
 int DB_Delete( struct REQUEST_s *ptRequestFromClient );
 
 int UTIL_GetConfig( char *pszIp, int *pnPort, int nSizeIp );
-void UTIL_FreeList( mpconf_list_t *ptSectList, mpconf_list_t *ptItemList, mpconf_list_t *ptValueList );
+void UTIL_FreeList( mpconf_list_t *ptSectList, mpconf_list_t *ptItemList,
+		mpconf_list_t *ptValueList );
 
-int REGI_CheckKey( char *pszKey );
-
-int TRACE_AddTrace( char *pszKey );
-int TRACE_DisTrace( char *pszKey );
-int TRACE_DelTrace( char *pszKey );
+int REGI_CheckKey( int nId );
+int TRACE_MakeTrace( int nId, int nMsgType );
 
 /////////////////////////////////////////////////////////
 

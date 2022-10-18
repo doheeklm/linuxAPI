@@ -19,6 +19,7 @@ CONF_SECTION_NAME	FW_Header.h	87;"	d
 ClearStdin	FW_Client.c	/^void ClearStdin( char *pszTemp )$/;"	f
 DAL_EXEC_ZERO	FW_Header.h	/^	DAL_EXEC_ZERO			= -1,$/;"	e	enum:__anon3
 DAL_FAIL	FW_Header.h	/^	DAL_FAIL				= -2,$/;"	e	enum:__anon3
+DATA_OVERFLOW_FAIL	FW_Header.h	/^	DATA_OVERFLOW_FAIL		= -21$/;"	e	enum:__anon3
 DB_CheckDuplicate	FW_DB.c	/^int DB_CheckDuplicate( char *pszPhone )$/;"	f
 DB_Delete	FW_DB.c	/^int DB_Delete( struct REQUEST_s *ptRequestFromClient )$/;"	f
 DB_FAIL	FW_Header.h	/^	DB_FAIL					= -4,$/;"	e	enum:__anon3
@@ -26,7 +27,7 @@ DB_Insert	FW_DB.c	/^int DB_Insert( struct REQUEST_s *ptRequestFromClient )$/;"	f
 DB_Select	FW_DB.c	/^int DB_Select( struct REQUEST_s *ptRequestFromClient, struct RESPONSE_s *ptResponseToClient )$/;"	f
 DB_Update	FW_DB.c	/^int DB_Update( struct REQUEST_s *ptRequestFromClient )$/;"	f
 DELETE	FW_Header.h	43;"	d
-DELIM	FW_Header.h	126;"	d
+DELIM	FW_Header.h	128;"	d
 Delete	FW_Client.c	/^int Delete( struct REQUEST_s *ptRequestToServer )$/;"	f
 EMPL_ID	FW_Header.h	113;"	d
 EMPL_ID_ID	FW_Header.h	114;"	d
@@ -106,6 +107,8 @@ MTYPE_UPDATE	FW_Header.h	50;"	d
 NULL_FAIL	FW_Header.h	/^	NULL_FAIL				= -6,$/;"	e	enum:__anon3
 NUMTUPLES	FW_Header.h	44;"	d
 OAMMMC_FAIL	FW_Header.h	/^	OAMMMC_FAIL				= -10,$/;"	e	enum:__anon3
+PERIOD_MIN	FW_Header.h	125;"	d
+PERIOD_MIN_ID	FW_Header.h	126;"	d
 PROCESS_INI	FW_Header.h	77;"	d
 PROCNAME_CLIENT	FW_Header.h	38;"	d
 PROCNAME_SERVER	FW_Header.h	37;"	d
@@ -114,7 +117,7 @@ PSTMT_Init	FW_Pstmt.c	/^int PSTMT_Init()$/;"	f
 RC_FAIL	FW_Header.h	/^	RC_FAIL					= -14,$/;"	e	enum:__anon3
 RC_SUCCESS	FW_Header.h	/^	RC_SUCCESS				= 1,$/;"	e	enum:__anon3
 REGI_CheckKey	FW_Regi.c	/^int REGI_CheckKey( char* pszKey )$/;"	f
-REGI_FAIL	FW_Header.h	/^	REGI_FAIL				= -20$/;"	e	enum:__anon3
+REGI_FAIL	FW_Header.h	/^	REGI_FAIL				= -20,$/;"	e	enum:__anon3
 REGI_KEY_DIR	FW_Header.h	92;"	d
 REGI_KEY_EXIST	FW_Header.h	/^	REGI_KEY_EXIST			= 7,$/;"	e	enum:__anon3
 REGI_KEY_NOT_EXIST	FW_Header.h	/^	REGI_KEY_NOT_EXIST		= 8,$/;"	e	enum:__anon3
@@ -153,7 +156,9 @@ TABLE_ATT_POSITION	FW_Header.h	67;"	d
 TABLE_ATT_TEAM	FW_Header.h	68;"	d
 TABLE_NAME	FW_Header.h	64;"	d
 TCP_RCV_TOTAL_INV	test_stat.h	/^    TCP_RCV_TOTAL_INV,$/;"	e	enum:__anon2
-TRACE_MakeTrace	FW_Trace.c	/^int TRACE_MakeTrace( char *pszKey )$/;"	f
+TRACE_AddTrace	FW_Trace.c	/^int TRACE_AddTrace( char *pszKey )$/;"	f
+TRACE_DelTrace	FW_Trace.c	/^int TRACE_DelTrace( char *pszKey )$/;"	f
+TRACE_DisTrace	FW_Trace.c	/^int TRACE_DisTrace( char *pszKey )$/;"	f
 UDA_FAIL	FW_Header.h	/^	UDA_FAIL				= -9,$/;"	e	enum:__anon3
 UDA_ITEM_NAME	FW_Header.h	74;"	d
 UDA_LOW_GNAME	FW_Header.h	73;"	d
@@ -192,6 +197,7 @@ nId	FW_Header.h	/^	int		nId;$/;"	m	struct:SELECT_s
 nMsgType	FW_Header.h	/^	int		nMsgType;$/;"	m	struct:REQUEST_s
 nMsgType	FW_Header.h	/^	int		nMsgType;$/;"	m	struct:RESPONSE_s
 nRC	FW_Header.h	/^	int		nRC;$/;"	m	struct:RESPONSE_s
+ptMpipc	FW_Server.c	/^mpipc_t *ptMpipc = NULL;$/;"	v
 stctl_dtl_type_list	test_stat.c	/^stctl_dtl_type_desc_t stctl_dtl_type_list[] = {$/;"	v
 stctl_item_list	__st_sample.c	/^stctl_item_desc_t stctl_item_list[] = {$/;"	v
 stctl_item_list	test_stat.c	/^stctl_item_desc_t stctl_item_list[] = {$/;"	v

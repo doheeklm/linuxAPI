@@ -57,6 +57,20 @@ int IPC_Handler( mpipc_t *ptMpipc, iipc_msg_t *ptRecvMsg, void *pvData )
 			break;
 	}
 
+	nRC = REGI_CheckKey( ptRequestFromClient->nId );
+	if ( RC_SUCCESS != nRC )
+	{
+		MPGLOG_DBG( "%s:: id %d not exist in trace", __func__, ptRequestFromClient->nId  );
+		return MPIPC_HDLR_RET_DONE;
+	}
+
+	nRC = TRACE_MakeTrace( ptRequestFromClient->nId, ptRequestFromClient->nMsgType );
+	if ( RC_SUCCESS != nRC )
+	{
+		MPGLOG_DBG( "%s:: TRACE_MakeTrace() fail=%d", __func__, nRC );
+		return MPIPC_HDLR_RET_DONE;
+	}
+
 	switch ( ptRequestFromClient->nMsgType )
 	{
 		case MTYPE_INSERT:
@@ -64,7 +78,7 @@ int IPC_Handler( mpipc_t *ptMpipc, iipc_msg_t *ptRecvMsg, void *pvData )
 			MPGLOG_DBG( "[RECV] mtype = %d | name = %s | position = %s | team = %s | phone = %s",
 					ptRequestFromClient->nMsgType, ptRequestFromClient->szName, ptRequestFromClient->szPosition,
 					ptRequestFromClient->szTeam, ptRequestFromClient->szPhone );
-		
+	
 			nRC = DB_Insert( ptRequestFromClient );			
 			if ( RC_SUCCESS != nRC )
 			{
@@ -79,7 +93,7 @@ int IPC_Handler( mpipc_t *ptMpipc, iipc_msg_t *ptRecvMsg, void *pvData )
 		case MTYPE_SELECTONE:
 		{
 			MPGLOG_DBG( "[RECV] mtype = %d", ptRequestFromClient->nMsgType );
-			
+
 			nRC = DB_Select( ptRequestFromClient, ptResponseToClient );
 			if ( DAL_EXEC_ZERO == nRC || RC_SUCCESS != nRC )
 			{

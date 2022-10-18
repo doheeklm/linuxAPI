@@ -92,7 +92,7 @@ int main( int argc, char *argv[] )
 					"(2) Select Info\n"
 					"(3) Update Info\n"
 					"(4) Delete Info\n"
-					"(5) Exit program\n"
+					"(5) Exit Program\n"
 					"=================\n"
 					"Input: " );
 
@@ -105,6 +105,7 @@ int main( int argc, char *argv[] )
 			ClearStdin( szPickMenu );
 
 			nPickMenu = atoi( szPickMenu );
+
 		} while ( 1 > nPickMenu || 5 < nPickMenu );
 
 		tSendMsg.buf.mtype = 0;
@@ -124,68 +125,41 @@ int main( int argc, char *argv[] )
 			case 1:
 			{
 				nRet = Insert( ptRequestToServer );
-				if ( INPUT_FAIL == nRet )
+				if ( RC_SUCCESS != nRet )
 				{
 					goto end_of_function;
 				}
-
-				ptRequestToServer->nMsgType = MTYPE_INSERT;
-				
-				MPGLOG_DBG( "[SEND] mtype = %d | name = %s | position = %s | team = %s | phone = %s",
-							ptRequestToServer->nMsgType,
-							ptRequestToServer->szName, ptRequestToServer->szPosition,
-							ptRequestToServer->szTeam, ptRequestToServer->szPhone );
 			}
 				break;
 			case 2:
 			{
 				nRet = Select( ptRequestToServer );
-				if ( INPUT_FAIL == nRet )
+				if ( RC_SUCCESS != nRet )
 				{
 					goto end_of_function;
-				}
-
-				if ( MTYPE_SELECTALL == ptRequestToServer->nMsgType )
-				{
-					MPGLOG_DBG( "[SEND] mtype = %d | id = ALL", ptRequestToServer->nMsgType );
-				}
-				else if ( MTYPE_SELECTONE == ptRequestToServer->nMsgType )
-				{
-					MPGLOG_SVC( "[SEND] mtype = %d | id = %d", ptRequestToServer->nMsgType, ptRequestToServer->nId );
 				}
 			}
 				break;
 			case 3:
 			{
 				nRet = Update( ptRequestToServer );
-				if ( INPUT_FAIL == nRet )
+				if ( RC_SUCCESS != nRet )
 				{
 					goto end_of_function;
 				}
-	
-				ptRequestToServer->nMsgType = MTYPE_UPDATE;
-
-				MPGLOG_DBG( "[SEND] mtype = %d | id = %d | name = %s | position = %s | team = %s | phone = %s",
-							ptRequestToServer->nMsgType, ptRequestToServer->nId, ptRequestToServer->szName,
-							ptRequestToServer->szPosition, ptRequestToServer->szTeam, ptRequestToServer->szPhone );
 			}
 				break;
 			case 4:
 			{
 				nRet = Delete( ptRequestToServer );
-				if ( INPUT_FAIL == nRet )
+				if ( RC_SUCCESS != nRet )
 				{
 					goto end_of_function;
 				}
-		
-				ptRequestToServer->nMsgType = MTYPE_DELETE;
-			
-				MPGLOG_DBG( "[SEND] mtype = %d | id = %d", ptRequestToServer->nMsgType, ptRequestToServer->nId );
 			}
 				break;
 			case 5:
 			{
-				printf( "Exit Program\n" );
 				goto end_of_function;
 			}
 				break;
@@ -234,24 +208,27 @@ int main( int argc, char *argv[] )
 							ptResponseFromServer->nMsgType, ptResponseFromServer->nRC,
 							ptResponseFromServer->nCntSelectAll );
 
-				MPGLOG_SVC( "%4s %32s %32s %32s %11s",
-						TABLE_ATT_ID, TABLE_ATT_NAME, TABLE_ATT_POSITION, TABLE_ATT_TEAM, TABLE_ATT_PHONE );
-
 				if ( RC_SUCCESS == ptResponseFromServer->nRC )
 				{
+					MPGLOG_SVC( "%4s %32s %32s %32s %11s",
+							TABLE_ATT_ID, TABLE_ATT_NAME, TABLE_ATT_POSITION,
+							TABLE_ATT_TEAM, TABLE_ATT_PHONE );
+
 					for ( i = 0; i < ptResponseFromServer->nCntSelectAll; i++ )
 					{
 						memcpy( &tSelect, ptResponseFromServer->szBuffer+(i*sizeof(tSelect)), sizeof(tSelect) );
 						
 						MPGLOG_SVC( "%4d %32s %32s %32s %11s",
-								tSelect.nId, tSelect.szName, tSelect.szPosition, tSelect.szTeam, tSelect.szPhone );
+								tSelect.nId, tSelect.szName, tSelect.szPosition,
+								tSelect.szTeam, tSelect.szPhone );
 					}	
 				}
 			}
 				break;
 			default:
 			{
-				MPGLOG_DBG( "[RECV] mtype = %d | nRC = %d", ptResponseFromServer->nMsgType, ptResponseFromServer->nRC );
+				MPGLOG_DBG( "[RECV] mtype = %d | nRC = %d",
+						ptResponseFromServer->nMsgType, ptResponseFromServer->nRC );
 			}
 				break;
 		}
@@ -296,6 +273,8 @@ int Insert( struct REQUEST_s *ptRequestToServer )
 {
 	char *pszRet = NULL;
 
+	ptRequestToServer->nMsgType = MTYPE_INSERT;
+	
 	printf( "[%s] name = ", __func__ );
 
 	pszRet = fgets( ptRequestToServer->szName, sizeof(ptRequestToServer->szName), stdin );
@@ -332,81 +311,48 @@ int Insert( struct REQUEST_s *ptRequestToServer )
 		return INPUT_FAIL;
 	}
 	ClearStdin( ptRequestToServer->szPhone );
-	
-	return CLIENT_INSERT_SUCCESS;
+
+	MPGLOG_DBG( "[SEND] mtype = %d | name = %s | position = %s | team = %s | phone = %s",
+				ptRequestToServer->nMsgType,
+				ptRequestToServer->szName, ptRequestToServer->szPosition,
+				ptRequestToServer->szTeam, ptRequestToServer->szPhone );
+
+	return RC_SUCCESS;
 }
 
 int Select( struct REQUEST_s *ptRequestToServer )
 {
-	int nPickSelect = 0;
-	char szPickSelect[8];
 	char *pszRet = NULL;
+
 	char szId[32];
 	memset( szId, 0x00, sizeof(szId) );
+
+	printf( "[%s] Enter to select all, or select id = ", __func__ );	
 	
-	do
+	pszRet = fgets( szId, sizeof(szId), stdin );
+	if ( NULL == pszRet )
 	{
-		nPickSelect = 0;
-		memset( szPickSelect, 0x00, sizeof(szPickSelect) );
-	
-		printf("=================\n"
-			   "(1) Select All\n"
-			   "(2) Select One\n"
-			   "=================\n"
-			   "Input: " );
-		pszRet = fgets( szPickSelect, sizeof(szPickSelect), stdin );
-		if ( NULL == pszRet )
-		{
-			MPGLOG_ERR( "%s:: fgets() fail", __func__ );
-			return INPUT_FAIL;
-		}
-		ClearStdin( szPickSelect );
+		MPGLOG_ERR( "%s:: fgets() fail", __func__ );
+		return INPUT_FAIL;
+	}
+	ClearStdin( szId );
 
-		nPickSelect = atoi(szPickSelect);
-	
-	} while ( 1 != nPickSelect && 2 != nPickSelect );
-
-	switch ( nPickSelect )
+	if ( 0 == strlen(szId) )
 	{
-		case 1:
-		{
-			ptRequestToServer->nMsgType = MTYPE_SELECTALL;
-		}
-			break;
-		case 2:
-		{
-			ptRequestToServer->nMsgType = MTYPE_SELECTONE;
+		ptRequestToServer->nMsgType = MTYPE_SELECTALL;
+		ptRequestToServer->nId = 0;
 
-			printf( "[%s] id = ", __func__ );
-			
-			pszRet = fgets( szId, sizeof(szId), stdin );
-			if ( NULL == pszRet )
-			{
-				MPGLOG_ERR( "%s:: fgets() fail", __func__ );
-				return INPUT_FAIL;
-			}
-			ClearStdin( szId );
+		MPGLOG_DBG( "[SEND] mtype = %d | id = ALL", ptRequestToServer->nMsgType );
+	}
+	else if ( 0 < strlen(szId) )
+	{
+		ptRequestToServer->nMsgType = MTYPE_SELECTONE;
+		ptRequestToServer->nId = atoi(szId);
 
-			if ( 0 == strlen(szId) )
-			{
-				return CLIENT_SELECT_FAIL;
-			}
-			else if ( 0 < strlen(szId) )
-			{
-				if ( 0 > atoi(szId) )
-				{
-					return CLIENT_SELECT_FAIL;
-				}
-			}
-		}
-			break;
-		default:
-			break;
+		MPGLOG_DBG( "[SEND] mtype = %d | id = %d", ptRequestToServer->nMsgType, ptRequestToServer->nId );
 	}
 
-	ptRequestToServer->nId = atoi(szId);
-
-	return CLIENT_SELECT_SUCCESS;
+	return RC_SUCCESS;
 }
 
 int Update( struct REQUEST_s *ptRequestToServer )
@@ -417,6 +363,7 @@ int Update( struct REQUEST_s *ptRequestToServer )
 	memset( szId, 0x00, sizeof(szId) );
 
 	printf( "[%s] id = ", __func__ );
+
 	pszRet = fgets( szId, sizeof(szId), stdin );
 	if ( NULL == pszRet )
 	{
@@ -425,11 +372,7 @@ int Update( struct REQUEST_s *ptRequestToServer )
 	}
 	ClearStdin( szId );
 
-	if ( 0 > atoi(szId) )
-	{
-		return CLIENT_UPDATE_FAIL;
-	}
-
+	ptRequestToServer->nMsgType = MTYPE_UPDATE;
 	ptRequestToServer->nId = atoi(szId);
 
 	printf( "[%s] name = ", __func__ );
@@ -468,7 +411,12 @@ int Update( struct REQUEST_s *ptRequestToServer )
 	}
 	ClearStdin( ptRequestToServer->szPhone );
 
-	return CLIENT_UPDATE_SUCCESS;
+	MPGLOG_DBG( "[SEND] mtype = %d | id = %d | name = %s | position = %s | team = %s | phone = %s",
+				ptRequestToServer->nMsgType, ptRequestToServer->nId,
+				ptRequestToServer->szName, ptRequestToServer->szPosition,
+				ptRequestToServer->szTeam, ptRequestToServer->szPhone );
+
+	return RC_SUCCESS;
 }
 
 int Delete( struct REQUEST_s *ptRequestToServer )
@@ -479,6 +427,7 @@ int Delete( struct REQUEST_s *ptRequestToServer )
 	memset( szId, 0x00, sizeof(szId) );
 	
 	printf( "[%s] id = ", __func__ );
+
 	pszRet = fgets( szId, sizeof(szId), stdin );
 	if ( NULL == pszRet )
 	{
@@ -487,12 +436,10 @@ int Delete( struct REQUEST_s *ptRequestToServer )
 	}
 	ClearStdin( szId );
 
-	if ( 0 > atoi(szId) )
-	{
-		return CLIENT_DELETE_FAIL;
-	}
-
+	ptRequestToServer->nMsgType = MTYPE_DELETE;
 	ptRequestToServer->nId = atoi(szId);
 
-	return CLIENT_DELETE_SUCCESS;
+	MPGLOG_DBG( "[SEND] mtype = %d | id = %d", ptRequestToServer->nMsgType, ptRequestToServer->nId );
+
+	return RC_SUCCESS;
 }

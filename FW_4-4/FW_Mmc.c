@@ -1,6 +1,9 @@
 /* FW_Mmc.c */
 #include "FW_Header.h"
 
+/*
+ *	EMPL_INFO
+ */
 oammmc_arg_info_t atArgsAdd[] =
 {
 	{ 1, EMPL_NAME, "<EMPL_NAME>", OAMMMC_STR, EMPL_NAME_ID, 1, 32, NULL, "Process Name to (De)Activate" },
@@ -45,28 +48,32 @@ oammmc_cmd_t tCommandInfo[] =
 	{ 0, NULL, 0, 0, 0, 0, NULL, NULL }
 };
 
+/*
+ *	EMPL_TRC
+ */
 oammmc_arg_info_t atArgsAddTrace[] =
 {
-	{ 1, EMPL_TRC_NUM, "<EMPL_TRC_NUM>", OAMMMC_STR, EMPL_TRC_NUM_ID, 1, 11, NULL, "Process Name to (De)Activate" },
+	{ 1, EMPL_TRC_KEY, "<EMPL_TRC_KEY>", OAMMMC_INT, EMPL_TRC_KEY_ID, 1, 1000, NULL, "Process Name to (De)Activate" },
+	{ 2, PERIOD_MIN, "<PERIOD_MIN>", OAMMMC_INT, PERIOD_MIN_ID, 1, 43200, NULL, "Process Name to (De)Activate" },
 	{ 0, NULL, NULL, 0, 0, 0, 0, NULL, NULL }
 };
 
 oammmc_arg_info_t atArgsDisTrace[] =
 {
-	{ 1, EMPL_TRC_NUM, "<EMPL_TRC_NUM>", OAMMMC_STR, EMPL_TRC_NUM_ID, 1, 11, NULL, "Process Name to (De)Activate" },
+	{ 1, EMPL_TRC_KEY, "<EMPL_TRC_KEY>", OAMMMC_INT, EMPL_TRC_KEY_ID, 1, 1000, NULL, "Process Name to (De)Activate" },
 	{ 0, NULL, NULL, 0, 0, 0, 0, NULL, NULL }
 };
 
 oammmc_arg_info_t atArgsDelTrace[] =
 {
-	{ 1, EMPL_TRC_NUM, "<EMPL_TRC_NUM>", OAMMMC_STR, EMPL_TRC_NUM_ID, 1, 11, NULL, "Process Name to (De)Activate" },
+	{ 1, EMPL_TRC_KEY, "<EMPL_TRC_KEY>", OAMMMC_INT, EMPL_TRC_KEY_ID, 1, 1000, NULL, "Process Name to (De)Activate" },
 	{ 0, NULL, NULL, 0, 0, 0, 0, NULL, NULL }
 };
 
 oammmc_cmd_t tCommandTrace[] =
 {
-	{ 1, MMC_ADD_TRC, MMC_ADD_TRC_ID, MMC_Handler_AddTrace, 1, 1, atArgsAddTrace, "Cmd_Desc: Add Employee Trace" },
-	{ 2, MMC_DIS_TRC, MMC_DIS_TRC_ID, MMC_Handler_DisTrace, 1, 1, atArgsDisTrace, "Cmd_Desc: Display Employee Trace" },
+	{ 1, MMC_ADD_TRC, MMC_ADD_TRC_ID, MMC_Handler_AddTrace, 1, 2, atArgsAddTrace, "Cmd_Desc: Add Employee Trace" },
+	{ 2, MMC_DIS_TRC, MMC_DIS_TRC_ID, MMC_Handler_DisTrace, 0, 1, atArgsDisTrace, "Cmd_Desc: Display Employee Trace" },
 	{ 3, MMC_DEL_TRC, MMC_DEL_TRC_ID, MMC_Handler_DelTrace, 1, 1, atArgsDelTrace, "Cmd_Desc: Delete Employee Trace" },
 	{ 0, NULL, 0, 0, 0, 0, NULL, NULL }
 };
@@ -264,7 +271,7 @@ void MMC_Destroy( oammmc_t *ptOammmc )
 }
 
 int MMC_Handler_Add( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
-		oammmc_arg_t *ptArgList, int nArg, void *ptUarg )
+		oammmc_arg_t *patArgList, int nArgNum, void *ptUarg )
 {
 	if ( NULL == ptOammmc )
 	{
@@ -280,9 +287,9 @@ int MMC_Handler_Add( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 		return NULL_FAIL;
 	}
 
-	if ( NULL == ptArgList )
+	if ( NULL == patArgList )
 	{
-		MPGLOG_ERR( "%s:: ptArgList NULL", __func__ );
+		MPGLOG_ERR( "%s:: patArgList NULL", __func__ );
 		oammmc_out( ptOammmc, "System Fail" );
 		return NULL_FAIL;
 	}
@@ -296,12 +303,12 @@ int MMC_Handler_Add( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 	char *pszPosition = NULL;
 	char *pszTeam = NULL;
 	char *pszPhone = NULL;
-
+	
 	oammmc_arg_t *ptArg = NULL;
 
-	for ( i = 0; i < nArg; ++i )
+	for ( i = 0; i < nArgNum; ++i )
 	{
-		ptArg = &ptArgList[i];
+		ptArg = &patArgList[i];
 
 		switch ( OAMMMC_ARG_ID( ptArg ) )
 		{
@@ -383,8 +390,10 @@ int MMC_Handler_Add( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 };
 
 int MMC_Handler_Dis( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
-		oammmc_arg_t *ptArgList, int nArg, void *ptUarg )
+		oammmc_arg_t *patArgList, int nArgNum, void *ptUarg )
 {
+	//TODO 하나로 function화 하기
+	
 	if ( NULL == ptOammmc )
 	{
 		MPGLOG_ERR( "%s:: ptOammmc NULL", __func__ );
@@ -399,9 +408,9 @@ int MMC_Handler_Dis( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 		return NULL_FAIL;
 	}
 
-	if ( NULL == ptArgList )
+	if ( NULL == patArgList )
 	{
-		MPGLOG_ERR( "%s:: ptArgList NULL", __func__ );
+		MPGLOG_ERR( "%s:: patArgList NULL", __func__ );
 		oammmc_out( ptOammmc, "System Fail" );
 		return NULL_FAIL;
 	}
@@ -422,8 +431,8 @@ int MMC_Handler_Dis( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 
 	DAL_RESULT_SET *ptRes = NULL;
 	DAL_ENTRY *ptEntry = NULL;
-
-	if ( 0 == nArg )
+	
+	if ( 0 == nArgNum )
 	{
 		nRC = dalPreparedExec( g_ptDalConn, g_ptPstmtSelectAll, &ptRes );
 		if ( -1 == nRC )
@@ -497,11 +506,11 @@ int MMC_Handler_Dis( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 
 		return MMC_HANDLER_SUCCESS;
 	}
-	else if ( 1 == nArg )
+	else if ( 1 == nArgNum )
 	{
 		oammmc_arg_t *ptArg = NULL;
-		
-		ptArg = &ptArgList[0];
+
+		ptArg = &patArgList[0];
 
 		switch( OAMMMC_ARG_ID( ptArg ) )
 		{
@@ -897,7 +906,7 @@ _exit_failure:
 };
 
 int MMC_Handler_Chg( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
-		oammmc_arg_t *ptArgList, int nArg, void *ptUarg )
+		oammmc_arg_t *patArgList, int nArgNum, void *ptUarg )
 {
 	if ( NULL == ptOammmc )
 	{
@@ -913,9 +922,9 @@ int MMC_Handler_Chg( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 		return NULL_FAIL;
 	}
 
-	if ( NULL == ptArgList )
+	if ( NULL == patArgList )
 	{
-		MPGLOG_ERR( "%s:: ptArgList NULL", __func__ );
+		MPGLOG_ERR( "%s:: patArgList NULL", __func__ );
 		oammmc_out( ptOammmc, "System Fail" );
 		return NULL_FAIL;
 	}
@@ -949,15 +958,15 @@ int MMC_Handler_Chg( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 	DAL_ENTRY *ptEntry = NULL;
 	oammmc_arg_t *ptArg = NULL;
 
-	if ( 1 == nArg && 1 == OAMMMC_ARG_ID( &ptArgList[0] ) )
+	if ( 1 == nArgNum && 1 == OAMMMC_ARG_ID( &patArgList[0] ) )
 	{
 		oammmc_out( ptOammmc, "Input Option" );
 		return INPUT_FAIL;
 	}
 
-	for ( i = 0; i < nArg; ++i )
+	for ( i = 0; i < nArgNum; ++i )
 	{
-		ptArg = &ptArgList[i];
+		ptArg = &patArgList[i];
 
 		switch ( OAMMMC_ARG_ID( ptArg ) )
 		{
@@ -1188,7 +1197,7 @@ _exit_failure:
 };
 
 int MMC_Handler_Del( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
-		oammmc_arg_t *ptArgList, int nArg, void *ptUarg )
+		oammmc_arg_t *patArgList, int nArgNum, void *ptUarg )
 {
 	if ( NULL == ptOammmc )
 	{
@@ -1204,14 +1213,14 @@ int MMC_Handler_Del( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 		return NULL_FAIL;
 	}
 
-	if ( NULL == ptArgList )
+	if ( NULL == patArgList )
 	{
-		MPGLOG_ERR( "%s:: ptArgList NULL", __func__ );
+		MPGLOG_ERR( "%s:: patArgList NULL", __func__ );
 		oammmc_out( ptOammmc, "System Fail" );
 		return NULL_FAIL;
 	}
 
-	nArg = nArg;
+	nArgNum = nArgNum;
 	ptUarg = ptUarg;
 
 	int nRC = 0;
@@ -1229,7 +1238,7 @@ int MMC_Handler_Del( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 	DAL_ENTRY *ptEntry = NULL;
 	oammmc_arg_t *ptArg = NULL;
 
-	ptArg = &ptArgList[0];
+	ptArg = &patArgList[0];
 
 	if ( 1 == OAMMMC_ARG_ID( ptArg ) )
 	{
@@ -1340,7 +1349,7 @@ _exit_failure:
 }
 
 int MMC_Handler_AddTrace( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
-		oammmc_arg_t *ptArgList, int nArg, void *ptUarg )
+		oammmc_arg_t *patArgList, int nArgNum, void *ptUarg )
 {
 	if ( NULL == ptOammmc )
 	{
@@ -1356,48 +1365,51 @@ int MMC_Handler_AddTrace( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 		return NULL_FAIL;
 	}
 
-	if ( NULL == ptArgList )
+	if ( NULL == patArgList )
 	{
-		MPGLOG_ERR( "%s:: ptArgList NULL", __func__ );
+		MPGLOG_ERR( "%s:: patArgList NULL", __func__ );
 		oammmc_out( ptOammmc, "System Fail" );
 		return NULL_FAIL;
 	}
 
-	nArg = nArg;
+	nArgNum = nArgNum;
 	ptUarg = ptUarg;
-
+	
 	int nRC = 0;
-	char *pszPhone = NULL;
-	oammmc_arg_t *ptArg = NULL;
+	int nKey = 0;
 
-	ptArg = &ptArgList[0];
+	char szKey[TAP_REGI_KEY_SIZE];
+ 	memset( szKey, 0x00, sizeof(szKey) );
+
+	oammmc_arg_t *ptArg = NULL;
+	ptArg = &patArgList[0];
 
 	if ( 1 == OAMMMC_ARG_ID( ptArg ) )
 	{
-		pszPhone = OAMMMC_VAL_STR( ptArg );
+		nKey = OAMMMC_VAL_INT( ptArg );
 
-		nRC = REGI_CheckKey( pszPhone );
-		if ( RC_SUCCESS != nRC )
+		snprintf( szKey, sizeof(szKey), "%s/%d", REGI_KEY_DIR, nKey );
+		szKey[ strlen(szKey) ] = '\0';
+
+		nRC = TAP_Registry_udp_key_create( szKey, strlen(szKey), TAP_REGISTRY_FILE, REGI_MAN_SYSTEM_ID );
+		if ( TAP_REGI_ALREADY_EXIST == nRC )
 		{
-			MPGLOG_ERR( "%s:: REGI_CheckKey() fail=%d", __func__, nRC );
-			oammmc_out( ptOammmc, "key not exist" );
-			return MMC_HANDLER_FAIL;
+			MPGLOG_DBG( "%s:: create key %s", __func__, szKey );
+			oammmc_out( ptOammmc, "create key %s", szKey );
 		}
-		
-		nRC = TRACE_AddTrace( pszPhone );
-		if ( RC_SUCCESS != nRC )
+		else if ( 0 > nRC )
 		{
-			MPGLOG_ERR( "%s:: TRACE_AddTrace() fail=%d", __func__, nRC );
+			MPGLOG_ERR( "%s:: TAP_Registry_udp_key_create() fail=%d", __func__ , nRC );
 			oammmc_out( ptOammmc, "System Fail" );
-			return MMC_HANDLER_FAIL;
-		}	
+			return REGI_FAIL;
+		}
 	}
 
 	return MMC_HANDLER_SUCCESS;
 }
 
 int MMC_Handler_DisTrace( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
-		oammmc_arg_t *ptArgList, int nArg, void *ptUarg )
+		oammmc_arg_t *patArgList, int nArgNum, void *ptUarg )
 {
 	if ( NULL == ptOammmc )
 	{
@@ -1413,48 +1425,62 @@ int MMC_Handler_DisTrace( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 		return NULL_FAIL;
 	}
 
-	if ( NULL == ptArgList )
+	if ( NULL == patArgList )
 	{
-		MPGLOG_ERR( "%s:: ptArgList NULL", __func__ );
+		MPGLOG_ERR( "%s:: patArgList NULL", __func__ );
 		oammmc_out( ptOammmc, "System Fail" );
 		return NULL_FAIL;
 	}
 
-	nArg = nArg;
+	nArgNum = nArgNum;
 	ptUarg = ptUarg;
 
 	int nRC = 0;
-	char *pszPhone = NULL;
-	oammmc_arg_t *ptArg = NULL;
+	//int nKey  0;
 
-	ptArg = &ptArgList[0];
+	//char szKey[TAP_REGI_KEY_SIZE];
+	char szTempBuf[1024];
+	
+	//memset( szKey, 0x00, sizeof(szKey) );
+	memset( szTempBuf, 0x00, sizeof(szTempBuf) );
 
-	if ( 1 == OAMMMC_ARG_ID( ptArg ) )
+	//oammmc_arg_t *ptArg = NULL;
+	//ptArg = &patArgList[0];
+
+	char *pszToken = NULL;
+	char *pszDefaultToken = NULL;
+
+	//if ( 1 == OAMMMC_ARG_ID( ptArg ) )
+	
+	//Key 입력받으면 key만 조회?
+	//아무것도 입력받지 않으면 key 다 조회
+//	nKey = OAMMMC_VAL_INT( ptArg );
+
+//	snprintf( szKey, sizeof(szKey), "%s/%d", REGI_KEY_DIR, nKey );
+//	szKey[ strlen(szKey) ] = '\0';
+
+	nRC = TAP_Registry_udp_enum_key_node( REGI_KEY_DIR, strlen(REGI_KEY_DIR),
+			szTempBuf, sizeof(szTempBuf), REGI_MAN_SYSTEM_ID );
+	if ( 0 > nRC )
 	{
-		pszPhone = OAMMMC_VAL_STR( ptArg );
+		MPGLOG_ERR( "%s:: TAP_Registry_udp_enum_key_node() fail=%d", __func__, nRC );
+		return TAP_REGI_FAIL;
+	}
 
-		nRC = REGI_CheckKey( pszPhone );
-		if ( RC_SUCCESS != nRC )
-		{
-			MPGLOG_ERR( "%s:: REGI_CheckKey() fail=%d", __func__, nRC );
-			oammmc_out( ptOammmc, "key not exist" );
-			return MMC_HANDLER_FAIL;
-		}
-		
-		nRC = TRACE_DisTrace( pszPhone );
-		if ( RC_SUCCESS != nRC )
-		{
-			MPGLOG_ERR( "%s:: TRACE_DisTrace() fail=%d", __func__, nRC );
-			oammmc_out( ptOammmc, "System Fail" );
-			return MMC_HANDLER_FAIL;
-		}	
+	pszToken = strtok_r( szTempBuf, STRTOK_KEY_DELIM, &pszDefaultToken );
+	while ( NULL != pszToken )
+	{
+		MPGLOG_DBG( "%s:: key %s", __func__, pszToken );
+		oammmc_out( ptOammmc, "key %s", pszToken );
+
+		pszToken = strtok_r( NULL, STRTOK_KEY_DELIM, &pszDefaultToken );
 	}
 
 	return MMC_HANDLER_SUCCESS;
 }
 
 int MMC_Handler_DelTrace( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
-		oammmc_arg_t *ptArgList, int nArg, void *ptUarg )
+		oammmc_arg_t *patArgList, int nArgNum, void *ptUarg )
 {
 	if ( NULL == ptOammmc )
 	{
@@ -1470,42 +1496,41 @@ int MMC_Handler_DelTrace( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 		return NULL_FAIL;
 	}
 
-	if ( NULL == ptArgList )
+	if ( NULL == patArgList )
 	{
-		MPGLOG_ERR( "%s:: ptArgList NULL", __func__ );
+		MPGLOG_ERR( "%s:: patArgList NULL", __func__ );
 		oammmc_out( ptOammmc, "System Fail" );
 		return NULL_FAIL;
 	}
 
-	nArg = nArg;
+	nArgNum = nArgNum;
 	ptUarg = ptUarg;
 
 	int nRC = 0;
-	char *pszPhone = NULL;
-	oammmc_arg_t *ptArg = NULL;
+	int nId = 0;
 
-	ptArg = &ptArgList[0];
+	char szKey[TAP_REGI_KEY_SIZE];
+	memset( szKey, 0x00, sizeof(szKey) );
+	
+	oammmc_arg_t *ptArg = NULL;
+	ptArg = &patArgList[0];
 
 	if ( 1 == OAMMMC_ARG_ID( ptArg ) )
 	{
-		pszPhone = OAMMMC_VAL_STR( ptArg );
+		nId = OAMMMC_VAL_INT( ptArg );
 
-		nRC = REGI_CheckKey( pszPhone );
-		if ( RC_SUCCESS != nRC )
+		snprintf( szKey, sizeof(szKey), "%s/%d", REGI_KEY_DIR, nId );
+		szKey[ strlen(szKey) ] = '\0';
+
+		nRC = TAP_Registry_udp_key_delete( szKey, strlen(szKey), TAP_REGISTRY_UDP_REMOVEALL, REGI_MAN_SYSTEM_ID );
+		if ( 0 > nRC )
 		{
-			MPGLOG_ERR( "%s:: REGI_CheckKey() fail=%d", __func__, nRC );
-			oammmc_out( ptOammmc, "key not exist" );
-			return MMC_HANDLER_FAIL;
+			MPGLOG_ERR( "%s:: TAP_Regsitry_udp_key_delete() fail=%d", __func__, nRC );
+			return RC_FAIL;
 		}
-		
-		nRC = TRACE_DelTrace( pszPhone );
-		if ( RC_SUCCESS != nRC )
-		{
-			MPGLOG_ERR( "%s:: TRACE_DelTrace() fail=%d", __func__, nRC );
-			oammmc_out( ptOammmc, "System Fail" );
-			return MMC_HANDLER_FAIL;
-		}	
 	}
+
+	oammmc_out( ptOammmc, "delete key %s", szKey );
 
 	return MMC_HANDLER_SUCCESS;
 }
