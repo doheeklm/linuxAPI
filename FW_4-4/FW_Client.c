@@ -19,7 +19,7 @@ int main( int argc, char *argv[] )
 	SELECT_t tSelect;
 
 	int i = 0;
-	int nRet = 0;
+	int nRC = 0;
 	int nPickMenu = 0;
 	char szPickMenu[8];
 	char *pszRet = NULL;
@@ -33,9 +33,9 @@ int main( int argc, char *argv[] )
 	/*
 	 *	MPLOG
 	 */
-	nRet = MPGLOG_INIT( PROCNAME_CLIENT, NULL, LOG_MODE_DAILY | LOG_MODE_NO_DATE | LOG_MODE_LEVEL_TAG,
+	nRC = MPGLOG_INIT( PROCNAME_CLIENT, NULL, LOG_MODE_DAILY | LOG_MODE_NO_DATE | LOG_MODE_LEVEL_TAG,
 						LOG_LEVEL_DBG );
-	if ( 0 > nRet )
+	if ( 0 > nRC )
 	{
 		printf( "MPGLOG_INIT() error\n" );
 		return MPGLOG_FAIL;
@@ -44,21 +44,21 @@ int main( int argc, char *argv[] )
 	/*
 	 *	IPC
 	 */
-	nRet = TAP_ipc_open( &tIpc, PROCNAME_CLIENT );
-	if ( 0 > nRet )
+	nRC = TAP_ipc_open( &tIpc, PROCNAME_CLIENT );
+	if ( 0 > nRC )
 	{
-		MPGLOG_ERR( "%s:: TAP_ipc_open() fail=%d", __func__, ipc_errno );
+		MPGLOG_ERR( "%s:: TAP_ipc_open() fail<%d>", __func__, ipc_errno );
 		return IPC_FAIL;
 	}	
 
 	tDstKey = TAP_ipc_getkey( &tIpc, PROCNAME_SERVER );
 	if ( IPC_NOPROC == tDstKey )
 	{
-		MPGLOG_ERR( "%s:: TAP_ipc_getkey() fail=%d", __func__, ipc_errno );
-		nRet = TAP_ipc_close( &tIpc );
-		if ( 0 > nRet )
+		MPGLOG_ERR( "%s:: TAP_ipc_getkey() fail<%d>", __func__, ipc_errno );
+		nRC = TAP_ipc_close( &tIpc );
+		if ( 0 > nRC )
 		{
-			MPGLOG_ERR( "%s:: TAP_ipc_close() fail=%d", __func__, ipc_errno );
+			MPGLOG_ERR( "%s:: TAP_ipc_close() fail<%d>", __func__, ipc_errno );
 		}
 		return IPC_FAIL;
 	}
@@ -66,18 +66,18 @@ int main( int argc, char *argv[] )
 	tSrcKey = TAP_ipc_getkey( &tIpc, PROCNAME_CLIENT );
 	if ( IPC_NOPROC == tSrcKey )
 	{
-		MPGLOG_ERR( "%s:: TAP_ipc_getkey() fail=%d", __func__, ipc_errno );
-		nRet = TAP_ipc_close( &tIpc );
-		if ( 0 > nRet )
+		MPGLOG_ERR( "%s:: TAP_ipc_getkey() fail<%d>", __func__, ipc_errno );
+		nRC = TAP_ipc_close( &tIpc );
+		if ( 0 > nRC )
 		{
-			MPGLOG_ERR( "%s:: TAP_ipc_close() fail=%d", __func__, ipc_errno );
+			MPGLOG_ERR( "%s:: TAP_ipc_close() fail<%d>", __func__, ipc_errno );
 		}
 		return IPC_FAIL;
 	}
 
 	while ( FLAG_RUN == g_nFlag )
 	{
-		nRet = 0;
+		nRC = 0;
 		pszRet = NULL;
 		nPickMenu = 0;
 		
@@ -124,43 +124,43 @@ int main( int argc, char *argv[] )
 		{
 			case 1:
 			{
-				nRet = Insert( ptRequestToServer );
-				if ( RC_SUCCESS != nRet )
+				nRC = Insert( ptRequestToServer );
+				if ( RC_SUCCESS != nRC )
 				{
-					goto end_of_function;
+					goto _exit_failure;
 				}
 			}
 				break;
 			case 2:
 			{
-				nRet = Select( ptRequestToServer );
-				if ( RC_SUCCESS != nRet )
+				nRC = Select( ptRequestToServer );
+				if ( RC_SUCCESS != nRC )
 				{
-					goto end_of_function;
+					goto _exit_failure;
 				}
 			}
 				break;
 			case 3:
 			{
-				nRet = Update( ptRequestToServer );
-				if ( RC_SUCCESS != nRet )
+				nRC = Update( ptRequestToServer );
+				if ( RC_SUCCESS != nRC )
 				{
-					goto end_of_function;
+					goto _exit_failure;
 				}
 			}
 				break;
 			case 4:
 			{
-				nRet = Delete( ptRequestToServer );
-				if ( RC_SUCCESS != nRet )
+				nRC = Delete( ptRequestToServer );
+				if ( RC_SUCCESS != nRC )
 				{
-					goto end_of_function;
+					goto _exit_failure;
 				}
 			}
 				break;
 			case 5:
 			{
-				goto end_of_function;
+				goto _exit_failure;
 			}
 				break;
 			default:
@@ -170,31 +170,21 @@ int main( int argc, char *argv[] )
 		/*
 		 *	Send Message To Server
 		 */
-		nRet = TAP_ipc_msgsnd( &tIpc, &tSendMsg, IPC_BLOCK );
-		if ( 0 > nRet )
+		nRC = TAP_ipc_msgsnd( &tIpc, &tSendMsg, IPC_BLOCK );
+		if ( 0 > nRC )
 		{
-			MPGLOG_ERR( "%s:: TAP_ipc_msgsnd() fail=%d", __func__, ipc_errno );
-			nRet = TAP_ipc_close( &tIpc );
-			if ( 0 > nRet )
-			{
-				MPGLOG_ERR( "%s:: TAP_ipc_close() fail=%d", __func__, ipc_errno );
-			}
-			return IPC_FAIL;
+			MPGLOG_ERR( "%s:: TAP_ipc_msgsnd() fail<%d>", __func__, ipc_errno );
+			goto _exit_failure;
 		}
 	
 		/*
 		 *	Receive Message From Server
 		 */
-		nRet = TAP_ipc_msgrcv( &tIpc, &tRecvMsg, IPC_BLOCK );
-		if ( 0 > nRet )
+		nRC = TAP_ipc_msgrcv( &tIpc, &tRecvMsg, IPC_BLOCK );
+		if ( 0 > nRC )
 		{
-			MPGLOG_ERR( "%s:: TAP_ipc_msgrcv() fail=%d", __func__, ipc_errno );
-			nRet = TAP_ipc_close( &tIpc );
-			if ( 0 > nRet )
-			{
-				MPGLOG_ERR( "%s:: TAP_ipc_close() fail=%d", __func__, ipc_errno );
-			}
-			return IPC_FAIL;
+			MPGLOG_ERR( "%s:: TAP_ipc_msgrcv() fail<%d>", __func__, ipc_errno );
+			goto _exit_failure;
 		}
 
 		ptResponseFromServer = (RESPONSE_t *)tRecvMsg.buf.msgq_buf;	
@@ -216,8 +206,7 @@ int main( int argc, char *argv[] )
 
 					for ( i = 0; i < ptResponseFromServer->nCntSelectAll; i++ )
 					{
-						memcpy( &tSelect, ptResponseFromServer->szBuffer+(i*sizeof(tSelect)), sizeof(tSelect) );
-						
+						memcpy( &tSelect, ptResponseFromServer->szBuffer + ( i * sizeof(tSelect) ), sizeof(tSelect) );
 						MPGLOG_SVC( "%4d %32s %32s %32s %11s",
 								tSelect.nId, tSelect.szName, tSelect.szPosition,
 								tSelect.szTeam, tSelect.szPhone );
@@ -234,16 +223,25 @@ int main( int argc, char *argv[] )
 		}
 	}
 
-end_of_function:
-
-	nRet = TAP_ipc_close( &tIpc );
-	if ( 0 > nRet )
+	nRC = TAP_ipc_close( &tIpc );
+	if ( 0 > nRC )
 	{
-		MPGLOG_ERR( "%s:: TAP_ipc_close() fail=%d", __func__, ipc_errno );
+		MPGLOG_ERR( "%s:: TAP_ipc_close() fail<%d>", __func__, ipc_errno );
 		return IPC_FAIL;
 	}
 
-	return 0;
+	exit( EXIT_SUCCESS );
+
+_exit_failure:
+
+	nRC = TAP_ipc_close( &tIpc );
+	if ( 0 > nRC )
+	{
+		MPGLOG_ERR( "%s:: TAP_ipc_close() fail<%d>", __func__, ipc_errno );
+		return IPC_FAIL;
+	}
+
+	exit( EXIT_FAILURE );
 }
 
 void SignalHandler( int nSigno )
@@ -271,6 +269,12 @@ void ClearStdin( char *pszTemp )
 
 int Insert( struct REQUEST_s *ptRequestToServer )
 {
+	if ( NULL == ptRequestToServer )
+	{
+		MPGLOG_ERR( "%s:: ptRequestToServer NULL", __func__ );
+		return NULL_FAIL;
+	}
+	
 	char *pszRet = NULL;
 
 	ptRequestToServer->nMsgType = MTYPE_INSERT;

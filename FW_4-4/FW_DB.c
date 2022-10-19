@@ -14,35 +14,35 @@ int DB_Insert( struct REQUEST_s *ptRequestFromClient )
 	nRC = dalSetStringByKey( g_ptPstmtInsert, TABLE_ATT_NAME, ptRequestFromClient->szName );
 	if ( -1 == nRC )
 	{
-		MPGLOG_ERR( "%s:: dalSetStringByKey() fail=%d", __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: dalSetStringByKey() fail<%d>", __func__, dalErrno() );
 		return DAL_FAIL;
 	}
 
 	nRC = dalSetStringByKey( g_ptPstmtInsert, TABLE_ATT_POSITION, ptRequestFromClient->szPosition );
 	if ( -1 == nRC )
 	{
-		MPGLOG_ERR( "%s:: dalSetStringByKey() fail=%d", __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: dalSetStringByKey() fail<%d>", __func__, dalErrno() );
 		return DAL_FAIL;
 	}
 
 	nRC = dalSetStringByKey( g_ptPstmtInsert, TABLE_ATT_TEAM, ptRequestFromClient->szTeam );
 	if ( -1 == nRC )
 	{
-		MPGLOG_ERR( "%s:: dalSetStringByKey() fail=%d", __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: dalSetStringByKey() fail<%d>", __func__, dalErrno() );
 		return DAL_FAIL;
 	}
 
 	nRC = dalSetStringByKey( g_ptPstmtInsert, TABLE_ATT_PHONE, ptRequestFromClient->szPhone );
 	if ( -1 == nRC )
 	{
-		MPGLOG_ERR( "%s:: dalSetStringByKey() fail=%d", __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: dalSetStringByKey() fail<%d>", __func__, dalErrno() );
 		return DAL_FAIL;
 	}
 
 	nRC = dalPreparedExec( g_ptDalConn, g_ptPstmtInsert, NULL );
 	if ( -1 == nRC )
 	{
-		MPGLOG_ERR( "%s:: dalPreparedExec() fail=%d", __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: dalPreparedExec() fail<%d>", __func__, dalErrno() );
 		return DAL_FAIL;
 	}
 	else if ( 0 == nRC )
@@ -91,7 +91,7 @@ int DB_Select( struct REQUEST_s *ptRequestFromClient, struct RESPONSE_s *ptRespo
 			nRC = dalPreparedExec( g_ptDalConn, g_ptPstmtSelectAll, &ptRes );
 			if ( -1 == nRC )
 			{
-				MPGLOG_ERR( "%s:: dalPreparedExec() fail=%d", __func__, dalErrno() );
+				MPGLOG_ERR( "%s:: dalPreparedExec() fail<%d>", __func__, dalErrno() );
 				return DAL_FAIL;
 			}
 			else if ( 0 == nRC )
@@ -99,7 +99,7 @@ int DB_Select( struct REQUEST_s *ptRequestFromClient, struct RESPONSE_s *ptRespo
 				nRC = dalResFree( ptRes );
 				if ( -1 == nRC )
 				{
-					MPGLOG_ERR( "%s:: dalResFree() fail=%d", __func__, dalErrno() );
+					MPGLOG_ERR( "%s:: dalResFree() fail<%d>", __func__, dalErrno() );
 					return DAL_FAIL;
 				}
 
@@ -113,35 +113,35 @@ int DB_Select( struct REQUEST_s *ptRequestFromClient, struct RESPONSE_s *ptRespo
 				nRC = dalGetIntByKey( ptEntry, TABLE_ATT_ID, &nId );
 				if ( -1 == nRC )
 				{
-					MPGLOG_ERR( "%s:: dalGetIntByKey() fail=%d", __func__, dalErrno() );
+					MPGLOG_ERR( "%s:: dalGetIntByKey() fail<%d>", __func__, dalErrno() );
 					goto error_return;
 				}
 
 				nRC = dalGetStringByKey( ptEntry, TABLE_ATT_NAME, &pszName );
 				if ( -1 == nRC )
 				{
-					MPGLOG_ERR( "%s:: dalGetStringByKey() fail=%d", __func__, dalErrno() );
+					MPGLOG_ERR( "%s:: dalGetStringByKey() fail<%d>", __func__, dalErrno() );
 					goto error_return;
 				}
 
 				nRC = dalGetStringByKey( ptEntry, TABLE_ATT_POSITION, &pszPosition );
 				if ( -1 == nRC )
 				{
-					MPGLOG_ERR( "%s:: dalGetStringByKey() fail=%d", __func__, dalErrno() );
+					MPGLOG_ERR( "%s:: dalGetStringByKey() fail<%d>", __func__, dalErrno() );
 					goto error_return;
 				}
 
 				nRC = dalGetStringByKey( ptEntry, TABLE_ATT_TEAM, &pszTeam );
 				if ( -1 == nRC )
 				{
-					MPGLOG_ERR( "%s:: dalGetStringByKey() fail=%d", __func__, dalErrno() );
+					MPGLOG_ERR( "%s:: dalGetStringByKey() fail<%d>", __func__, dalErrno() );
 					goto error_return;
 				}
 
 				nRC = dalGetStringByKey( ptEntry, TABLE_ATT_PHONE, &pszPhone );
 				if ( -1 == nRC )
 				{
-					MPGLOG_ERR( "%s:: dalGetStringByKey() fail=%d", __func__, dalErrno() );
+					MPGLOG_ERR( "%s:: dalGetStringByKey() fail<%d>", __func__, dalErrno() );
 					goto error_return;
 				}
 
@@ -178,7 +178,7 @@ int DB_Select( struct REQUEST_s *ptRequestFromClient, struct RESPONSE_s *ptRespo
 			nRC = dalExecute( g_ptDalConn, szQuery, &ptRes );
 			if ( -1 == nRC )
 			{
-				MPGLOG_ERR( "%s:: dalExecute() fail=%d", __func__, dalErrno() );
+				MPGLOG_ERR( "%s:: dalExecute() fail<%d>", __func__, dalErrno() );
 				return DAL_FAIL;
 			}
 			else if ( 0 == nRC )
@@ -186,7 +186,7 @@ int DB_Select( struct REQUEST_s *ptRequestFromClient, struct RESPONSE_s *ptRespo
 				nRC = dalResFree( ptRes );
 				if ( -1 == nRC )
 				{
-					MPGLOG_ERR( "%s:: dalResFree() fail=%d", __func__, dalErrno() );
+					MPGLOG_ERR( "%s:: dalResFree() fail<%d>", __func__, dalErrno() );
 					return DAL_FAIL;
 				}
 
@@ -200,28 +200,28 @@ int DB_Select( struct REQUEST_s *ptRequestFromClient, struct RESPONSE_s *ptRespo
 				nRC = dalGetStringByKey( ptEntry, TABLE_ATT_NAME, &pszName );
 				if ( -1 == nRC )
 				{
-					MPGLOG_ERR( "%s:: dalGetStringByKey() fail=%d", __func__, dalErrno() );
+					MPGLOG_ERR( "%s:: dalGetStringByKey() fail<%d>", __func__, dalErrno() );
 					goto error_return;
 				}
 
 				nRC = dalGetStringByKey( ptEntry, TABLE_ATT_POSITION, &pszPosition );
 				if ( -1 == nRC )
 				{
-					MPGLOG_ERR( "%s:: dalGetStringByKey() fail=%d", __func__, dalErrno() );
+					MPGLOG_ERR( "%s:: dalGetStringByKey() fail<%d>", __func__, dalErrno() );
 					goto error_return;
 				}
 
 				nRC = dalGetStringByKey( ptEntry, TABLE_ATT_TEAM, &pszTeam );
 				if ( -1 == nRC )
 				{
-					MPGLOG_ERR( "%s:: dalGetStringByKey() fail=%d", __func__, dalErrno() );
+					MPGLOG_ERR( "%s:: dalGetStringByKey() fail<%d>", __func__, dalErrno() );
 					goto error_return;
 				}	
 
 				nRC = dalGetStringByKey( ptEntry, TABLE_ATT_PHONE, &pszPhone );
 				if ( -1 == nRC )
 				{
-					MPGLOG_ERR( "%s:: dalGetStringByKey() fail=%d", __func__, dalErrno() );
+					MPGLOG_ERR( "%s:: dalGetStringByKey() fail<%d>", __func__, dalErrno() );
 					goto error_return;
 				}
 
@@ -251,7 +251,7 @@ int DB_Select( struct REQUEST_s *ptRequestFromClient, struct RESPONSE_s *ptRespo
 	nRC = dalResFree( ptRes );
 	if ( -1 == nRC )
 	{
-		MPGLOG_ERR( "%s:: dalResFree() fail=%d", __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: dalResFree() fail<%d>", __func__, dalErrno() );
 		return DAL_FAIL;
 	}
 
@@ -262,7 +262,7 @@ error_return:
 	nRC = dalResFree( ptRes );
 	if ( -1 == nRC )
 	{
-		MPGLOG_ERR( "%s:: dalResFree() fail=%d", __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: dalResFree() fail<%d>", __func__, dalErrno() );
 	}
 
 	return DAL_FAIL;
@@ -305,13 +305,13 @@ int DB_Update( struct REQUEST_s *ptRequestFromClient )
 		nRC = dalResFree( ptRes );
 		if ( -1 == nRC )
 		{
-			MPGLOG_ERR( "%s:: dalResFree() fail=%d", __func__, dalErrno() );
+			MPGLOG_ERR( "%s:: dalResFree() fail<%d>", __func__, dalErrno() );
 		}
 		return DAL_EXEC_ZERO;
 	}
 	else if ( -1 == nRC )
 	{
-		MPGLOG_ERR( "%s:: dalExecute() fail=%d", __func__, nRC );
+		MPGLOG_ERR( "%s:: dalExecute() fail<%d>", __func__, nRC );
 		return DAL_FAIL;
 	}
 
@@ -321,28 +321,28 @@ int DB_Update( struct REQUEST_s *ptRequestFromClient )
 		nRC = dalGetStringByKey( ptEntry, TABLE_ATT_NAME, &pszName );
 		if ( -1 == nRC )
 		{
-			MPGLOG_ERR( "%s:: dalGetStringByKey() fail=%d", __func__, dalErrno() );
+			MPGLOG_ERR( "%s:: dalGetStringByKey() fail<%d>", __func__, dalErrno() );
 			goto _exit_failure;	
 		}
 
 		nRC = dalGetStringByKey( ptEntry, TABLE_ATT_POSITION, &pszPosition );
 		if ( -1 == nRC )
 		{
-			MPGLOG_ERR( "%s:: dalGetStringByKey() fail=%d", __func__, dalErrno() );
+			MPGLOG_ERR( "%s:: dalGetStringByKey() fail<%d>", __func__, dalErrno() );
 			goto _exit_failure;
 		}
 
 		nRC = dalGetStringByKey( ptEntry, TABLE_ATT_TEAM, &pszTeam );
 		if ( -1 == nRC )
 		{
-			MPGLOG_ERR( "%s:: dalGetStringByKey() fail=%d", __func__, dalErrno() );
+			MPGLOG_ERR( "%s:: dalGetStringByKey() fail<%d>", __func__, dalErrno() );
 			goto _exit_failure;
 		}	
 
 		nRC = dalGetStringByKey( ptEntry, TABLE_ATT_PHONE, &pszPhone );
 		if ( -1 == nRC )
 		{
-			MPGLOG_ERR( "%s:: dalGetStringByKey() fail=%d", __func__, dalErrno() );
+			MPGLOG_ERR( "%s:: dalGetStringByKey() fail<%d>", __func__, dalErrno() );
 			goto _exit_failure;
 		}
 	}
@@ -446,7 +446,7 @@ int DB_Update( struct REQUEST_s *ptRequestFromClient )
 	nRC = dalExecute( g_ptDalConn, szUpdateQuery, NULL );
 	if ( -1 == nRC )
 	{
-		MPGLOG_ERR( "%s:: dalExecute() fail=%d", __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: dalExecute() fail<%d>", __func__, dalErrno() );
 		return DAL_FAIL;
 	}
 	else if ( 0 == nRC )
@@ -458,7 +458,7 @@ int DB_Update( struct REQUEST_s *ptRequestFromClient )
 	nRC = dalResFree( ptRes );
 	if ( -1 == nRC )
 	{
-		MPGLOG_ERR( "%s:: dalResFree() fail=%d", __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: dalResFree() fail<%d>", __func__, dalErrno() );
 		return DAL_FAIL;
 	}
 	
@@ -469,7 +469,7 @@ _exit_failure:
 	nRC = dalResFree( ptRes );
 	if ( -1 == nRC )
 	{
-		MPGLOG_ERR( "%s:: dalResFree() fail=%d", __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: dalResFree() fail<%d>", __func__, dalErrno() );
 	}
 	
 	return DAL_FAIL;
@@ -488,14 +488,14 @@ int DB_Delete( struct REQUEST_s *ptRequestFromClient )
 	nRC = dalSetIntByKey( g_ptPstmtDelete, TABLE_ATT_ID, ptRequestFromClient->nId );
 	if ( -1 == nRC )
 	{
-		MPGLOG_ERR( "%s:: dalSetIntByKey() fail=%d", __func__, dalErrno() );		
+		MPGLOG_ERR( "%s:: dalSetIntByKey() fail<%d>", __func__, dalErrno() );		
 		return DAL_FAIL;
 	}
 
 	nRC = dalPreparedExec( g_ptDalConn, g_ptPstmtDelete, NULL );
 	if ( -1 == nRC )
 	{
-		MPGLOG_ERR( "%s:: dalPreparedExec() fail=%d", __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: dalPreparedExec() fail<%d>", __func__, dalErrno() );
 		return DAL_FAIL;
 	}
 	else if ( 0 == nRC )

@@ -13,10 +13,11 @@ int PSTMT_Init()
 			TABLE_ATT_NAME, TABLE_ATT_POSITION, TABLE_ATT_TEAM, TABLE_ATT_PHONE,
 			TABLE_ATT_NAME, TABLE_ATT_POSITION, TABLE_ATT_TEAM, TABLE_ATT_PHONE );
 	szQuery[ strlen(szQuery) ] = '\0';
+
 	g_ptPstmtInsert = dalPreparedStatement( g_ptDalConn, szQuery );
 	if ( NULL == g_ptPstmtInsert )
 	{
-		MPGLOG_ERR( "%s:: dalPreparedStatement() fail=%d", __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: dalPreparedStatement() fail<%d>", __func__, dalErrno() );
 		return DAL_FAIL;
 	}
 
@@ -27,7 +28,7 @@ int PSTMT_Init()
 	g_ptPstmtSelectAll = dalPreparedStatement( g_ptDalConn, szQuery );
 	if ( NULL == g_ptPstmtSelectAll )
 	{
-		MPGLOG_ERR( "%s:: dalPreparedStatement() fail=%d", __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: dalPreparedStatement() fail<%d>", __func__, dalErrno() );
 		return DAL_FAIL;
 	}
 
@@ -40,7 +41,7 @@ int PSTMT_Init()
 	g_ptPstmtDelete = dalPreparedStatement( g_ptDalConn, szQuery );
 	if ( NULL == g_ptPstmtDelete )
 	{
-		MPGLOG_ERR( "%s:: dalPreparedStatement() fail=%d", __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: dalPreparedStatement() fail<%d>", __func__, dalErrno() );
 		return DAL_FAIL;
 	}
 
@@ -53,7 +54,7 @@ int PSTMT_Init()
 	g_ptPstmtNumTuples = dalPreparedStatement( g_ptDalConn, szQuery );
 	if ( NULL == g_ptPstmtNumTuples )
 	{
-		MPGLOG_ERR( "%s:: dalPreparedStatement() fail=%d", __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: dalPreparedStatement() fail<%d>", __func__, dalErrno() );
 		return DAL_FAIL;
 	}
 
@@ -67,25 +68,25 @@ void PSTMT_Destroy()
 	nRC = dalDestroyPreparedStmt( g_ptPstmtInsert );
 	if ( -1 == nRC )
 	{
-		MPGLOG_ERR( "%s:: dalDestroyPreparedStmt() fail=%d", __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: dalDestroyPreparedStmt() fail<%d>", __func__, dalErrno() );
 	}
 
 	nRC = dalDestroyPreparedStmt( g_ptPstmtSelectAll );
 	if ( -1 == nRC )
 	{
-		MPGLOG_ERR( "%s:: dalDestroyPreparedStmt() fail=%d", __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: dalDestroyPreparedStmt() fail<%d>", __func__, dalErrno() );
 	}
 	
 	nRC = dalDestroyPreparedStmt( g_ptPstmtDelete );
 	if ( -1 == nRC )
 	{
-		MPGLOG_ERR( "%s:: dalDestroyPreparedStmt() fail=%d", __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: dalDestroyPreparedStmt() fail<%d>", __func__, dalErrno() );
 	}
 
 	nRC = dalDestroyPreparedStmt( g_ptPstmtNumTuples );
 	if ( -1 == nRC )
 	{
-		MPGLOG_ERR( "%s:: dalDestroyPreparedStmt() fail=%d", __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: dalDestroyPreparedStmt() fail<%d>", __func__, dalErrno() );
 	}
 
 	return;

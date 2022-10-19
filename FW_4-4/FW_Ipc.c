@@ -1,11 +1,11 @@
 /* FW_Ipc.c */
 #include "FW_Header.h"
 
-int IPC_Handler( mpipc_t *ptMpipc, iipc_msg_t *ptRecvMsg, void *pvData )
+int IPC_Handler( mpipc_t *g_ptMpipc, iipc_msg_t *ptRecvMsg, void *pvData )
 {
-	if ( NULL == ptMpipc )
+	if ( NULL == g_ptMpipc )
 	{
-		MPGLOG_ERR( "%s:: ptMpipc NULL", __func__ );
+		MPGLOG_ERR( "%s:: g_ptMpipc NULL", __func__ );
 		return NULL_FAIL;
 	}
 
@@ -25,11 +25,11 @@ int IPC_Handler( mpipc_t *ptMpipc, iipc_msg_t *ptRecvMsg, void *pvData )
 	iipc_msg_t tSendMsg;
 	iipc_key_t tKey = IPC_NOPROC;
 
-	tKey = TAP_ipc_getkey( mpipc_tap_ipc(ptMpipc), PROCNAME_SERVER );
+	tKey = TAP_ipc_getkey( mpipc_tap_ipc(g_ptMpipc), PROCNAME_SERVER );
 	if ( IPC_NOPROC == tKey )
 	{
-		MPGLOG_ERR( "%s:: TAP_ipc_getkey() fail=%d", __func__, ipc_errno );
-		IPC_Destroy( ptMpipc );
+		MPGLOG_ERR( "%s:: TAP_ipc_getkey() fail<%d>", __func__, ipc_errno );
+		IPC_Destroy( g_ptMpipc );
 		exit( EXIT_FAILURE );
 	}
 	
@@ -38,10 +38,13 @@ int IPC_Handler( mpipc_t *ptMpipc, iipc_msg_t *ptRecvMsg, void *pvData )
 
 	tSendMsg.buf.mtype = ptRecvMsg->buf.mtype;
 
-	tSendMsg.u.h.dst = ptRecvMsg->u.h.src;
 	tSendMsg.u.h.src = tKey;
+	tSendMsg.u.h.dst = ptRecvMsg->u.h.src;
 	tSendMsg.u.h.len = sizeof(struct RESPONSE_s);
 
+	/*
+	 *	MMC 처리
+	 */
 	switch ( ptRecvMsg->buf.mtype )
 	{
 		case MMC_ADD_INFO_ID:
@@ -55,22 +58,38 @@ int IPC_Handler( mpipc_t *ptMpipc, iipc_msg_t *ptRecvMsg, void *pvData )
 			return MPIPC_HDLR_RET_NOT_FOR_ME;
 		}
 			break;
+		default:
+			break;
 	}
 
+	/*
+	 *	Client 요청 처리
+	 */
+
+	//	1. IPC message로 전달받은 Employee Id가 Registry에 존재하는지 체크
 	nRC = REGI_CheckKey( ptRequestFromClient->nId );
 	if ( RC_SUCCESS != nRC )
 	{
-		MPGLOG_DBG( "%s:: id %d not exist in trace", __func__, ptRequestFromClient->nId  );
-		return MPIPC_HDLR_RET_DONE;
+		MPGLOG_DBG( "%s:: id %d not exist in trace", __func__, ptRequestFromClient->nId );
 	}
-
-	nRC = TRACE_MakeTrace( ptRequestFromClient->nId, ptRequestFromClient->nMsgType );
-	if ( RC_SUCCESS != nRC )
+	else
 	{
-		MPGLOG_DBG( "%s:: TRACE_MakeTrace() fail=%d", __func__, nRC );
-		return MPIPC_HDLR_RET_DONE;
+		MPGLOG_DBG( "%s:: id %d exist in trace", __func__, ptRequestFromClient->nId );
+	
+		//	2. Registry에 존재할 경우, Trace 메시지 전송
+		nRC = TRACE_MakeTrace( ptRequestFromClient );
+		if ( RC_SUCCESS != nRC )
+		{
+			MPGLOG_DBG( "%s:: TRACE_MakeTrace() fail<%d>", __func__, nRC );
+			return MPIPC_HDLR_RET_DONE;
+		}
+		else
+		{
+			MPGLOG_DBG( "%s:: send trace message", __func__ );
+		}
 	}
 
+	//	3. DB에 Employee Info 저장
 	switch ( ptRequestFromClient->nMsgType )
 	{
 		case MTYPE_INSERT:
@@ -137,7 +156,7 @@ int IPC_Handler( mpipc_t *ptMpipc, iipc_msg_t *ptRecvMsg, void *pvData )
 			break;
 		default:
 		{
-			MPGLOG_DBG( "%s:: unknown IPC message", __func__ );
+			MPGLOG_ERR( "%s:: unknown IPC message", __func__ );
 			
 			return MPIPC_HDLR_RET_NOT_FOR_ME;
 		}
@@ -146,10 +165,11 @@ int IPC_Handler( mpipc_t *ptMpipc, iipc_msg_t *ptRecvMsg, void *pvData )
 
 	ptResponseToClient->nMsgType = ptRequestFromClient->nMsgType;
 
-	nRC = TAP_ipc_msgsnd( mpipc_tap_ipc(ptMpipc), &tSendMsg, IPC_BLOCK );
+	//	4. IPC 메시지를 보내왔던 곳으로 다시 메시지를 Send 함
+	nRC = TAP_ipc_msgsnd( mpipc_tap_ipc(g_ptMpipc), &tSendMsg, IPC_BLOCK );
 	if ( 0 > nRC )
 	{
-		MPGLOG_ERR( "%s:: TAP_ipc_msgsnd() fail=%d", __func__, ipc_errno );
+		MPGLOG_ERR( "%s:: TAP_ipc_msgsnd() fail<%d>", __func__, ipc_errno );
 		return MPIPC_HDLR_RET_DONE;	
 	}
 
@@ -158,18 +178,20 @@ int IPC_Handler( mpipc_t *ptMpipc, iipc_msg_t *ptRecvMsg, void *pvData )
 	return MPIPC_HDLR_RET_DONE;
 }
 
-void IPC_Destroy( mpipc_t *ptMpipc )
+void IPC_Destroy( mpipc_t *g_ptMpipc )
 {
 	int nRC = 0;
 
-	if ( NULL != ptMpipc )
+	if ( NULL != g_ptMpipc )
 	{
-		nRC = mpipc_stop( ptMpipc );
+		nRC = mpipc_stop( g_ptMpipc );
 		if ( 0 > nRC )
 		{
-			MPGLOG_ERR( "%s:: mpipc_stop fail=%d", __func__, nRC );
+			MPGLOG_ERR( "%s:: mpipc_stop() fail<%d>", __func__, nRC );
 		}
-		mpipc_destroy( ptMpipc );
+		MPGLOG_DBG( "%s:: mpipc_stop() %d", __func__, nRC );
+		mpipc_destroy( g_ptMpipc );
+		MPGLOG_DBG( "%s:: mpipc_destroy()", __func__ );
 	}
 
 	return;

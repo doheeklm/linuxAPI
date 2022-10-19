@@ -54,7 +54,7 @@ oammmc_cmd_t tCommandInfo[] =
 oammmc_arg_info_t atArgsAddTrace[] =
 {
 	{ 1, EMPL_TRC_KEY, "<EMPL_TRC_KEY>", OAMMMC_INT, EMPL_TRC_KEY_ID, 1, 1000, NULL, "Process Name to (De)Activate" },
-	{ 2, PERIOD_MIN, "<PERIOD_MIN>", OAMMMC_INT, PERIOD_MIN_ID, 1, 43200, NULL, "Process Name to (De)Activate" },
+	{ 2, PERIOD_TM, "<PERIOD_TM>", OAMMMC_INT, PERIOD_TM_ID, 1, 10800, NULL, "Process Name to (De)Activate" },
 	{ 0, NULL, NULL, 0, 0, 0, 0, NULL, NULL }
 };
 
@@ -111,7 +111,7 @@ int MMC_Init( char *pszModule, oammmc_t *ptOammmc, mpipc_t *ptMpipc )
 	}
 
 	/*
-	 *	설정파일에 mmt_enable=1 일경우 mmt를 사용하도록 구성한다.
+	 *	Enable MMT
 	 */
 	if ( 1 == nMmtEnable )
 	{
@@ -177,8 +177,8 @@ int MMC_Init( char *pszModule, oammmc_t *ptOammmc, mpipc_t *ptMpipc )
 			return OAMMMC_FAIL;
 		}
 
-		MPGLOG_SVC( "mmt_enabled. name=%s port=%d conn_max=%d local_only=%d is_quiet=%d",
-				pszModule, nMmtPort, nMmtConnMax, nMmtLocalOnly, nMmtIsQuiet );
+		MPGLOG_DBG( "%s:: mmt_enabled. name=%s port=%d conn_max=%d local_only=%d is_quiet=%d",
+				__func__, pszModule, nMmtPort, nMmtConnMax, nMmtLocalOnly, nMmtIsQuiet );
 	}
 	
 	nRC = mpconf_get_int( "", PROCESS_INI, pszModule, MML_ENABLE, &nMmlEnable, 1, 0 );
@@ -189,18 +189,18 @@ int MMC_Init( char *pszModule, oammmc_t *ptOammmc, mpipc_t *ptMpipc )
 	}
 
 	/*
-	 *	설정파일에 mml_enable=1 일경우 mml을 사용하도록 구성한다.
+	 *	Enable MML
 	 */
 	if ( 1 == nMmlEnable )
 	{
 		nRC = oammmc_bind_mml( ptOammmc, mpipc_tap_ipc(ptMpipc), oammmc_name(ptOammmc) );
 		if ( 0 > nRC )
 		{
-			MPGLOG_ERR( "%s:: oammmc_bind_mml fail=%d", __func__, nRC );
+			MPGLOG_ERR( "%s:: oammmc_bind_mml fail<%d>", __func__, nRC );
 			return OAMMMC_FAIL;
 		}
 
-		MPGLOG_SVC( "mml_enabled. name=%s", pszModule );
+		MPGLOG_DBG( "%s:: mml_enabled. name=%s", __func__, pszModule );
 	}
 	else if ( 0 == nMmlEnable )
 	{
@@ -219,14 +219,14 @@ int MMC_Init( char *pszModule, oammmc_t *ptOammmc, mpipc_t *ptMpipc )
 	nRC = oammmc_regi_cmd( ptOammmc, tCommandInfo, NULL );
 	if ( 0 > nRC )
 	{
-		MPGLOG_ERR( "%s:: oammmc_regi_cmd() fail=%d", __func__, nRC );
+		MPGLOG_ERR( "%s:: oammmc_regi_cmd() fail<%d>", __func__, nRC );
 		return OAMMMC_FAIL;
 	}
 
 	nRC = oammmc_regi_cmd( ptOammmc, tCommandTrace, NULL );
 	if ( 0 > nRC )
 	{
-		MPGLOG_ERR( "%s:: oammmc_regi_cmd() fail=%d", __func__, nRC );
+		MPGLOG_ERR( "%s:: oammmc_regi_cmd() fail<%d>", __func__, nRC );
 		return OAMMMC_FAIL;
 	}
 
@@ -236,7 +236,7 @@ int MMC_Init( char *pszModule, oammmc_t *ptOammmc, mpipc_t *ptMpipc )
 	nRC = mpipc_regi_hdlr( ptMpipc, oammmc_mpipc_hdlr, ptOammmc );
 	if ( 0 > nRC )
 	{
-		MPGLOG_ERR( "%s:: mpipc_regi_hdlr() fail=%d", __func__, nRC );
+		MPGLOG_ERR( "%s:: mpipc_regi_hdlr() fail<%d>", __func__, nRC );
 		return OAMMMC_FAIL;
 	}
 
@@ -262,9 +262,11 @@ void MMC_Destroy( oammmc_t *ptOammmc )
 		nRC = oammmc_stop( ptOammmc );
 		if ( 0 > nRC )
 		{
-			MPGLOG_ERR( "%s:: oammmc_stop fail=%d", __func__, nRC );
+			MPGLOG_ERR( "%s:: oammmc_stop fail<%d>", __func__, nRC );
 		}
+		MPGLOG_DBG( "%s:: oammmc_stop() %d", __func__, nRC );
 		oammmc_destroy( ptOammmc );
+		MPGLOG_DBG( "%s:: oammmc_destroy()", __func__ );
 	}
 
 	return;
@@ -296,7 +298,7 @@ int MMC_Handler_Add( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 
 	ptUarg = ptUarg;
 	
-	int i = 0;
+	int nIndex = 0;
 	int nRC = 0;
 
 	char *pszName = NULL;
@@ -306,9 +308,9 @@ int MMC_Handler_Add( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 	
 	oammmc_arg_t *ptArg = NULL;
 
-	for ( i = 0; i < nArgNum; ++i )
+	for ( nIndex = 0; nIndex < nArgNum; ++nIndex )
 	{
-		ptArg = &patArgList[i];
+		ptArg = &patArgList[nIndex];
 
 		switch ( OAMMMC_ARG_ID( ptArg ) )
 		{
@@ -319,7 +321,7 @@ int MMC_Handler_Add( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 				nRC = dalSetStringByKey( g_ptPstmtInsert, TABLE_ATT_NAME, pszName );
 				if ( -1 == nRC )
 				{
-					MPGLOG_ERR( "%s:: dalSetStringByKey() fail=%d", __func__, dalErrno() );
+					MPGLOG_ERR( "%s:: dalSetStringByKey() fail<%d>", __func__, dalErrno() );
 					oammmc_out( ptOammmc, "System Fail" );
 					return DAL_FAIL;
 				}
@@ -332,7 +334,7 @@ int MMC_Handler_Add( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 				nRC = dalSetStringByKey( g_ptPstmtInsert, TABLE_ATT_POSITION, pszPosition );
 				if ( -1 == nRC )
 				{
-					MPGLOG_ERR( "%s:: dalSetStringByKey() fail=%d", __func__, dalErrno() );
+					MPGLOG_ERR( "%s:: dalSetStringByKey() fail<%d>", __func__, dalErrno() );
 					oammmc_out( ptOammmc, "System Fail" );
 					return DAL_FAIL;
 				}
@@ -345,7 +347,7 @@ int MMC_Handler_Add( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 				nRC = dalSetStringByKey( g_ptPstmtInsert, TABLE_ATT_TEAM, pszTeam );
 				if ( -1 == nRC )
 				{
-					MPGLOG_ERR( "%s:: dalSetStringByKey() fail=%d", __func__, dalErrno() );
+					MPGLOG_ERR( "%s:: dalSetStringByKey() fail<%d>", __func__, dalErrno() );
 					oammmc_out( ptOammmc, "System Fail" );
 					return DAL_FAIL;
 				}
@@ -358,7 +360,7 @@ int MMC_Handler_Add( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 				nRC = dalSetStringByKey( g_ptPstmtInsert, TABLE_ATT_PHONE, pszPhone );
 				if ( -1 == nRC )
 				{
-					MPGLOG_ERR( "%s:: dalSetStringByKey() fail=%d", __func__, dalErrno() );
+					MPGLOG_ERR( "%s:: dalSetStringByKey() fail<%d>", __func__, dalErrno() );
 					oammmc_out( ptOammmc, "System Fail" );
 					return DAL_FAIL;
 				}
@@ -370,7 +372,7 @@ int MMC_Handler_Add( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 	nRC = dalPreparedExec( g_ptDalConn, g_ptPstmtInsert, NULL );
 	if ( -1 == nRC )
 	{
-		MPGLOG_ERR( "%s:: dalPreparedExec() fail=%d", __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: dalPreparedExec() fail<%d>", __func__, dalErrno() );
 		oammmc_out( ptOammmc, "System Fail" );
 		return DAL_FAIL;
 	}
@@ -391,9 +393,7 @@ int MMC_Handler_Add( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 
 int MMC_Handler_Dis( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 		oammmc_arg_t *patArgList, int nArgNum, void *ptUarg )
-{
-	//TODO 하나로 function화 하기
-	
+{	
 	if ( NULL == ptOammmc )
 	{
 		MPGLOG_ERR( "%s:: ptOammmc NULL", __func__ );
@@ -417,6 +417,7 @@ int MMC_Handler_Dis( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 
 	ptUarg = ptUarg;
 
+	int nIndex = 0;
 	int nRC = 0;
 	int nId = 0;
 	int nTotalCnt = 0;
@@ -431,13 +432,15 @@ int MMC_Handler_Dis( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 
 	DAL_RESULT_SET *ptRes = NULL;
 	DAL_ENTRY *ptEntry = NULL;
-	
+
+	oammmc_arg_t *ptArg = NULL;
+
 	if ( 0 == nArgNum )
 	{
 		nRC = dalPreparedExec( g_ptDalConn, g_ptPstmtSelectAll, &ptRes );
 		if ( -1 == nRC )
 		{
-			MPGLOG_ERR( "%s:: dalPreparedExec() fail=%d", __func__, dalErrno() );
+			MPGLOG_ERR( "%s:: dalPreparedExec() fail<%d>", __func__, dalErrno() );
 			oammmc_out( ptOammmc, "System Fail" );	
 			return DAL_FAIL;
 		}
@@ -446,7 +449,7 @@ int MMC_Handler_Dis( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 			nRC = dalResFree( ptRes );
 			if ( -1 == nRC )
 			{
-				MPGLOG_ERR( "%s:: dalResFree() fail=%d", __func__, dalErrno() );
+				MPGLOG_ERR( "%s:: dalResFree() fail<%d>", __func__, dalErrno() );
 				oammmc_out( ptOammmc, "System Fail" );
 				return DAL_FAIL;
 			}
@@ -456,42 +459,42 @@ int MMC_Handler_Dis( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 
 		oammmc_out( ptOammmc, "%4s %32s %32s %32s %11s\n",
 				TABLE_ATT_ID, TABLE_ATT_NAME, TABLE_ATT_POSITION, TABLE_ATT_TEAM, TABLE_ATT_PHONE );
-		oammmc_out( ptOammmc, "------------------------------------------------------------------------------------------------------------------------\n" );
+		MMC_Line( ptOammmc );
 
 		for ( ptEntry = dalFetchFirst(ptRes); ptEntry != NULL; ptEntry = dalFetchNext(ptRes) )
 		{
 			nRC = dalGetIntByKey( ptEntry, TABLE_ATT_ID, &nId );
 			if ( -1 == nRC )
 			{
-				MPGLOG_ERR( "%s:: dalGetIntByKey() fail=%d", __func__, dalErrno() );
+				MPGLOG_ERR( "%s:: dalGetIntByKey() fail<%d>", __func__, dalErrno() );
 				goto _exit_failure;			
 			}
 
 			nRC = dalGetStringByKey( ptEntry, TABLE_ATT_NAME, &pszName );
 			if ( -1 == nRC )
 			{
-				MPGLOG_ERR( "%s:: dalGetStringByKey() fail=%d", __func__, dalErrno() );
+				MPGLOG_ERR( "%s:: dalGetStringByKey() fail<%d>", __func__, dalErrno() );
 				goto _exit_failure;
 			}
 
 			nRC = dalGetStringByKey( ptEntry, TABLE_ATT_POSITION, &pszPosition );
 			if ( -1 == nRC )
 			{
-				MPGLOG_ERR( "%s:: dalGetStringByKey() fail=%d", __func__, dalErrno() );
+				MPGLOG_ERR( "%s:: dalGetStringByKey() fail<%d>", __func__, dalErrno() );
 				goto _exit_failure;
 			}
 
 			nRC = dalGetStringByKey( ptEntry, TABLE_ATT_TEAM, &pszTeam );
 			if ( -1 == nRC )
 			{
-				MPGLOG_ERR( "%s:: dalGetStringByKey() fail=%d", __func__, dalErrno() );
+				MPGLOG_ERR( "%s:: dalGetStringByKey() fail<%d>", __func__, dalErrno() );
 				goto _exit_failure;
 			}
 
 			nRC = dalGetStringByKey( ptEntry, TABLE_ATT_PHONE, &pszPhone );
 			if ( -1 == nRC )
 			{
-				MPGLOG_ERR( "%s:: dalGetStringByKey() fail=%d", __func__, dalErrno() );
+				MPGLOG_ERR( "%s:: dalGetStringByKey() fail<%d>", __func__, dalErrno() );
 				goto _exit_failure;
 			}
 
@@ -500,393 +503,149 @@ int MMC_Handler_Dis( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 
 			nTotalCnt++;
 		}
-		
-		oammmc_out( ptOammmc, "------------------------------------------------------------------------------------------------------------------------\n" );
+
+		MMC_Line( ptOammmc );
 		oammmc_out( ptOammmc, "TOTAL_CNT = %d", nTotalCnt );
 
 		return MMC_HANDLER_SUCCESS;
 	}
-	else if ( 1 == nArgNum )
-	{
-		oammmc_arg_t *ptArg = NULL;
-
-		ptArg = &patArgList[0];
-
-		switch( OAMMMC_ARG_ID( ptArg ) )
-		{
-			case 1:
-			{
-				nId = OAMMMC_VAL_INT( ptArg );
-
-				snprintf( szQuery, sizeof(szQuery), "select %s, %s, %s, %s from %s where %s = %d;",
-						TABLE_ATT_NAME, TABLE_ATT_POSITION, TABLE_ATT_TEAM, TABLE_ATT_PHONE, TABLE_NAME,
-						TABLE_ATT_ID, nId );
-				szQuery[ strlen(szQuery) ] = '\0';
-
-				nRC = dalExecute( g_ptDalConn, szQuery, &ptRes );
-				if ( 0 == nRC )
-				{
-					nRC = dalResFree( ptRes );
-					if ( -1 == nRC )
-					{
-						MPGLOG_ERR( "%s:: dalResFree() fail=%d", __func__, dalErrno() );
-						oammmc_out( ptOammmc, "System Fail" );
-						return DAL_FAIL;
-					}
-					oammmc_out( ptOammmc, "id %d not exist", nId );
-					return DAL_EXEC_ZERO;
-				}
-				else if ( -1 == nRC )
-				{
-					oammmc_out( ptOammmc, "System Fail" );
-					return DAL_FAIL;
-				}
-
-				ptEntry = dalFetchFirst( ptRes );
-				if ( NULL != ptEntry )
-				{
-					nRC = dalGetStringByKey( ptEntry, TABLE_ATT_NAME, &pszName );
-					if ( -1 == nRC )
-					{
-						MPGLOG_ERR( "%s:: dalGetStringByKey() fail=%d", __func__, dalErrno() );
-						goto _exit_failure;
-					}
-
-					nRC = dalGetStringByKey( ptEntry, TABLE_ATT_POSITION, &pszPosition );
-					if ( -1 == nRC )
-					{
-						MPGLOG_ERR( "%s:: dalGetStringByKey() fail=%d", __func__, dalErrno() );
-						goto _exit_failure;
-					}
-
-					nRC = dalGetStringByKey( ptEntry, TABLE_ATT_TEAM, &pszTeam );
-					if ( -1 == nRC )
-					{
-						MPGLOG_ERR( "%s:: dalGetStringByKey() fail=%d", __func__, dalErrno() );
-						goto _exit_failure;
-					}	
-
-					nRC = dalGetStringByKey( ptEntry, TABLE_ATT_PHONE, &pszPhone );
-					if ( -1 == nRC )
-					{
-						MPGLOG_ERR( "%s:: dalGetStringByKey() fail=%d", __func__, dalErrno() );
-						goto _exit_failure;
-					}
-
-					oammmc_out( ptOammmc, "%-8s = %-4d\n", TABLE_ATT_ID, nId );
-					oammmc_out( ptOammmc, "%-8s = %-32s\n", TABLE_ATT_NAME, pszName );
-					oammmc_out( ptOammmc, "%-8s = %-32s\n", TABLE_ATT_POSITION, pszPosition );
-					oammmc_out( ptOammmc, "%-8s = %-32s\n", TABLE_ATT_TEAM, pszTeam );
-					oammmc_out( ptOammmc, "%-8s = %-11s\n", TABLE_ATT_PHONE, pszPhone );
-				}
-			}
-				break;
-			case 2:
-			{
-				pszName = OAMMMC_VAL_STR( ptArg );
-
-				snprintf( szQuery, sizeof(szQuery),	"select %s, %s, %s, %s from %s where %s = '%s';",
-						TABLE_ATT_ID, TABLE_ATT_POSITION, TABLE_ATT_TEAM, TABLE_ATT_PHONE, TABLE_NAME,
-						TABLE_ATT_NAME, pszName );
-				szQuery[ strlen(szQuery) ] = '\0';
-
-				nRC = dalExecute( g_ptDalConn, szQuery, &ptRes );
-				if ( 0 == nRC )
-				{
-					nRC = dalResFree( ptRes );
-					if ( -1 == nRC )
-					{
-						MPGLOG_ERR( "%s:: dalResFree() fail=%d", __func__, dalErrno() );
-						oammmc_out( ptOammmc, "System Fail" );
-						return DAL_FAIL;
-					}
-					oammmc_out( ptOammmc, "name %s not exist", pszName );
-					return DAL_EXEC_ZERO;
-				}
-				else if ( -1 == nRC )
-				{
-					oammmc_out( ptOammmc, "System Fail" );
-					return DAL_FAIL;
-				}
-
-				oammmc_out( ptOammmc, "%4s %32s %32s %32s %11s\n",
-						TABLE_ATT_ID, TABLE_ATT_NAME, TABLE_ATT_POSITION, TABLE_ATT_TEAM, TABLE_ATT_PHONE );
-
-				oammmc_out( ptOammmc, "------------------------------------------------------------------------------------------------------------------------\n" );
-
-				for ( ptEntry = dalFetchFirst(ptRes); ptEntry != NULL; ptEntry = dalFetchNext(ptRes) )
-				{
-					nRC = dalGetIntByKey( ptEntry, TABLE_ATT_ID, &nId );
-					if ( -1 == nRC )
-					{
-						MPGLOG_ERR( "%s:: dalGetIntByKey() fail=%d", __func__, dalErrno() );
-						goto _exit_failure;
-					}
-
-					nRC = dalGetStringByKey( ptEntry, TABLE_ATT_POSITION, &pszPosition );
-					if ( -1 == nRC )
-					{
-						MPGLOG_ERR( "%s:: dalGetStringByKey() fail=%d", __func__, dalErrno() );
-						goto _exit_failure;
-					}
-
-					nRC = dalGetStringByKey( ptEntry, TABLE_ATT_TEAM, &pszTeam );
-					if ( -1 == nRC )
-					{
-						MPGLOG_ERR( "%s:: dalGetStringByKey() fail=%d", __func__, dalErrno() );
-						goto _exit_failure;
-					}	
-
-					nRC = dalGetStringByKey( ptEntry, TABLE_ATT_PHONE, &pszPhone );
-					if ( -1 == nRC )
-					{
-						MPGLOG_ERR( "%s:: dalGetStringByKey() fail=%d", __func__, dalErrno() );
-						goto _exit_failure;
-					}
-
-					oammmc_out( ptOammmc, "%4d %32s %32s %32s %11s\n",
-							nId, pszName, pszPosition, pszTeam, pszPhone );
-
-					nTotalCnt++;
-				}
-
-				oammmc_out( ptOammmc, "------------------------------------------------------------------------------------------------------------------------\n" );
-				oammmc_out ( ptOammmc, "TOTAL_CNT = %d", nTotalCnt );
-			}
-				break;
-			case 3:
-			{
-				pszPosition = OAMMMC_VAL_STR( ptArg );
-
-				snprintf( szQuery, sizeof(szQuery),	"select %s, %s, %s, %s from %s where %s = '%s';",
-						TABLE_ATT_ID, TABLE_ATT_NAME, TABLE_ATT_TEAM, TABLE_ATT_PHONE, TABLE_NAME,
-						TABLE_ATT_POSITION, pszPosition );
-				szQuery[ strlen(szQuery) ] = '\0';
-
-				nRC = dalExecute( g_ptDalConn, szQuery, &ptRes );
-				if ( 0 == nRC )
-				{
-					nRC = dalResFree( ptRes );
-					if ( -1 == nRC )
-					{
-						MPGLOG_ERR( "%s:: dalResFree() fail=%d", __func__, dalErrno() );
-						oammmc_out( ptOammmc, "System Fail" );
-						return DAL_FAIL;
-					}
-					oammmc_out( ptOammmc, "position %s not exist", pszPosition );
-					return DAL_EXEC_ZERO;
-				}
-				else if ( -1 == nRC )
-				{
-					oammmc_out( ptOammmc, "System Fail" );
-					return DAL_FAIL;
-				}
-
-				oammmc_out( ptOammmc, "%4s %32s %32s %32s %11s\n",
-						TABLE_ATT_ID, TABLE_ATT_NAME, TABLE_ATT_POSITION, TABLE_ATT_TEAM, TABLE_ATT_PHONE );
-
-				oammmc_out( ptOammmc, "------------------------------------------------------------------------------------------------------------------------\n" );
-
-				for ( ptEntry = dalFetchFirst(ptRes); ptEntry != NULL; ptEntry = dalFetchNext(ptRes) )
-				{
-					nRC = dalGetIntByKey( ptEntry, TABLE_ATT_ID, &nId );
-					if ( -1 == nRC )
-					{
-						MPGLOG_ERR( "%s:: dalGetIntByKey() fail=%d", __func__, dalErrno() );
-						goto _exit_failure;
-					}
-
-					nRC = dalGetStringByKey( ptEntry, TABLE_ATT_NAME, &pszName );
-					if ( -1 == nRC )
-					{
-						MPGLOG_ERR( "%s:: dalGetStringByKey() fail=%d", __func__, dalErrno() );
-						goto _exit_failure;
-					}
-
-					nRC = dalGetStringByKey( ptEntry, TABLE_ATT_TEAM, &pszTeam );
-					if ( -1 == nRC )
-					{
-						MPGLOG_ERR( "%s:: dalGetStringByKey() fail=%d", __func__, dalErrno() );
-						goto _exit_failure;
-					}	
-
-					nRC = dalGetStringByKey( ptEntry, TABLE_ATT_PHONE, &pszPhone );
-					if ( -1 == nRC )
-					{
-						MPGLOG_ERR( "%s:: dalGetStringByKey() fail=%d", __func__, dalErrno() );
-						goto _exit_failure;
-					}
-
-					oammmc_out( ptOammmc, "%4d %32s %32s %32s %11s\n",
-							nId, pszName, pszPosition, pszTeam, pszPhone );
-
-					nTotalCnt++;
-				}
-
-				oammmc_out( ptOammmc, "------------------------------------------------------------------------------------------------------------------------\n" );
-				oammmc_out ( ptOammmc, "TOTAL_CNT = %d", nTotalCnt );	
-			}
-				break;
-			case 4:
-			{
-				pszTeam = OAMMMC_VAL_STR( ptArg );
-
-				snprintf( szQuery, sizeof(szQuery),	"select %s, %s, %s, %s from %s where %s = '%s';",
-						TABLE_ATT_ID, TABLE_ATT_NAME, TABLE_ATT_POSITION, TABLE_ATT_PHONE, TABLE_NAME,
-						TABLE_ATT_TEAM, pszTeam );
-				szQuery[ strlen(szQuery) ] = '\0';
-
-				nRC = dalExecute( g_ptDalConn, szQuery, &ptRes );
-				if ( 0 == nRC )
-				{
-					nRC = dalResFree( ptRes );
-					if ( -1 == nRC )
-					{
-						MPGLOG_ERR( "%s:: dalResFree() fail=%d", __func__, dalErrno() );
-						oammmc_out( ptOammmc, "System Fail" );
-						return DAL_FAIL;
-					}
-					oammmc_out( ptOammmc, "team %s not exist", pszTeam );
-					return DAL_EXEC_ZERO;
-				}
-				else if ( -1 == nRC )
-				{
-					oammmc_out( ptOammmc, "System Fail" );
-					return DAL_FAIL;
-				}
-
-				oammmc_out( ptOammmc, "%4s %32s %32s %32s %11s\n",
-						TABLE_ATT_ID, TABLE_ATT_NAME, TABLE_ATT_POSITION, TABLE_ATT_TEAM, TABLE_ATT_PHONE );
-
-				oammmc_out( ptOammmc, "------------------------------------------------------------------------------------------------------------------------\n" );
-
-				for ( ptEntry = dalFetchFirst(ptRes); ptEntry != NULL; ptEntry = dalFetchNext(ptRes) )
-				{
-					nRC = dalGetIntByKey( ptEntry, TABLE_ATT_ID, &nId );
-					if ( -1 == nRC )
-					{
-						MPGLOG_ERR( "%s:: dalGetIntByKey() fail=%d", __func__, dalErrno() );
-						goto _exit_failure;
-					}
-
-					nRC = dalGetStringByKey( ptEntry, TABLE_ATT_NAME, &pszName );
-					if ( -1 == nRC )
-					{
-						MPGLOG_ERR( "%s:: dalGetStringByKey() fail=%d", __func__, dalErrno() );
-						goto _exit_failure;
-					}
-
-					nRC = dalGetStringByKey( ptEntry, TABLE_ATT_POSITION, &pszPosition );
-					if ( -1 == nRC )
-					{
-						MPGLOG_ERR( "%s:: dalGetStringByKey() fail=%d", __func__, dalErrno() );
-						goto _exit_failure;
-					}	
-
-					nRC = dalGetStringByKey( ptEntry, TABLE_ATT_PHONE, &pszPhone );
-					if ( -1 == nRC )
-					{
-						MPGLOG_ERR( "%s:: dalGetStringByKey() fail=%d", __func__, dalErrno() );
-						goto _exit_failure;
-					}
-
-					oammmc_out( ptOammmc, "%4d %32s %32s %32s %11s\n",
-							nId, pszName, pszPosition, pszTeam, pszPhone );
-
-					nTotalCnt++;
-				}
-
-				oammmc_out( ptOammmc, "------------------------------------------------------------------------------------------------------------------------\n" );
-				oammmc_out ( ptOammmc, "TOTAL_CNT = %d", nTotalCnt );
-			}
-				break;
-			case 5:
-			{
-				pszPhone = OAMMMC_VAL_STR( ptArg );
-
-				snprintf( szQuery, sizeof(szQuery),	"select %s, %s, %s, %s from %s where %s = '%s';",
-						TABLE_ATT_ID, TABLE_ATT_NAME, TABLE_ATT_POSITION, TABLE_ATT_TEAM, TABLE_NAME,
-						TABLE_ATT_PHONE, pszPhone );
-				szQuery[ strlen(szQuery) ] = '\0';
-
-				nRC = dalExecute( g_ptDalConn, szQuery, &ptRes );
-				if ( 0 == nRC )
-				{
-					nRC = dalResFree( ptRes );
-					if ( -1 == nRC )
-					{
-						MPGLOG_ERR( "%s:: dalResFree() fail=%d", __func__, dalErrno() );
-						oammmc_out( ptOammmc, "System Fail" );
-						return DAL_FAIL;
-					}
-					oammmc_out( ptOammmc, "phone %s not exist", pszPhone );
-					return DAL_EXEC_ZERO;
-				}
-				else if ( -1 == nRC )
-				{
-					oammmc_out( ptOammmc, "System Fail" );
-					return DAL_FAIL;
-				}
-
-				oammmc_out( ptOammmc, "%4s %32s %32s %32s %11s\n",
-						TABLE_ATT_ID, TABLE_ATT_NAME, TABLE_ATT_POSITION, TABLE_ATT_TEAM, TABLE_ATT_PHONE );
-
-				oammmc_out( ptOammmc, "------------------------------------------------------------------------------------------------------------------------\n" );
-
-				for ( ptEntry = dalFetchFirst(ptRes); ptEntry != NULL; ptEntry = dalFetchNext(ptRes) )
-				{
-					nRC = dalGetIntByKey( ptEntry, TABLE_ATT_ID, &nId );
-					if ( -1 == nRC )
-					{
-						MPGLOG_ERR( "%s:: dalGetIntByKey() fail=%d", __func__, dalErrno() );
-						goto _exit_failure;
-					}
-
-					nRC = dalGetStringByKey( ptEntry, TABLE_ATT_NAME, &pszName );
-					if ( -1 == nRC )
-					{
-						MPGLOG_ERR( "%s:: dalGetStringByKey() fail=%d", __func__, dalErrno() );
-						goto _exit_failure;
-					}
-
-					nRC = dalGetStringByKey( ptEntry, TABLE_ATT_POSITION, &pszPosition );
-					if ( -1 == nRC )
-					{
-						MPGLOG_ERR( "%s:: dalGetStringByKey() fail=%d", __func__, dalErrno() );
-						goto _exit_failure;
-					}	
-
-					nRC = dalGetStringByKey( ptEntry, TABLE_ATT_PHONE, &pszPhone );
-					if ( -1 == nRC )
-					{
-						MPGLOG_ERR( "%s:: dalGetStringByKey() fail=%d", __func__, dalErrno() );
-						goto _exit_failure;
-					}
-
-					oammmc_out( ptOammmc, "%4d %32s %32s %32s %11s\n",
-							nId, pszName, pszPosition, pszTeam, pszPhone );
-
-					nTotalCnt++;
-				}
-
-				oammmc_out( ptOammmc, "------------------------------------------------------------------------------------------------------------------------\n" );
-				oammmc_out ( ptOammmc, "TOTAL_CNT = %d", nTotalCnt );
-			}
-				break;
-			default:
-				break;
-		}//switch
-	}//else if
-	else
+	else if ( 1 > nArgNum )
 	{
 		oammmc_out( ptOammmc, "No more than 1 option" );
 		return INPUT_FAIL;
 	}
+	else
+	{
+		for ( nIndex = 0; nIndex < nArgNum; ++nIndex )
+		{
+			ptArg = &patArgList[nIndex];
+
+			switch ( OAMMMC_ARG_ID( ptArg ) )
+			{
+				case 1:
+				{
+					nId = OAMMMC_VAL_INT( ptArg );
+					
+					snprintf( szQuery, sizeof(szQuery), "select * from %s where %s = %d;",
+							TABLE_NAME,	TABLE_ATT_ID, nId );
+					szQuery[ strlen(szQuery) ] = '\0';
+				}
+					break;
+				case 2:
+				{
+					pszName = OAMMMC_VAL_STR( ptArg );
+
+					snprintf( szQuery, sizeof(szQuery),	"select * from %s where %s = '%s';",
+							TABLE_NAME, TABLE_ATT_NAME, pszName );
+					szQuery[ strlen(szQuery) ] = '\0';
+				}
+					break;
+				case 3:
+				{
+					pszPosition = OAMMMC_VAL_STR( ptArg );
+
+					snprintf( szQuery, sizeof(szQuery),	"select * from %s where %s = '%s';",
+							TABLE_NAME, TABLE_ATT_POSITION, pszPosition );
+					szQuery[ strlen(szQuery) ] = '\0';
+				}
+					break;
+				case 4:
+				{
+					pszTeam = OAMMMC_VAL_STR( ptArg );
+
+					snprintf( szQuery, sizeof(szQuery),	"select * from %s where %s = '%s';",
+							TABLE_NAME, TABLE_ATT_TEAM, pszTeam );
+					szQuery[ strlen(szQuery) ] = '\0';
+				}
+					break;
+				case 5:
+				{
+					pszPhone = OAMMMC_VAL_STR( ptArg );
+
+					snprintf( szQuery, sizeof(szQuery),	"select * from %s where %s = '%s';",
+							TABLE_NAME, TABLE_ATT_PHONE, pszPhone );
+					szQuery[ strlen(szQuery) ] = '\0';
+				}
+					break;
+				default:
+					break;
+			}//switch
+		}//for
+	}//else
+
+	nRC = dalExecute( g_ptDalConn, szQuery, &ptRes );
+	if ( 0 == nRC )
+	{
+		nRC = dalResFree( ptRes );
+		if ( -1 == nRC )
+		{
+			MPGLOG_ERR( "%s:: dalResFree() fail<%d>", __func__, dalErrno() );
+			oammmc_out( ptOammmc, "System Fail" );
+			return DAL_FAIL;
+		}
+		oammmc_out( ptOammmc, "name %s not exist", pszName );
+		return DAL_EXEC_ZERO;
+	}
+	else if ( -1 == nRC )
+	{
+		oammmc_out( ptOammmc, "System Fail" );
+		return DAL_FAIL;
+	}
+
+	oammmc_out( ptOammmc, "%4s %32s %32s %32s %11s\n",
+			TABLE_ATT_ID, TABLE_ATT_NAME, TABLE_ATT_POSITION, TABLE_ATT_TEAM, TABLE_ATT_PHONE );
+	MMC_Line( ptOammmc );
+
+	for ( ptEntry = dalFetchFirst(ptRes); ptEntry != NULL; ptEntry = dalFetchNext(ptRes) )
+	{
+		nRC = dalGetIntByKey( ptEntry, TABLE_ATT_ID, &nId );
+		if ( -1 == nRC )
+		{
+			MPGLOG_ERR( "%s:: dalGetIntByKey() fail<%d>", __func__, dalErrno() );
+			goto _exit_failure;
+		}
+
+		nRC = dalGetStringByKey( ptEntry, TABLE_ATT_NAME, &pszName );
+		if ( -1 == nRC )
+		{
+			MPGLOG_ERR( "%s:: dalGetStringByKey() fail<%d>", __func__, dalErrno() );
+			goto _exit_failure;
+		}
+
+		nRC = dalGetStringByKey( ptEntry, TABLE_ATT_POSITION, &pszPosition );
+		if ( -1 == nRC )
+		{
+			MPGLOG_ERR( "%s:: dalGetStringByKey() fail<%d>", __func__, dalErrno() );
+			goto _exit_failure;
+		}
+
+		nRC = dalGetStringByKey( ptEntry, TABLE_ATT_TEAM, &pszTeam );
+		if ( -1 == nRC )
+		{
+			MPGLOG_ERR( "%s:: dalGetStringByKey() fail<%d>", __func__, dalErrno() );
+			goto _exit_failure;
+		}	
+
+		nRC = dalGetStringByKey( ptEntry, TABLE_ATT_PHONE, &pszPhone );
+		if ( -1 == nRC )
+		{
+			MPGLOG_ERR( "%s:: dalGetStringByKey() fail<%d>", __func__, dalErrno() );
+			goto _exit_failure;
+		}
+
+		oammmc_out( ptOammmc, "%4d %32s %32s %32s %11s\n",
+				nId, pszName, pszPosition, pszTeam, pszPhone );
+
+		nTotalCnt++;
+	}
+
+	MMC_Line( ptOammmc );
+	oammmc_out ( ptOammmc, "TOTAL_CNT = %d", nTotalCnt );
 
 	nRC = dalResFree( ptRes );
 	if ( -1 == nRC )
 	{
-		MPGLOG_ERR( "%s:: dalResFree() fail=%d", __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: dalResFree() fail<%d>", __func__, dalErrno() );
 		oammmc_out( ptOammmc, "System Fail" );
 		return DAL_FAIL;
 	}
@@ -897,7 +656,7 @@ _exit_failure:
 	nRC = dalResFree( ptRes );
 	if ( -1 == nRC )
 	{
-		MPGLOG_ERR( "%s:: dalResFree() fail=%d", __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: dalResFree() fail<%d>", __func__, dalErrno() );
 		oammmc_out( ptOammmc, "System Fail" );
 		return DAL_FAIL;
 	}
@@ -931,7 +690,7 @@ int MMC_Handler_Chg( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 
 	ptUarg = ptUarg;
 
-	int i = 0;
+	int nIndex = 0;
 	int nRC = 0;
 	int nId = 0;
 	int nCommaFlag = 0;
@@ -964,9 +723,9 @@ int MMC_Handler_Chg( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 		return INPUT_FAIL;
 	}
 
-	for ( i = 0; i < nArgNum; ++i )
+	for ( nIndex = 0; nIndex < nArgNum; ++nIndex )
 	{
-		ptArg = &patArgList[i];
+		ptArg = &patArgList[nIndex];
 
 		switch ( OAMMMC_ARG_ID( ptArg ) )
 		{
@@ -983,7 +742,7 @@ int MMC_Handler_Chg( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 					nRC = dalResFree( ptRes );
 					if ( -1 == nRC )
 					{
-						MPGLOG_ERR( "%s:: dalResFree() fail=%d", __func__, dalErrno() );
+						MPGLOG_ERR( "%s:: dalResFree() fail<%d>", __func__, dalErrno() );
 						oammmc_out( ptOammmc, "System Fail" );
 					}
 					return DAL_EXEC_ZERO;
@@ -999,28 +758,28 @@ int MMC_Handler_Chg( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 					nRC = dalGetStringByKey( ptEntry, TABLE_ATT_NAME, &pszName );
 					if ( -1 == nRC )
 					{
-						MPGLOG_ERR( "%s:: dalGetStringByKey() fail=%d", __func__, dalErrno() );
+						MPGLOG_ERR( "%s:: dalGetStringByKey() fail<%d>", __func__, dalErrno() );
 						goto _exit_failure;	
 					}
 
 					nRC = dalGetStringByKey( ptEntry, TABLE_ATT_POSITION, &pszPosition );
 					if ( -1 == nRC )
 					{
-						MPGLOG_ERR( "%s:: dalGetStringByKey() fail=%d", __func__, dalErrno() );
+						MPGLOG_ERR( "%s:: dalGetStringByKey() fail<%d>", __func__, dalErrno() );
 						goto _exit_failure;
 					}
 
 					nRC = dalGetStringByKey( ptEntry, TABLE_ATT_TEAM, &pszTeam );
 					if ( -1 == nRC )
 					{
-						MPGLOG_ERR( "%s:: dalGetStringByKey() fail=%d", __func__, dalErrno() );
+						MPGLOG_ERR( "%s:: dalGetStringByKey() fail<%d>", __func__, dalErrno() );
 						goto _exit_failure;
 					}	
 
 					nRC = dalGetStringByKey( ptEntry, TABLE_ATT_PHONE, &pszPhone );
 					if ( -1 == nRC )
 					{
-						MPGLOG_ERR( "%s:: dalGetStringByKey() fail=%d", __func__, dalErrno() );
+						MPGLOG_ERR( "%s:: dalGetStringByKey() fail<%d>", __func__, dalErrno() );
 						goto _exit_failure;
 					}
 				}
@@ -1133,7 +892,7 @@ int MMC_Handler_Chg( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 	nRC = dalExecute( g_ptDalConn, szUpdateQuery, NULL );
 	if ( -1 == nRC )
 	{
-		MPGLOG_ERR( "%s:: dalExecute() fail=%d", __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: dalExecute() fail<%d>", __func__, dalErrno() );
 		oammmc_out( ptOammmc, "System Fail" );
 		return DAL_FAIL;
 	}
@@ -1176,7 +935,7 @@ int MMC_Handler_Chg( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 	nRC = dalResFree( ptRes );
 	if ( -1 == nRC )
 	{
-		MPGLOG_ERR( "%s:: dalResFree() fail=%d", __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: dalResFree() fail<%d>", __func__, dalErrno() );
 		oammmc_out( ptOammmc, "System Fail" );
 		return DAL_FAIL;
 	}
@@ -1188,7 +947,7 @@ _exit_failure:
 	nRC = dalResFree( ptRes );
 	if ( -1 == nRC )
 	{
-		MPGLOG_ERR( "%s:: dalResFree() fail=%d", __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: dalResFree() fail<%d>", __func__, dalErrno() );
 		oammmc_out( ptOammmc, "System Fail" );
 		return DAL_FAIL;
 	}
@@ -1223,6 +982,7 @@ int MMC_Handler_Del( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 	nArgNum = nArgNum;
 	ptUarg = ptUarg;
 
+	//int nIndex = 0;
 	int nRC = 0;
 	int nId = 0;
 
@@ -1236,99 +996,105 @@ int MMC_Handler_Del( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 
 	DAL_RESULT_SET *ptRes = NULL;
 	DAL_ENTRY *ptEntry = NULL;
-	oammmc_arg_t *ptArg = NULL;
 
+	oammmc_arg_t *ptArg = NULL;
 	ptArg = &patArgList[0];
 
-	if ( 1 == OAMMMC_ARG_ID( ptArg ) )
+	switch ( OAMMMC_ARG_ID( ptArg ) )
 	{
-		nId = OAMMMC_VAL_INT( ptArg );
-
-		snprintf( szQuery, sizeof(szQuery), "select * from %s where %s = %d;", TABLE_NAME, TABLE_ATT_ID, nId );
-		szQuery[ strlen(szQuery) ] = '\0';
-
-		nRC = dalExecute( g_ptDalConn, szQuery, &ptRes );
-		if ( 0 == nRC )
+		case 1:
 		{
-			nRC = dalResFree( ptRes );
-			if ( -1 == nRC )
-			{
-				MPGLOG_ERR( "%s:: dalResFree() fail=%d", __func__, dalErrno() );
-				oammmc_out( ptOammmc, "System Fail" );
-				return DAL_FAIL;
-			}
-			oammmc_out( ptOammmc, "id %d not exist", nId );
-			return DAL_EXEC_ZERO;
+			nId = OAMMMC_VAL_INT( ptArg );
 		}
-		else if ( -1 == nRC )
+			break;
+		default:
+			break;
+	}
+
+	snprintf( szQuery, sizeof(szQuery), "select * from %s where %s = %d;", TABLE_NAME, TABLE_ATT_ID, nId );
+	szQuery[ strlen(szQuery) ] = '\0';
+
+	nRC = dalExecute( g_ptDalConn, szQuery, &ptRes );
+	if ( 0 == nRC )
+	{
+		nRC = dalResFree( ptRes );
+		if ( -1 == nRC )
 		{
+			MPGLOG_ERR( "%s:: dalResFree() fail<%d>", __func__, dalErrno() );
 			oammmc_out( ptOammmc, "System Fail" );
 			return DAL_FAIL;
 		}
+		oammmc_out( ptOammmc, "id %d not exist", nId );
+		return DAL_EXEC_ZERO;
+	}
+	else if ( -1 == nRC )
+	{
+		oammmc_out( ptOammmc, "System Fail" );
+		return DAL_FAIL;
+	}
 
-		ptEntry = dalFetchFirst( ptRes );
-		if ( NULL != ptEntry )
+	ptEntry = dalFetchFirst( ptRes );
+	if ( NULL != ptEntry )
+	{
+		nRC = dalGetStringByKey( ptEntry, TABLE_ATT_NAME, &pszName );
+		if ( -1 == nRC )
 		{
-			nRC = dalGetStringByKey( ptEntry, TABLE_ATT_NAME, &pszName );
-			if ( -1 == nRC )
-			{
-				MPGLOG_ERR( "%s:: dalGetStringByKey() fail=%d", __func__, dalErrno() );
-				goto _exit_failure;
-			}
+			MPGLOG_ERR( "%s:: dalGetStringByKey() fail<%d>", __func__, dalErrno() );
+			goto _exit_failure;
+		}
 
-			nRC = dalGetStringByKey( ptEntry, TABLE_ATT_POSITION, &pszPosition );
-			if ( -1 == nRC )
-			{
-				MPGLOG_ERR( "%s:: dalGetStringByKey() fail=%d", __func__, dalErrno() );
-				goto _exit_failure;
-			}
+		nRC = dalGetStringByKey( ptEntry, TABLE_ATT_POSITION, &pszPosition );
+		if ( -1 == nRC )
+		{
+			MPGLOG_ERR( "%s:: dalGetStringByKey() fail<%d>", __func__, dalErrno() );
+			goto _exit_failure;
+		}
 
-			nRC = dalGetStringByKey( ptEntry, TABLE_ATT_TEAM, &pszTeam );
-			if ( -1 == nRC )
-			{
-				MPGLOG_ERR( "%s:: dalGetStringByKey() fail=%d", __func__, dalErrno() );
-				goto _exit_failure;
-			}	
-
-			nRC = dalGetStringByKey( ptEntry, TABLE_ATT_PHONE, &pszPhone );
-			if ( -1 == nRC )
-			{
-				MPGLOG_ERR( "%s:: dalGetStringByKey() fail=%d", __func__, dalErrno() );
-				goto _exit_failure;
-			}
+		nRC = dalGetStringByKey( ptEntry, TABLE_ATT_TEAM, &pszTeam );
+		if ( -1 == nRC )
+		{
+			MPGLOG_ERR( "%s:: dalGetStringByKey() fail<%d>", __func__, dalErrno() );
+			goto _exit_failure;
 		}	
 
-		nRC = dalSetIntByKey( g_ptPstmtDelete, TABLE_ATT_ID, nId );
+		nRC = dalGetStringByKey( ptEntry, TABLE_ATT_PHONE, &pszPhone );
 		if ( -1 == nRC )
 		{
-			MPGLOG_ERR( "%s:: dalSetIntByKey() fail=%d", __func__, dalErrno() );		
+			MPGLOG_ERR( "%s:: dalGetStringByKey() fail<%d>", __func__, dalErrno() );
 			goto _exit_failure;
 		}
+	}	
 
-		nRC = dalPreparedExec( g_ptDalConn, g_ptPstmtDelete, NULL );
-		if ( -1 == nRC )
-		{
-			MPGLOG_ERR( "%s:: dalPreparedExec() fail=%d", __func__, dalErrno() );
-			goto _exit_failure;
-		}
-		else if ( 0 == nRC )
-		{
-			MPGLOG_DBG( "%s:: id not exist", __func__ );
-			oammmc_out( ptOammmc, "id %d not exist", nId );
-			return DAL_EXEC_ZERO;
-		}
-
-		oammmc_out( ptOammmc, "%-8s = %-4d\n", TABLE_ATT_ID, nId );
-		oammmc_out( ptOammmc, "%-8s = %-32s\n", TABLE_ATT_NAME, pszName );
-		oammmc_out( ptOammmc, "%-8s = %-32s\n", TABLE_ATT_POSITION, pszPosition );
-		oammmc_out( ptOammmc, "%-8s = %-32s\n", TABLE_ATT_TEAM, pszTeam );
-		oammmc_out( ptOammmc, "%-8s = %-11s\n", TABLE_ATT_PHONE, pszPhone );
+	nRC = dalSetIntByKey( g_ptPstmtDelete, TABLE_ATT_ID, nId );
+	if ( -1 == nRC )
+	{
+		MPGLOG_ERR( "%s:: dalSetIntByKey() fail<%d>", __func__, dalErrno() );		
+		goto _exit_failure;
 	}
+
+	nRC = dalPreparedExec( g_ptDalConn, g_ptPstmtDelete, NULL );
+	if ( -1 == nRC )
+	{
+		MPGLOG_ERR( "%s:: dalPreparedExec() fail<%d>", __func__, dalErrno() );
+		goto _exit_failure;
+	}
+	else if ( 0 == nRC )
+	{
+		MPGLOG_DBG( "%s:: id not exist", __func__ );
+		oammmc_out( ptOammmc, "id %d not exist", nId );
+		return DAL_EXEC_ZERO;
+	}
+
+	oammmc_out( ptOammmc, "%-8s = %-4d\n", TABLE_ATT_ID, nId );
+	oammmc_out( ptOammmc, "%-8s = %-32s\n", TABLE_ATT_NAME, pszName );
+	oammmc_out( ptOammmc, "%-8s = %-32s\n", TABLE_ATT_POSITION, pszPosition );
+	oammmc_out( ptOammmc, "%-8s = %-32s\n", TABLE_ATT_TEAM, pszTeam );
+	oammmc_out( ptOammmc, "%-8s = %-11s\n", TABLE_ATT_PHONE, pszPhone );
 
 	nRC = dalResFree( ptRes );
 	if ( -1 == nRC )
 	{
-		MPGLOG_ERR( "%s:: dalResFree() fail=%d", __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: dalResFree() fail<%d>", __func__, dalErrno() );
 		oammmc_out( ptOammmc, "System Fail" );
 		return DAL_FAIL;
 	}
@@ -1340,7 +1106,7 @@ _exit_failure:
 	nRC = dalResFree( ptRes );
 	if ( -1 == nRC )
 	{
-		MPGLOG_ERR( "%s:: dalResFree() fail=%d", __func__, dalErrno() );
+		MPGLOG_ERR( "%s:: dalResFree() fail<%d>", __func__, dalErrno() );
 		oammmc_out( ptOammmc, "System Fail" );
 		return DAL_FAIL;
 	}
@@ -1376,35 +1142,57 @@ int MMC_Handler_AddTrace( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 	ptUarg = ptUarg;
 	
 	int nRC = 0;
+	int nIndex = 0;
 	int nKey = 0;
+	int nPeriodTm = 0;
 
-	char szKey[TAP_REGI_KEY_SIZE];
- 	memset( szKey, 0x00, sizeof(szKey) );
+	char szRegiKey[TAP_REGI_KEY_SIZE];
+ 	memset( szRegiKey, 0x00, sizeof(szRegiKey) );
 
 	oammmc_arg_t *ptArg = NULL;
 	ptArg = &patArgList[0];
-
-	if ( 1 == OAMMMC_ARG_ID( ptArg ) )
+	
+	for ( nIndex = 0; nIndex < nArgNum; ++nIndex )
 	{
-		nKey = OAMMMC_VAL_INT( ptArg );
+		ptArg = &patArgList[nIndex];
 
-		snprintf( szKey, sizeof(szKey), "%s/%d", REGI_KEY_DIR, nKey );
-		szKey[ strlen(szKey) ] = '\0';
-
-		nRC = TAP_Registry_udp_key_create( szKey, strlen(szKey), TAP_REGISTRY_FILE, REGI_MAN_SYSTEM_ID );
-		if ( TAP_REGI_ALREADY_EXIST == nRC )
+		switch ( OAMMMC_ARG_ID( ptArg ) )
 		{
-			MPGLOG_DBG( "%s:: create key %s", __func__, szKey );
-			oammmc_out( ptOammmc, "create key %s", szKey );
-		}
-		else if ( 0 > nRC )
-		{
-			MPGLOG_ERR( "%s:: TAP_Registry_udp_key_create() fail=%d", __func__ , nRC );
-			oammmc_out( ptOammmc, "System Fail" );
-			return REGI_FAIL;
+			case 1:
+			{
+				nKey = OAMMMC_VAL_INT( ptArg );
+			}
+				break;
+			case 2:
+			{
+				nPeriodTm = OAMMMC_VAL_INT( ptArg );
+				MPGLOG_DBG( "%s:: nPeriodTm=%d", __func__, nPeriodTm );
+			}
+				break;
+			default:
+				break;
 		}
 	}
 
+	snprintf( szRegiKey, sizeof(szRegiKey), "%s/%d", REGI_KEY_DIR, nKey );
+	szRegiKey[ strlen(szRegiKey) ] = '\0';
+
+	nRC = TAP_Registry_udp_key_create( szRegiKey, strlen(szRegiKey), TAP_REGISTRY_FILE, REGI_MAN_SYSTEM_ID );
+	if ( TAP_REGI_ALREADY_EXIST == nRC )
+	{
+		MPGLOG_DBG( "%s:: %s TAP_REGI_ALREADY_EXIST", __func__, szRegiKey );
+	}
+	else if ( 0 > nRC )
+	{
+		MPGLOG_ERR( "%s:: %s TAP_Registry_udp_key_create() fail<%d>", __func__ , szRegiKey, nRC );
+		oammmc_out( ptOammmc, "System Fail" );
+		return REGI_FAIL;
+	}
+
+	
+	//TODO nPeriodMin
+
+	oammmc_out( ptOammmc, "create key %s", szRegiKey );
 	return MMC_HANDLER_SUCCESS;
 }
 
@@ -1436,45 +1224,69 @@ int MMC_Handler_DisTrace( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 	ptUarg = ptUarg;
 
 	int nRC = 0;
-	//int nKey  0;
+	int nIndex = 0;
+	int nId = 0;
 
-	//char szKey[TAP_REGI_KEY_SIZE];
-	char szTempBuf[1024];
-	
-	//memset( szKey, 0x00, sizeof(szKey) );
-	memset( szTempBuf, 0x00, sizeof(szTempBuf) );
-
-	//oammmc_arg_t *ptArg = NULL;
-	//ptArg = &patArgList[0];
-
-	char *pszToken = NULL;
-	char *pszDefaultToken = NULL;
-
-	//if ( 1 == OAMMMC_ARG_ID( ptArg ) )
-	
-	//Key 입력받으면 key만 조회?
-	//아무것도 입력받지 않으면 key 다 조회
-//	nKey = OAMMMC_VAL_INT( ptArg );
-
-//	snprintf( szKey, sizeof(szKey), "%s/%d", REGI_KEY_DIR, nKey );
-//	szKey[ strlen(szKey) ] = '\0';
-
-	nRC = TAP_Registry_udp_enum_key_node( REGI_KEY_DIR, strlen(REGI_KEY_DIR),
-			szTempBuf, sizeof(szTempBuf), REGI_MAN_SYSTEM_ID );
-	if ( 0 > nRC )
+	if ( 0 == nArgNum )
 	{
-		MPGLOG_ERR( "%s:: TAP_Registry_udp_enum_key_node() fail=%d", __func__, nRC );
-		return TAP_REGI_FAIL;
+		char szTempBuf[1024];
+		memset( szTempBuf, 0x00, sizeof(szTempBuf) );
+		
+		char *pszToken = NULL;
+		char *pszDefaultToken = NULL;
+
+		nRC = TAP_Registry_udp_enum_key_node( REGI_KEY_DIR, strlen(REGI_KEY_DIR),
+				szTempBuf, sizeof(szTempBuf), REGI_MAN_SYSTEM_ID );
+		if ( 0 > nRC )
+		{
+			MPGLOG_ERR( "%s:: TAP_Registry_udp_enum_key_node() fail<%d>", __func__, nRC );
+			if ( TAP_REGI_NOT_FOUND == nRC )
+			{
+				oammmc_out( ptOammmc, "tap regi not found" );
+			}
+			return TAP_REGI_FAIL;
+		}
+
+		pszToken = strtok_r( szTempBuf, REGI_KEY_DELIM, &pszDefaultToken );
+		while ( NULL != pszToken )
+		{
+			MPGLOG_DBG( "%s:: key %s", __func__, pszToken );
+			oammmc_out( ptOammmc, "key exist %s/%s\n", REGI_KEY_DIR, pszToken );
+
+			pszToken = strtok_r( NULL, REGI_KEY_DELIM, &pszDefaultToken );
+		}
+
+		return MMC_HANDLER_SUCCESS;
 	}
 
-	pszToken = strtok_r( szTempBuf, STRTOK_KEY_DELIM, &pszDefaultToken );
-	while ( NULL != pszToken )
+	for ( nIndex = 0; nIndex < nArgNum; ++nIndex )
 	{
-		MPGLOG_DBG( "%s:: key %s", __func__, pszToken );
-		oammmc_out( ptOammmc, "key %s", pszToken );
+		oammmc_arg_t *ptArg;
+		ptArg = &patArgList[nIndex];
 
-		pszToken = strtok_r( NULL, STRTOK_KEY_DELIM, &pszDefaultToken );
+		switch ( OAMMMC_ARG_ID( ptArg ) )
+		{
+			case 1:
+			{
+				nId = OAMMMC_VAL_INT( ptArg );
+			}
+				break;
+			default:
+				break;
+		}
 	}
+
+	char szRegiKey[TAP_REGI_KEY_SIZE];
+	memset( szRegiKey, 0x00, sizeof(szRegiKey) );
+
+	nRC = REGI_CheckKey( nId );
+	if ( RC_SUCCESS != nRC )
+	{
+		oammmc_out( ptOammmc, "key not exist %s/%d", REGI_KEY_DIR, nId );
+		return MMC_HANDLER_FAIL;
+	}
+
+	oammmc_out( ptOammmc, "key exist %s/%d", REGI_KEY_DIR, nId );
 
 	return MMC_HANDLER_SUCCESS;
 }
@@ -1507,30 +1319,60 @@ int MMC_Handler_DelTrace( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 	ptUarg = ptUarg;
 
 	int nRC = 0;
+	int nIndex = 0;
 	int nId = 0;
 
-	char szKey[TAP_REGI_KEY_SIZE];
-	memset( szKey, 0x00, sizeof(szKey) );
-	
+	char szRegiKey[TAP_REGI_KEY_SIZE];
+	memset( szRegiKey, 0x00, sizeof(szRegiKey) );
+		
 	oammmc_arg_t *ptArg = NULL;
 	ptArg = &patArgList[0];
-
-	if ( 1 == OAMMMC_ARG_ID( ptArg ) )
+	
+	for ( nIndex = 0; nIndex < nArgNum; ++nIndex )
 	{
-		nId = OAMMMC_VAL_INT( ptArg );
+		ptArg = &patArgList[nIndex];
 
-		snprintf( szKey, sizeof(szKey), "%s/%d", REGI_KEY_DIR, nId );
-		szKey[ strlen(szKey) ] = '\0';
-
-		nRC = TAP_Registry_udp_key_delete( szKey, strlen(szKey), TAP_REGISTRY_UDP_REMOVEALL, REGI_MAN_SYSTEM_ID );
-		if ( 0 > nRC )
+		switch ( OAMMMC_ARG_ID( ptArg ) )
 		{
-			MPGLOG_ERR( "%s:: TAP_Regsitry_udp_key_delete() fail=%d", __func__, nRC );
-			return RC_FAIL;
+			case 1:
+			{
+				nId = OAMMMC_VAL_INT( ptArg );
+			}
+				break;
+			default:
+				break;
 		}
 	}
 
-	oammmc_out( ptOammmc, "delete key %s", szKey );
+	snprintf( szRegiKey, sizeof(szRegiKey), "%s/%d", REGI_KEY_DIR, nId );
+	szRegiKey[ strlen(szRegiKey) ] = '\0';
+
+	nRC = TAP_Registry_udp_key_delete( szRegiKey, strlen(szRegiKey), TAP_REGISTRY_UDP_REMOVEALL, REGI_MAN_SYSTEM_ID );
+	if ( 0 > nRC )
+	{
+		MPGLOG_ERR( "%s:: TAP_Regsitry_udp_key_delete() fail<%d>", __func__, nRC );
+		if ( TAP_REGI_NOT_FOUND == nRC )
+		{
+			oammmc_out( ptOammmc, "key %s not found", szRegiKey );
+		}	
+		return RC_FAIL;
+	}
+
+	oammmc_out( ptOammmc, "delete key %s", szRegiKey );
 
 	return MMC_HANDLER_SUCCESS;
+}
+
+void MMC_Line( oammmc_t *ptOammmc )
+{
+	if ( NULL == ptOammmc )
+	{
+		MPGLOG_ERR( "%s:: ptOammmc NULL", __func__ );
+		oammmc_out( ptOammmc, "System Fail" );
+		MMC_Destroy( ptOammmc );
+	}
+
+	oammmc_out( ptOammmc, "------------------------------------------------------------------------------------------------------------------------\n" );
+
+	return;
 }
