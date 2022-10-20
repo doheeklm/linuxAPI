@@ -31,7 +31,7 @@ EMPL_TEAM	FW_Header.h	123;"	d
 EMPL_TEAM_ID	FW_Header.h	124;"	d
 EMPL_TRC_KEY	FW_Header.h	127;"	d
 EMPL_TRC_KEY_ID	FW_Header.h	128;"	d
-EXENAME	Makefile	/^EXENAME=	server$/;"	m
+EXENAME	Makefile	/^EXENAME=	client$/;"	m
 FLAG_RUN	FW_Header.h	63;"	d
 FLAG_STOP	FW_Header.h	64;"	d
 INPUT_FAIL	FW_Header.h	/^	INPUT_FAIL				= -3,$/;"	e	enum:__anon3
@@ -81,7 +81,7 @@ MMC_Handler_DelTrace	FW_Mmc.c	/^int MMC_Handler_DelTrace( oammmc_t *ptOammmc, oa
 MMC_Handler_Dis	FW_Mmc.c	/^int MMC_Handler_Dis( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,$/;"	f
 MMC_Handler_DisTrace	FW_Mmc.c	/^int MMC_Handler_DisTrace( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,$/;"	f
 MMC_Init	FW_Mmc.c	/^int MMC_Init( char *pszModule, oammmc_t *ptOammmc, mpipc_t *ptMpipc )$/;"	f
-MMC_Line	FW_Mmc.c	/^void MMC_Line( oammmc_t *ptOammmc )$/;"	f
+MMC_PrintLine	FW_Mmc.c	/^void MMC_PrintLine( oammmc_t *ptOammmc )$/;"	f
 MML_ENABLE	FW_Header.h	95;"	d
 MMT_CONN_MAX	FW_Header.h	96;"	d
 MMT_ENABLE	FW_Header.h	94;"	d
@@ -134,7 +134,7 @@ SIZE_NAME	FW_Header.h	68;"	d
 SIZE_PHONE	FW_Header.h	71;"	d
 SIZE_POSITION	FW_Header.h	69;"	d
 SIZE_TEAM	FW_Header.h	70;"	d
-SRCS	Makefile	/^SRCS=	FW_Server.c test_stat.c FW_Pstmt.c FW_Ipc.c FW_Mmc.c FW_DB.c FW_Util.c FW_Regi.c FW_Trace.c$/;"	m
+SRCS	Makefile	/^SRCS=	FW_Client.c$/;"	m
 STATMIPCSVR	test_stat.h	10;"	d
 STAT_FAIL	FW_Header.h	/^	STAT_FAIL				= -8,	$/;"	e	enum:__anon3
 STAT_STYPE_MIPCSVR	test_stat.h	9;"	d

@@ -213,8 +213,8 @@ int		MMC_Handler_DisTrace( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 		oammmc_arg_t *patArgList, int nArgNum, void *ptUarg );
 int		MMC_Handler_DelTrace( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 		oammmc_arg_t *patArgList, int nArgNum, void *ptUarg );
-void	MMC_Line( oammmc_t *ptOammmc );
 void	MMC_Destroy( oammmc_t *ptOammmc );
+void	MMC_PrintLine( oammmc_t *ptOammmc );
 
 /* FW_Pstmt.c */
 int		PSTMT_Init();

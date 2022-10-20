@@ -459,7 +459,7 @@ int MMC_Handler_Dis( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 
 		oammmc_out( ptOammmc, "%4s %32s %32s %32s %11s\n",
 				TABLE_ATT_ID, TABLE_ATT_NAME, TABLE_ATT_POSITION, TABLE_ATT_TEAM, TABLE_ATT_PHONE );
-		MMC_Line( ptOammmc );
+		MMC_PrintLine( ptOammmc );
 
 		for ( ptEntry = dalFetchFirst(ptRes); ptEntry != NULL; ptEntry = dalFetchNext(ptRes) )
 		{
@@ -504,7 +504,7 @@ int MMC_Handler_Dis( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 			nTotalCnt++;
 		}
 
-		MMC_Line( ptOammmc );
+		MMC_PrintLine( ptOammmc );
 		oammmc_out( ptOammmc, "TOTAL_CNT = %d", nTotalCnt );
 
 		return MMC_HANDLER_SUCCESS;
@@ -569,9 +569,9 @@ int MMC_Handler_Dis( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 					break;
 				default:
 					break;
-			}//switch
-		}//for
-	}//else
+			}//switch ( ptArg )
+		}//for ( nIndex )
+	}//else ( nArgNum )
 
 	nRC = dalExecute( g_ptDalConn, szQuery, &ptRes );
 	if ( 0 == nRC )
@@ -594,7 +594,7 @@ int MMC_Handler_Dis( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 
 	oammmc_out( ptOammmc, "%4s %32s %32s %32s %11s\n",
 			TABLE_ATT_ID, TABLE_ATT_NAME, TABLE_ATT_POSITION, TABLE_ATT_TEAM, TABLE_ATT_PHONE );
-	MMC_Line( ptOammmc );
+	MMC_PrintLine( ptOammmc );
 
 	for ( ptEntry = dalFetchFirst(ptRes); ptEntry != NULL; ptEntry = dalFetchNext(ptRes) )
 	{
@@ -639,7 +639,7 @@ int MMC_Handler_Dis( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 		nTotalCnt++;
 	}
 
-	MMC_Line( ptOammmc );
+	MMC_PrintLine( ptOammmc );
 	oammmc_out ( ptOammmc, "TOTAL_CNT = %d", nTotalCnt );
 
 	nRC = dalResFree( ptRes );
@@ -1363,7 +1363,7 @@ int MMC_Handler_DelTrace( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 	return MMC_HANDLER_SUCCESS;
 }
 
-void MMC_Line( oammmc_t *ptOammmc )
+void MMC_PrintLine( oammmc_t *ptOammmc )
 {
 	if ( NULL == ptOammmc )
 	{

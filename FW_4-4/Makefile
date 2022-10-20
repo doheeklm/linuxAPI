@@ -16,8 +16,8 @@ include $(MAKECONFIG)
 #t=
 #o=
 
-SRCS=	FW_Server.c test_stat.c FW_Pstmt.c FW_Ipc.c FW_Mmc.c FW_DB.c FW_Util.c FW_Regi.c FW_Trace.c
-#SRCS=	FW_Client.c
+#SRCS=	FW_Server.c test_stat.c FW_Pstmt.c FW_Ipc.c FW_Mmc.c FW_DB.c FW_Util.c FW_Regi.c FW_Trace.c
+SRCS=	FW_Client.c
 
 MDEFS=-D_USE_STAT -D_LOCAL_DB -D_HANGUP_ALARM
 MINCLUDES=-I$(TELCOBASE_HOME)/include
@@ -26,7 +26,7 @@ MCFLAGS=-g -W -Wall
 #
 # executable file name for compiled objects.
 
-EXENAME=	server
+EXENAME=	client
 
 # module-specific library list for loading.
 #
