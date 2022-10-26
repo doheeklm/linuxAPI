@@ -249,8 +249,6 @@ void SignalHandler( int nSigno )
 	g_nFlag = FLAG_STOP;
 
 	MPGLOG_SVC( "Signal: %d", nSigno );
-
-	exit( EXIT_FAILURE );
 }
 
 void ClearStdin( char *pszTemp )

@@ -26,7 +26,7 @@ MCFLAGS=-g -W -Wall
 #
 # executable file name for compiled objects.
 
-EXENAME=	client
+EXENAME=	clinet
 
 # module-specific library list for loading.
 #

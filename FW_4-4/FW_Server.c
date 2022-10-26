@@ -169,8 +169,4 @@ void SignalHandler( int nSigno )
 	g_nFlag = FLAG_STOP;
 
 	MPGLOG_DBG( "Signal<%d>", nSigno );
-
-	//TODO 자원해제 x
-
-	exit( EXIT_FAILURE );
 }
