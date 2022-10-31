@@ -1,0 +1,15 @@
+[CONNECTION]
+IP=10.10.1.41
+PORT=8080
+
+[LOG]
+log_level=3
+log_mode=125
+
+[MMC]
+mmt_enable=0
+mmt_port=0
+mmt_conn_max=1
+mmt_local_only=1
+mmt_is_quiet=0
+mml_enable=1

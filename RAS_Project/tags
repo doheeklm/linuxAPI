@@ -1,0 +1,87 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.8	//
+ALARM_ITEM_NAME	RAS_Inc.h	88;"	d
+ALARM_LOW_GNAME	RAS_Inc.h	87;"	d
+ALARM_UPP_GNAME	RAS_Inc.h	86;"	d
+BODY_IN_JSON	RAS_Inc.h	79;"	d
+CHECK_INTERVAL_MSEC	RAS_Ipc.h	6;"	d
+CHECK_PARAM	RAS_Macro.h	11;"	d
+CHECK_PARAM_RC	RAS_Macro.h	20;"	d
+CONFIG_PATH	RAS_Config.h	5;"	d
+CONF_GetConnConf	RAS_Config.c	/^static int CONF_GetConnConf( void )$/;"	f	file:
+CONF_GetLogConf	RAS_Config.c	/^static int CONF_GetLogConf( void )$/;"	f	file:
+CONF_GetMmcConf	RAS_Config.c	/^static int CONF_GetMmcConf( void )$/;"	f	file:
+CONF_Init	RAS_Config.c	/^int CONF_Init( void )$/;"	f
+CONN_SECTION	RAS_Config.h	6;"	d
+DELETE	RAS_Inc.h	63;"	d
+EXENAME	Makefile	/^EXENAME=	main$/;"	m
+Env_t	RAS_Config.h	/^} Env_t;$/;"	t	typeref:struct:__anon1
+FALSE	RAS_Macro.h	6;"	d
+F_FORMAT	RAS_Macro.h	8;"	d
+GET	RAS_Inc.h	62;"	d
+HTTP_RESPONSE_MSG	RAS_Inc.h	72;"	d
+HTTP_RESPONSE_MSG_GET	RAS_Inc.h	75;"	d
+IPC_Destroy	RAS_Ipc.c	/^void IPC_Destroy( mpipc_t *g_ptMpipc )$/;"	f
+IPC_Handler	RAS_Ipc.c	/^int IPC_Handler( mpipc_t *g_ptMpipc, iipc_msg_t *ptRecvMsg, void *pvData )$/;"	f
+IPC_Init	RAS_Ipc.c	/^int IPC_Init()$/;"	f
+LOG_ERR_F	RAS_Macro.h	9;"	d
+LOG_SECTION	RAS_Config.h	7;"	d
+MCFLAGS	Makefile	/^MCFLAGS=-g -W -Wall$/;"	m
+MDEFS	Makefile	/^MDEFS=-D_USE_STAT -D_LOCAL_DB -D_HANGUP_ALARM$/;"	m
+MINCLUDES	Makefile	/^MINCLUDES=-I$(TELCOBASE_HOME)\/include$/;"	m
+MLDFLAGS	Makefile	/^MLDFLAGS=$/;"	m
+MLIBDIRS	Makefile	/^MLIBDIRS=-L$(TELCOBASE_HOME)\/lib $/;"	m
+MLIBS	Makefile	/^MLIBS= -ltelcobase -lstctl -lmplib -ltap -ltelpro -loam$/;"	m
+MMC_SECTION	RAS_Config.h	8;"	d
+MODULE_NAME	RAS_Ipc.h	5;"	d
+POST	RAS_Inc.h	61;"	d
+RAS_rErrFail	RAS_Errmsg.h	/^	RAS_rErrFail,$/;"	e	enum:__anon2
+RAS_rErrGetValue	RAS_Errmsg.h	/^	RAS_rErrGetValue$/;"	e	enum:__anon2
+RAS_rErrInvalidParam	RAS_Errmsg.h	/^	RAS_rErrInvalidParam,$/;"	e	enum:__anon2
+RAS_rOK	RAS_Errmsg.h	/^	RAS_rOK = 1000,$/;"	e	enum:__anon2
+REGI_KEY_DELIM	RAS_Inc.h	93;"	d
+REGI_KEY_DIR	RAS_Inc.h	90;"	d
+REGI_MAN_SYS_ID	RAS_Inc.h	91;"	d
+REGI_VALUE_SIZE	RAS_Inc.h	92;"	d
+ReturnCode_e	RAS_Errmsg.h	/^} ReturnCode_e;$/;"	t	typeref:enum:__anon2
+SIGFLAG_RUN	RAS_Inc.h	52;"	d
+SIGFLAG_STOP	RAS_Inc.h	53;"	d
+SIZE_ADDRESS	RAS_Inc.h	59;"	d
+SIZE_BIRTH	RAS_Inc.h	58;"	d
+SIZE_IP	RAS_Inc.h	55;"	d
+SIZE_IP_DESC	RAS_Inc.h	56;"	d
+SIZE_NAME	RAS_Inc.h	57;"	d
+SRCS	Makefile	/^SRCS= RAS_Main.c	\\$/;"	m
+STATUS_200	RAS_Inc.h	65;"	d
+STATUS_201	RAS_Inc.h	66;"	d
+STATUS_400	RAS_Inc.h	67;"	d
+STATUS_404	RAS_Inc.h	68;"	d
+STATUS_405	RAS_Inc.h	69;"	d
+STATUS_500	RAS_Inc.h	70;"	d
+STOP_GRACE_TIME_MSEC	RAS_Ipc.h	7;"	d
+SignalHandler	RAS_Main.c	/^void SignalHandler( int nSigno )$/;"	f
+TRUE	RAS_Macro.h	5;"	d
+VALID_RANGE	RAS_Macro.h	22;"	d
+_RAS_CONFIG_H	RAS_Config.h	3;"	d
+_RAS_ERRMSG_H_	RAS_Errmsg.h	3;"	d
+_RAS_INC_H_	RAS_Inc.h	3;"	d
+_RAS_IPC_H	RAS_Ipc.h	3;"	d
+_RAS_MACRO_H_	RAS_Macro.h	3;"	d
+g_nFlag	RAS_Main.c	/^int g_nFlag = SIGFLAG_RUN;$/;"	v
+g_ptMpipc	RAS_Main.c	/^mpipc_t *g_ptMpipc = NULL;$/;"	v
+g_tEnv	RAS_Main.c	/^Env_t g_tEnv;$/;"	v
+main	RAS_Main.c	/^int main( void )$/;"	f
+nLogLevel	RAS_Config.h	/^	int nLogLevel;$/;"	m	struct:__anon1
+nLogMode	RAS_Config.h	/^	int nLogMode;$/;"	m	struct:__anon1
+nMmlEnable	RAS_Config.h	/^	int nMmlEnable;$/;"	m	struct:__anon1
+nMmtConnMax	RAS_Config.h	/^	int nMmtConnMax;$/;"	m	struct:__anon1
+nMmtEnable	RAS_Config.h	/^	int nMmtEnable;$/;"	m	struct:__anon1
+nMmtIsQuiet	RAS_Config.h	/^	int nMmtIsQuiet;$/;"	m	struct:__anon1
+nMmtLocalOnly	RAS_Config.h	/^	int nMmtLocalOnly;$/;"	m	struct:__anon1
+nMmtPort	RAS_Config.h	/^	int nMmtPort;$/;"	m	struct:__anon1
+nPort	RAS_Config.h	/^	int nPort;$/;"	m	struct:__anon1
+szIp	RAS_Config.h	/^	char szIp[40];$/;"	m	struct:__anon1

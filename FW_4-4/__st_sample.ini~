@@ -12,7 +12,7 @@
 # ************************************************
 #
 [INFO]
-#proc_name = msfmx
+proc_name = MIPCSVR
 
 # [DETAIL_TYPE_LIST] section
 # describe detail item type list in this section.
@@ -25,10 +25,10 @@
 # if you have no detail item, just leave the section [DETAIL_TYPE_LIST]
 #
 [DETAIL_TYPE_LIST]
-#hostid = 128
+hostid = 128
+process = 128
 #spc = 256
 #ipaddr = 64
-#process = 128
 
 # [ITEM_LIST] section
 # decribe item list in this section.
@@ -45,15 +45,18 @@
 # item-name length is up to 35
 #
 [ITEM_LIST]
-item1 = uint:sum
-item2 = uint:sum
-item3 = uint:sum
-item4 = int:max
-item5 = int:min
-item6 = float:avr
-item7 = float:cur
-item8 = float:max
-item9 = float:min
+TCP_RCV_TOTAL_INV = uint:sum:process
+RET_CODE_SUCCESS = uint:sum:process
+RET_CODE_INVALID_PARAMETER = uint:sum:process
+RET_CODE_SYSTEM_FAIL = uint:sum:process
+RET_CODE_UNKNOWN_USER = uint:sum:process
+#item3 = uint:sum
+#item4 = int:max
+#item5 = int:min
+#item6 = float:avr
+#item7 = float:cur
+#item8 = float:max
+#item9 = float:min
 #item8 = int:max_time
 #item9 = int:min_time
 #item10 = uint:sum:hostid
