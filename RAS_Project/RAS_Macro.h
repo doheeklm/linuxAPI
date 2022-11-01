@@ -26,4 +26,14 @@
 	  ((int)(_val) <= (int)(_max)) \
 	  ? TRUE : FALSE )
 
+#define MMC_PRT_CRLF( ptOammmc ) \
+	do { \
+		oammmc_out( (ptOammmc), "\n" );\
+	} while (0)
+
+#define MMC_PRT_LINE( ptOammmc, sline ) \
+	do { \
+		oammmc_out( (ptOammmc), "%-s\n", (sline) ); \
+	} while (0)
+
 #endif /* _RAS_MACRO_H_ */

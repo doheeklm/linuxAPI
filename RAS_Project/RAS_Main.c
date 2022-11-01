@@ -1,73 +1,119 @@
 /* RAS_Main.c */
 #include "RAS_Inc.h"
 
-int g_nFlag = SIGFLAG_RUN;
-Env_t g_tEnv;
-mpipc_t *g_ptMpipc = NULL;
+int g_nDoSvcFlag = DO_SVC_START;
+int g_nAlarmStatus = 0;
 
-void SignalHandler( int nSigno );
+Env_t g_tEnv;
+
+mpipc_t *g_ptMpipc = NULL;
+oammmc_t *g_ptOammmc = NULL;
+
+THREAD_t g_tThread[WORKER_THR_CNT];
+
+static void ALL_Close();
+static void SignalHandler( int nSigno );
 
 int main( void )
 {
-	tb_signal( SIGHUP, SignalHandler );
-	tb_signal( SIGINT, SignalHandler );
-	tb_signal( SIGQUIT, SignalHandler );
-	tb_signal( SIGKILL, SignalHandler );
-	tb_signal( SIGTERM, SignalHandler );
+	mpsignal_set_func( tb_signal );
+	mpsignal( SIGHUP, SignalHandler );
+	mpsignal( SIGINT, SignalHandler );
+	mpsignal( SIGTERM, SignalHandler );
+	mpsignal( SIGQUIT, SignalHandler );
+	mpsignal( SIGKILL, SignalHandler );
+	mpsignal( SIGPIPE, SIG_IGN );
 
 	int nRC = 0;
-	oammmc_t *ptOammmc = NULL;
 
-	/*
-	 *	Get Config
-	 */
-	nRC = CONF_Init();
+	nRC = CONFIG_Init();
 	if ( RAS_rOK != nRC )
 	{
-		printf( "CONF_Init fail <%d>\n", nRC );
-		exit( EXIT_FAILURE );
+		printf( "CONFIG_Init fail <%d>\n", nRC );
+		return 0;
 	}
 
-	/*
-	 *	Init LOG
-	 */
-	nRC = MPGLOG_INIT( MODULE_NAME, NULL, g_tEnv.nLogMode, g_tEnv.nLogLevel );
-	if ( 0 > nRC )
+	nRC = LOG_Init();
+	if ( RAS_rOK != nRC ) 
 	{
-		printf( "MPGLOG_INIT fail <%d>\n", nRC );
-		exit( EXIT_FAILURE );
+		printf( "LOG_Init fail <%d>\n", nRC );
+		return 0;
 	}
-
-	/*
-	 *	Init IPC
-	 */	
-	nRC = IPC_Init( g_ptMpipc );
+	
+	nRC = IPC_Init();
 	if ( RAS_rOK != nRC )
 	{
 		LOG_ERR_F( "IPC_Init fail <%d>", nRC );
-		IPC_Destroy( g_ptMpipc );
-		exit( EXIT_FAILURE );
+		goto _exit_ras;	
 	}
 
-	/*
-	 *	Init MMC
-	 */
-	nRC = OAMMMC_Init( g_ptMpipc, ptOammmc );
+	//TODO need DB to process MMC Handler message
+	nRC = MMC_Init();
 	if ( RAS_rOK != nRC )
 	{
-		LOG_ERR_F( "OAMMMC_Init fail <%d>", nRC )
-		goto end_of_function;
+		LOG_ERR_F( "MMC_Init fail <%d>", nRC );
+		goto _exit_ras;
 	}
 
-end_of_function:
-	IPC_Destroy( g_ptMpipc );
+	nRC = REGI_Init();
+	if ( RAS_rOK != nRC )
+	{
+		LOG_ERR_F( "REGI_Init fail <%d>", nRC );
+		goto _exit_ras;
+	}
+
+	//TODO need DALConn, DB, Pstmt to count Users
+	nRC = ALARM_Init();
+	if ( RAS_rOK != nRC )
+	{
+		LOG_ERR_F( "ALARM_Init fail <%d>", nRC );
+		goto _exit_ras;
+	}
+
+	nRC = STAT_Init();
+	if ( RAS_rOK != nRC )
+	{
+		LOG_ERR_F( "STAT_Init fail <%d>", nRC );
+		goto _exit_ras;
+	}
+
+	nRC = THREAD_Init();
+	if ( RAS_rOK != nRC )
+	{
+		LOG_ERR_F( "THREAD_Init fail <%d>", nRC );
+		goto _exit_ras;
+	}
+
+	while ( g_nDoSvcFlag )
+	{
+		mpthr_sleep_msec(5000);
+
+		printf( "%d\n", g_nDoSvcFlag );
+	}
+
+	printf( "end while loop\n" );
+
+_exit_ras:
+	ALL_Close();
 
 	return 0;
 }
 
-void SignalHandler( int nSigno )
+static void ALL_Close()
 {
-	g_nFlag = SIGFLAG_STOP;
+	//thread 종료
+	stgen_close();
+	//alarm 삭제?
+	MMC_Destroy( g_ptOammmc );
+	IPC_Destroy( g_ptMpipc );
+	MPGLOG_DESTROY();
+}
 
+static void SignalHandler( int nSigno )
+{
 	MPGLOG_DBG( "Signal<%d>", nSigno );
+	
+	g_nDoSvcFlag = DO_SVC_STOP;
+	
+	return;
 }

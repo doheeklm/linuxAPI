@@ -8,11 +8,16 @@ include $(MAKECONFIG)
 
 SRCS= RAS_Main.c			\
 	  RAS_Config.c			\
+	  RAS_Log.c				\
 	  RAS_Ipc.c				\
-	  RAS_Mmchdlr_Ip.c		\
-	  RAS_Mmchdlr_Trc.c		\
-	  RAS_Mmchdlr_Usr.c		\
-	  RAS_Oammmc.c
+	  RAS_Mmchdl_CliIp.c	\
+	  RAS_Mmchdl_CliIpTrc.c	\
+	  RAS_Mmchdl_UsrInfo.c	\
+	  RAS_Mmc.c				\
+	  RAS_Regi.c			\
+	  RAS_Alarm.c			\
+	  RAS_Stat.c			\
+	  RAS_Thread.c
 
 MDEFS=-D_USE_STAT -D_LOCAL_DB -D_HANGUP_ALARM
 MINCLUDES=-I$(TELCOBASE_HOME)/include

@@ -23,6 +23,6 @@ typedef struct
 	int nMmlEnable;
 } Env_t;
 
-int CONF_Init( void );
+int CONFIG_Init( void );
 
 #endif /* _RAS_CONFIG_H */

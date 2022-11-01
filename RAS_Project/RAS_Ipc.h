@@ -14,7 +14,7 @@
 #define MSG_ID_DIS_USR_INFO		7754
 #define MSG_ID_DEL_USR_INFO		7755
 
-int IPC_Init( mpipc_t *ptMpipc );
+int IPC_Init();
 int IPC_Handler( mpipc_t *ptMpipc, iipc_msg_t *ptRecvMsg, void *pvData );
 void IPC_Destroy( mpipc_t *ptMpipc );
 

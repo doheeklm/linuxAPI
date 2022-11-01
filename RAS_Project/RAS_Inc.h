@@ -30,7 +30,6 @@
 #include <mplog.h>
 #include "mpsignal.h"
 #include "stctl/stctl.h"
-//#include "test_stat.h"
 #include "oam_uda.h"
 #include "sfm_alarm.h"
 #include "oammmc.h"
@@ -47,27 +46,54 @@
 #include "RAS_Errmsg.h"
 #include "RAS_Macro.h"
 #include "RAS_Config.h"
+#include "RAS_Log.h"
 #include "RAS_Ipc.h"
-#include "RAS_Mmchdlr_Ip.h"
-#include "RAS_Mmchdlr_Trc.h"
-#include "RAS_Mmchdlr_Usr.h"
-#include "RAS_Oammmc.h"
+#include "RAS_Mmchdl_CliIp.h"
+#include "RAS_Mmchdl_CliIpTrc.h"
+#include "RAS_Mmchdl_UsrInfo.h"
+#include "RAS_Mmc.h"
+#include "RAS_Regi.h"
+//#include "RAS_Pstmt.h"
+//#include "RAS_DB.h"
+#include "RAS_Alarm.h"
+#include "RAS_Stat.h"
+#include "RAS_Thread.h"
+//#include "RAS_Socket.h"
+//#include "RAS_Http.h"
+//#include "RAS_Json.h"
+//#include "RAS_Trace.h"
 
-#define MODULE_NAME				"MIPCSVR"
+#define PROCESS_NAME			"MIPCSVR"
+#define DO_SVC_STOP				0
+#define DO_SVC_START			1
 
-#define SIGFLAG_RUN				100
-#define SIGFLAG_STOP			101
+#define SIZE_IP					15
+
+#define TABLE_IP				"RAS_IP"
+#define ATT_IP					"cli_ip"
+#define ATT_DESC				"desc"
+
+#define TABLE_INFO				"RAS_INFO"
+#define ATT_ID					"id"
+#define ATT_NAME				"name"
+#define ATT_GENDER				"gender"
+#define ATT_BIRTH				"birth"
+#define ATT_ADDRESS				"address"
+
+#define WORKER_THR_CNT			3
+
+typedef struct
+{
+	pthread_t nThreadId;
+	int nThreadEpollFd;
+	char szIp[SIZEIP + 1];
+} THREAD_t;
 
 #if 0
-#define SIZE_IP					39
 #define SIZE_IP_DESC			32
 #define SIZE_NAME				32
 #define SIZE_BIRTH				6
 #define SIZE_ADDRESS			256
-
-#define POST					"POST"
-#define GET						"GET"
-#define DELETE					"DEL"
 
 #define STATUS_200				"OK"
 #define STATUS_201				"Created"
@@ -89,10 +115,6 @@
 								"\"%s\": \"%s\",\n    " \
 								"\"%s\": \"%s\",\n    " \
 								"\"%s\": \"%s\"\n}"
-
-#define ALARM_UPP_GNAME			"RAS-DB"
-#define ALARM_LOW_GNAME			"USR-ALARM"
-#define ALARM_ITEM_NAME			"CNT_USR"
 
 #define REGI_KEY_DIR			"/CLI_IP_TRC"
 #define REGI_MAN_SYS_ID			1
