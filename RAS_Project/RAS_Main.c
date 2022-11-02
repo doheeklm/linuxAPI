@@ -1,15 +1,13 @@
 /* RAS_Main.c */
 #include "RAS_Inc.h"
 
-int g_nDoSvcFlag = DO_SVC_START;
-int g_nAlarmStatus = 0;
-
+int g_nSvcFlag = START_SVC;
+int g_nThreadIndex = 0; 
+int g_nAlarmStatus = 0; //Thread
 Env_t g_tEnv;
-
 mpipc_t *g_ptMpipc = NULL;
 oammmc_t *g_ptOammmc = NULL;
-
-THREAD_t g_tThread[WORKER_THR_CNT];
+THREAD_t g_tThread[THREAD_CNT];
 
 static void ALL_Close();
 static void SignalHandler( int nSigno );
@@ -25,6 +23,10 @@ int main( void )
 	mpsignal( SIGPIPE, SIG_IGN );
 
 	int nRC = 0;
+	int nIndex = 0;
+	int nListenFd = 0;
+	int nEpollFd = 0;
+	int nCreateFlag = START_CREATE;
 
 	nRC = CONFIG_Init();
 	if ( RAS_rOK != nRC )
@@ -44,56 +46,92 @@ int main( void )
 	if ( RAS_rOK != nRC )
 	{
 		LOG_ERR_F( "IPC_Init fail <%d>", nRC );
-		goto _exit_ras;	
+		goto _exit_main;	
 	}
 
-	//TODO need DB to process MMC Handler message
+	//TODO Need DB
 	nRC = MMC_Init();
 	if ( RAS_rOK != nRC )
 	{
 		LOG_ERR_F( "MMC_Init fail <%d>", nRC );
-		goto _exit_ras;
+		goto _exit_main;
 	}
-
+	
 	nRC = REGI_Init();
 	if ( RAS_rOK != nRC )
 	{
 		LOG_ERR_F( "REGI_Init fail <%d>", nRC );
-		goto _exit_ras;
+		goto _exit_main;
 	}
-
-	//TODO need DALConn, DB, Pstmt to count Users
+	
+	//TODO Need DB
 	nRC = ALARM_Init();
 	if ( RAS_rOK != nRC )
 	{
 		LOG_ERR_F( "ALARM_Init fail <%d>", nRC );
-		goto _exit_ras;
+		goto _exit_main;
 	}
 
 	nRC = STAT_Init();
 	if ( RAS_rOK != nRC )
 	{
 		LOG_ERR_F( "STAT_Init fail <%d>", nRC );
-		goto _exit_ras;
+		goto _exit_main;
 	}
 
 	nRC = THREAD_Init();
 	if ( RAS_rOK != nRC )
 	{
 		LOG_ERR_F( "THREAD_Init fail <%d>", nRC );
-		goto _exit_ras;
+		goto _exit_main;
 	}
 
-	while ( g_nDoSvcFlag )
+	while ( g_nSvcFlag )
 	{
-		mpthr_sleep_msec(5000);
+		if ( START_CREATE == nCreateFlag );
+		{
+			nRC = SOCKET_Init( &nListenFd );
+			if ( RAS_rOK != nRC )
+			{
+				LOG_ERR_F( "SOCKET_Init fail <%d>", nRC );
+				goto _exit_main;
+			}
 
-		printf( "%d\n", g_nDoSvcFlag );
+			LOG_SVC_F( "SOCKET_Init nListenFd=%d", nListenFd );
+
+			nRC = EVENT_Init( &nEpollFd, nListenFd );
+			if ( RAS_rOK != nRC )
+			{
+				LOG_ERR_F( "EVENT_Init fail <%d>", nRC );
+				goto _exit_main;
+			}
+
+			LOG_SVC_F( "EVENT_Init nEpollFd=%d", nEpollFd );
+		}
+
+		nRC = EVENT_WaitAndAccept( nEpollFd, nListenFd );
+		if ( RAS_rErrEventRecreateYes == nRC )
+		{
+			nCreateFlag = START_CREATE;
+			continue;
+		}
+
+		nCreateFlag = STOP_CREATE; //RAS_rOK, RAS_rErrEventRecreateNo
 	}
 
 	printf( "end while loop\n" );
 
-_exit_ras:
+	for ( nIndex = 0; nIndex < THREAD_CNT; nIndex++ )
+	{
+		nRC = pthread_join( g_tThread[nIndex].nThreadId, NULL );
+		if ( nRC != 0 )
+		{
+			LOG_ERR_F( "pthread_join fail <%d>", nRC );
+		}
+		LOG_SVC_F( "pthread_join <%d>", nRC );
+	}
+
+_exit_main:
 	ALL_Close();
 
 	return 0;
@@ -101,9 +139,12 @@ _exit_ras:
 
 static void ALL_Close()
 {
-	//thread 종료
+	//epoll
+	//socket
+	//thread
 	stgen_close();
-	//alarm 삭제?
+	//alarm
+	//regi
 	MMC_Destroy( g_ptOammmc );
 	IPC_Destroy( g_ptMpipc );
 	MPGLOG_DESTROY();
@@ -113,7 +154,7 @@ static void SignalHandler( int nSigno )
 {
 	MPGLOG_DBG( "Signal<%d>", nSigno );
 	
-	g_nDoSvcFlag = DO_SVC_STOP;
+	g_nSvcFlag = STOP_SVC;
 	
 	return;
 }

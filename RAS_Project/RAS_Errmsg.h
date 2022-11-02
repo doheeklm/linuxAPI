@@ -4,25 +4,29 @@
 
 typedef enum
 {
-	RAS_rOK = 1000, //
-	RAS_rErrFail, //
-	RAS_rErrSigTerm,
-	RAS_rErrGetValue, //
+	RAS_rOK = 1000,
+	RAS_rErrFail,
+	RAS_rErrGetValue,
+	RAS_rErrGetConfValue,
 	RAS_rErrSetValue, 
 	RAS_rErrOutOfRange,
-	RAS_rErrConfInit, //
-	RAS_rErrLogInit, //
-	RAS_rErrMmcInit, //
-	RAS_rErrRegiInit, //
-	RAS_rErrIpcInit, //
-	RAS_rErrAlarmInit, //
-	RAS_rErrStatInit, //
-	RAS_rErrThreadInit, //
-
-	RAS_rErrIpcGetKey, //
+	RAS_rErrConfInit,
+	RAS_rErrLogInit,
+	RAS_rErrMmcInit,
+	RAS_rErrRegiInit,
+	RAS_rErrIpcInit,
+	RAS_rErrAlarmInit,
+	RAS_rErrStatInit,
+	RAS_rErrThreadInit,
+	RAS_rErrSocketInit,
+	RAS_rErrEpollInit,
+	RAS_rErrEventRecreateNo,
+	RAS_rErrEventRecreateYes,	
+	RAS_rErrIpcGetKey,
+	RAS_rErrInvalidParam,
+	
 	RAS_rErrIpcRecv,
 	RAS_rErrIpcSend,
-	RAS_rErrInvalidParam, //
 	RAS_rErrInvalidData,
 	RAS_rErrInvalidValue,
 
@@ -57,8 +61,7 @@ typedef enum
 	RAS_rErrJsonAppendVal,
 	RAS_rErrJsonInvalidType,
 
-	RAS_rErrGetConfValue, //
-	RAS_rSuccessMmchdl = 0 //
+	RAS_rSuccessMmchdl = 0
 } ReturnCode_e;
 
 #endif /* _RAS_ERRMSG_H_ */

@@ -3,6 +3,7 @@
 #define _RAS_INC_H_
 
 #include <stdio.h>
+#include <stdio_ext.h>
 #include <unistd.h>
 #include <string.h>
 #include <stdlib.h>
@@ -12,17 +13,14 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/poll.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
 #include <sys/epoll.h>
 #include <sys/stat.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
 #include <time.h>
 #include <stdarg.h>
-#include <stdio_ext.h>
 #include <dirent.h>
 #include <ctype.h>
-#include <stdlib.h>
-#include <pthread.h>
 #include <signal.h>
 #include <dal.h>
 #include "mpipc.h"
@@ -54,39 +52,42 @@
 #include "RAS_Mmc.h"
 #include "RAS_Regi.h"
 //#include "RAS_Pstmt.h"
-//#include "RAS_DB.h"
+#include "RAS_DB.h"
 #include "RAS_Alarm.h"
 #include "RAS_Stat.h"
 #include "RAS_Thread.h"
-//#include "RAS_Socket.h"
+#include "RAS_Socket.h"
+#include "RAS_Event.h"
 //#include "RAS_Http.h"
 //#include "RAS_Json.h"
 //#include "RAS_Trace.h"
 
 #define PROCESS_NAME			"MIPCSVR"
-#define DO_SVC_STOP				0
-#define DO_SVC_START			1
+#define STOP_SVC				0
+#define START_SVC				1
+#define STOP_CREATE				0
+#define START_CREATE			1
 
 #define SIZE_IP					15
 
 #define TABLE_IP				"RAS_IP"
-#define ATT_IP					"cli_ip"
-#define ATT_DESC				"desc"
+#define ATTR_IP					"cli_ip"
+#define ATTR_DESC				"desc"
 
 #define TABLE_INFO				"RAS_INFO"
-#define ATT_ID					"id"
-#define ATT_NAME				"name"
-#define ATT_GENDER				"gender"
-#define ATT_BIRTH				"birth"
-#define ATT_ADDRESS				"address"
+#define ATTR_ID					"id"
+#define ATTR_NAME				"name"
+#define ATTR_GENDER				"gender"
+#define ATTR_BIRTH				"birth"
+#define ATTR_ADDRESS			"address"
 
-#define WORKER_THR_CNT			3
+#define THREAD_CNT				3
 
-typedef struct
+typedef struct THREAD_s
 {
 	pthread_t nThreadId;
-	int nThreadEpollFd;
-	char szIp[SIZEIP + 1];
+	int nEpollFd;
+	char szIp[SIZE_IP + 1];
 } THREAD_t;
 
 #if 0

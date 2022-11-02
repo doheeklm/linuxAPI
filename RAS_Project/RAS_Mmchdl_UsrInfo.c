@@ -96,10 +96,10 @@ int MMCHDL_USRINFO_Dis( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 		}	
 	}
 
-	oammmc_out( ptOammmc, "%8s = %d\n", ATT_ID, nId );
-	oammmc_out( ptOammmc, "%8s = %s\n", ATT_NAME, pszName );
-	oammmc_out( ptOammmc, "%8s = %s\n", ATT_GENDER, pszGender );
-	oammmc_out( ptOammmc, "%8s = %s\n", ATT_BIRTH, pszBirth );
+	oammmc_out( ptOammmc, "%8s = %d\n", ATTR_ID, nId );
+	oammmc_out( ptOammmc, "%8s = %s\n", ATTR_NAME, pszName );
+	oammmc_out( ptOammmc, "%8s = %s\n", ATTR_GENDER, pszGender );
+	oammmc_out( ptOammmc, "%8s = %s\n", ATTR_BIRTH, pszBirth );
 
 	return RAS_rSuccessMmchdl;
 }
@@ -136,7 +136,7 @@ int MMCHDL_USRINFO_Del( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 		}	
 	}
 
-	oammmc_out( ptOammmc, "%8s = %d\n", ATT_ID, nId );
+	oammmc_out( ptOammmc, "%8s = %d\n", ATTR_ID, nId );
 	
 	return RAS_rSuccessMmchdl;
 }

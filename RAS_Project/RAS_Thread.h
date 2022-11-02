@@ -4,6 +4,6 @@
 
 int THREAD_Init();
 void THREAD_Destroy();
-int THREAD_Run();
+void *THREAD_Run( void *pvArg );
 
 #endif /* _RAS_THREAD_H_ */

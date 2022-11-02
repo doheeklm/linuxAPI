@@ -75,8 +75,8 @@ int MMCHDL_CLIIP_Add( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 		}	
 	}
 
-	oammmc_out( ptOammmc, "%8s = %s\n", ATT_IP, pszIp );
-	oammmc_out( ptOammmc, "%8s = %s", ATT_DESC, pszDesc );
+	oammmc_out( ptOammmc, "%8s = %s\n", ATTR_IP, pszIp );
+	oammmc_out( ptOammmc, "%8s = %s", ATTR_DESC, pszDesc );
 
 	return RAS_rSuccessMmchdl;
 }
@@ -113,7 +113,7 @@ int MMCHDL_CLIIP_Dis( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 		}	
 	}
 
-	oammmc_out( ptOammmc, "%8s = %s", ATT_IP, pszIp );
+	oammmc_out( ptOammmc, "%8s = %s", ATTR_IP, pszIp );
 
 	return RAS_rSuccessMmchdl;
 }
@@ -150,7 +150,7 @@ int MMCHDL_CLIIP_Del( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 		}	
 	}
 
-	oammmc_out( ptOammmc, "%8s = %s", ATT_IP, pszIp );
+	oammmc_out( ptOammmc, "%8s = %s", ATTR_IP, pszIp );
 
 	return RAS_rSuccessMmchdl;
 }

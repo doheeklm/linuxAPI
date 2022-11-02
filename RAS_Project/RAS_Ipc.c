@@ -10,7 +10,7 @@ int IPC_Init()
 	g_ptMpipc = mpipc_init( PROCESS_NAME, CHECK_INTERVAL_MSEC, STOP_GRACE_TIME_MSEC );
 	if ( NULL == g_ptMpipc )
 	{
-		LOG_ERR_F( "mpipc_fail" );
+		LOG_ERR_F( "mpipc_init fail" );
 		return RAS_rErrFail; 
 	}
 
@@ -83,9 +83,9 @@ void IPC_Destroy( mpipc_t *ptMpipc )
 		{
 			LOG_ERR_F( "mpipc_stop fail <%d>", nRC );
 		}
-		LOG_DBG_F( "mpipc_stop" );
+		LOG_SVC_F( "mpipc_stop" );
 		mpipc_destroy( ptMpipc );
-		LOG_DBG_F( "mpipc_destroy" );
+		LOG_SVC_F( "mpipc_destroy" );
 	}
 	
 	return;

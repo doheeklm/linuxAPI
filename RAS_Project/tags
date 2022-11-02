@@ -17,13 +17,15 @@ ARG_ID_USR_BIRTH	RAS_Mmchdl_UsrInfo.h	8;"	d
 ARG_ID_USR_GENDER	RAS_Mmchdl_UsrInfo.h	7;"	d
 ARG_ID_USR_ID	RAS_Mmchdl_UsrInfo.h	5;"	d
 ARG_ID_USR_NAME	RAS_Mmchdl_UsrInfo.h	6;"	d
-ATT_ADDRESS	RAS_Inc.h	74;"	d
-ATT_BIRTH	RAS_Inc.h	73;"	d
-ATT_DESC	RAS_Inc.h	67;"	d
-ATT_GENDER	RAS_Inc.h	72;"	d
-ATT_ID	RAS_Inc.h	70;"	d
-ATT_IP	RAS_Inc.h	66;"	d
-ATT_NAME	RAS_Inc.h	71;"	d
+ATTR_ADDRESS	RAS_Inc.h	82;"	d
+ATTR_BIRTH	RAS_Inc.h	81;"	d
+ATTR_DESC	RAS_Inc.h	75;"	d
+ATTR_GENDER	RAS_Inc.h	80;"	d
+ATTR_ID	RAS_Inc.h	78;"	d
+ATTR_IP	RAS_Inc.h	74;"	d
+ATTR_NAME	RAS_Inc.h	79;"	d
+BACK_LOG	*RAS_Socket.h	5;"	d
+BACK_LOG	RAS_Socket.h	5;"	d
 CHECK_INTERVAL_MSEC	RAS_Ipc.h	5;"	d
 CHECK_PARAM	RAS_Macro.h	13;"	d
 CHECK_PARAM_RC	RAS_Macro.h	22;"	d
@@ -33,10 +35,10 @@ CONFIG_GetMmcConf	RAS_Config.c	/^static int CONFIG_GetMmcConf()$/;"	f	file:
 CONFIG_Init	RAS_Config.c	/^int CONFIG_Init()$/;"	f
 CONFIG_PATH	RAS_Config.h	5;"	d
 CONN_SECTION	RAS_Config.h	6;"	d
-DO_SVC_START	RAS_Inc.h	63;"	d
-DO_SVC_STOP	RAS_Inc.h	62;"	d
+EVENT_Init	RAS_Event.c	/^int EVENT_Init( int *pnEpollFd, int nListenFd )$/;"	f
+EVENT_WaitAndAccept	RAS_Event.c	/^int EVENT_WaitAndAccept( int nEpollFd )$/;"	f
 EXENAME	Makefile	/^EXENAME=	main$/;"	m
-Env_t	RAS_Config.h	/^} Env_t;$/;"	t	typeref:struct:__anon1
+Env_t	RAS_Config.h	/^} Env_t;$/;"	t	typeref:struct:__anon3
 FALSE	RAS_Macro.h	6;"	d
 F_FORMAT	RAS_Macro.h	8;"	d
 HTTP_REQUEST_DELETE	RAS_Stat.h	/^    HTTP_REQUEST_DELETE,$/;"	e	enum:__anon2
@@ -64,9 +66,10 @@ ITEM_NAME	RAS_Alarm.h	7;"	d
 LOG_DBG_F	RAS_Macro.h	10;"	d
 LOG_ERR_F	RAS_Macro.h	9;"	d
 LOG_Init	RAS_Log.c	/^int LOG_Init()$/;"	f
-LOG_SECTION	RAS_Config.h	7;"	d
+LOG_SECTION	RAS_Config.h	8;"	d
 LOG_SVC_F	RAS_Macro.h	11;"	d
 LOW_GNAME	RAS_Alarm.h	6;"	d
+MAX_CLIENT_CONNECT	RAS_Event.h	5;"	d
 MCFLAGS	Makefile	/^MCFLAGS=-g -W -Wall$/;"	m
 MDEFS	Makefile	/^MDEFS=-D_USE_STAT -D_LOCAL_DB -D_HANGUP_ALARM$/;"	m
 MINCLUDES	Makefile	/^MINCLUDES=-I$(TELCOBASE_HOME)\/include$/;"	m
@@ -88,7 +91,7 @@ MMC_Destroy	RAS_Mmc.c	/^void MMC_Destroy( oammmc_t *ptOammmc )$/;"	f
 MMC_Init	RAS_Mmc.c	/^int MMC_Init()$/;"	f
 MMC_PRT_CRLF	RAS_Macro.h	29;"	d
 MMC_PRT_LINE	RAS_Macro.h	34;"	d
-MMC_SECTION	RAS_Config.h	8;"	d
+MMC_SECTION	RAS_Config.h	9;"	d
 MSG_ID_ADD_CLI_IP	RAS_Ipc.h	8;"	d
 MSG_ID_ADD_CLI_IP_TRC	RAS_Ipc.h	11;"	d
 MSG_ID_DEL_CLI_IP	RAS_Ipc.h	10;"	d
@@ -97,69 +100,88 @@ MSG_ID_DEL_USR_INFO	RAS_Ipc.h	15;"	d
 MSG_ID_DIS_CLI_IP	RAS_Ipc.h	9;"	d
 MSG_ID_DIS_CLI_IP_TRC	RAS_Ipc.h	12;"	d
 MSG_ID_DIS_USR_INFO	RAS_Ipc.h	14;"	d
-PROCESS_NAME	RAS_Inc.h	61;"	d
-RAS_rErrAlarmInit	RAS_Errmsg.h	/^	RAS_rErrAlarmInit, \/\/$/;"	e	enum:__anon3
-RAS_rErrConfInit	RAS_Errmsg.h	/^	RAS_rErrConfInit, \/\/$/;"	e	enum:__anon3
-RAS_rErrDBAttrNull	RAS_Errmsg.h	/^	RAS_rErrDBAttrNull,$/;"	e	enum:__anon3
-RAS_rErrDBCommit	RAS_Errmsg.h	/^	RAS_rErrDBCommit,$/;"	e	enum:__anon3
-RAS_rErrDBConn	RAS_Errmsg.h	/^	RAS_rErrDBConn,$/;"	e	enum:__anon3
-RAS_rErrDBDelete	RAS_Errmsg.h	/^	RAS_rErrDBDelete,$/;"	e	enum:__anon3
-RAS_rErrDBExecute	RAS_Errmsg.h	/^	RAS_rErrDBExecute,$/;"	e	enum:__anon3
-RAS_rErrDBFail	RAS_Errmsg.h	/^	RAS_rErrDBFail,$/;"	e	enum:__anon3
-RAS_rErrDBFetch	RAS_Errmsg.h	/^	RAS_rErrDBFetch,$/;"	e	enum:__anon3
-RAS_rErrDBGetValue	RAS_Errmsg.h	/^	RAS_rErrDBGetValue,$/;"	e	enum:__anon3
-RAS_rErrDBInsert	RAS_Errmsg.h	/^	RAS_rErrDBInsert,$/;"	e	enum:__anon3
-RAS_rErrDBNotFound	RAS_Errmsg.h	/^	RAS_rErrDBNotFound,$/;"	e	enum:__anon3
-RAS_rErrDBPstmt	RAS_Errmsg.h	/^	RAS_rErrDBPstmt,$/;"	e	enum:__anon3
-RAS_rErrDBSelect	RAS_Errmsg.h	/^	RAS_rErrDBSelect,$/;"	e	enum:__anon3
-RAS_rErrDBSetValue	RAS_Errmsg.h	/^	RAS_rErrDBSetValue,$/;"	e	enum:__anon3
-RAS_rErrFail	RAS_Errmsg.h	/^	RAS_rErrFail, \/\/$/;"	e	enum:__anon3
-RAS_rErrGetConfValue	RAS_Errmsg.h	/^	RAS_rErrGetConfValue, \/\/$/;"	e	enum:__anon3
-RAS_rErrGetValue	RAS_Errmsg.h	/^	RAS_rErrGetValue, \/\/$/;"	e	enum:__anon3
-RAS_rErrInvalidData	RAS_Errmsg.h	/^	RAS_rErrInvalidData,$/;"	e	enum:__anon3
-RAS_rErrInvalidParam	RAS_Errmsg.h	/^	RAS_rErrInvalidParam, \/\/$/;"	e	enum:__anon3
-RAS_rErrInvalidRegiKeyList	RAS_Errmsg.h	/^	RAS_rErrInvalidRegiKeyList,$/;"	e	enum:__anon3
-RAS_rErrInvalidValue	RAS_Errmsg.h	/^	RAS_rErrInvalidValue,$/;"	e	enum:__anon3
-RAS_rErrIpcGetKey	RAS_Errmsg.h	/^	RAS_rErrIpcGetKey, \/\/$/;"	e	enum:__anon3
-RAS_rErrIpcInit	RAS_Errmsg.h	/^	RAS_rErrIpcInit, \/\/$/;"	e	enum:__anon3
-RAS_rErrIpcRecv	RAS_Errmsg.h	/^	RAS_rErrIpcRecv,$/;"	e	enum:__anon3
-RAS_rErrIpcSend	RAS_Errmsg.h	/^	RAS_rErrIpcSend,$/;"	e	enum:__anon3
-RAS_rErrJsonAppendVal	RAS_Errmsg.h	/^	RAS_rErrJsonAppendVal,$/;"	e	enum:__anon3
-RAS_rErrJsonCheckSize	RAS_Errmsg.h	/^	RAS_rErrJsonCheckSize,$/;"	e	enum:__anon3
-RAS_rErrJsonGetArr	RAS_Errmsg.h	/^	RAS_rErrJsonGetArr,$/;"	e	enum:__anon3
-RAS_rErrJsonInvalidType	RAS_Errmsg.h	/^	RAS_rErrJsonInvalidType,$/;"	e	enum:__anon3
-RAS_rErrJsonMakeArr	RAS_Errmsg.h	/^	RAS_rErrJsonMakeArr,$/;"	e	enum:__anon3
-RAS_rErrJsonMakeStr	RAS_Errmsg.h	/^	RAS_rErrJsonMakeStr,$/;"	e	enum:__anon3
-RAS_rErrLogInit	RAS_Errmsg.h	/^	RAS_rErrLogInit, \/\/$/;"	e	enum:__anon3
-RAS_rErrMmcInit	RAS_Errmsg.h	/^	RAS_rErrMmcInit, \/\/$/;"	e	enum:__anon3
-RAS_rErrOutOfRange	RAS_Errmsg.h	/^	RAS_rErrOutOfRange,$/;"	e	enum:__anon3
-RAS_rErrRegiCreate	RAS_Errmsg.h	/^	RAS_rErrRegiCreate,$/;"	e	enum:__anon3
-RAS_rErrRegiGetKeyList	RAS_Errmsg.h	/^	RAS_rErrRegiGetKeyList,$/;"	e	enum:__anon3
-RAS_rErrRegiGetValue	RAS_Errmsg.h	/^	RAS_rErrRegiGetValue,$/;"	e	enum:__anon3
-RAS_rErrRegiInit	RAS_Errmsg.h	/^	RAS_rErrRegiInit, \/\/$/;"	e	enum:__anon3
-RAS_rErrRegiSetValue	RAS_Errmsg.h	/^	RAS_rErrRegiSetValue,$/;"	e	enum:__anon3
-RAS_rErrRegiUdpOpen	RAS_Errmsg.h	/^	RAS_rErrRegiUdpOpen,$/;"	e	enum:__anon3
-RAS_rErrSetValue	RAS_Errmsg.h	/^	RAS_rErrSetValue, $/;"	e	enum:__anon3
-RAS_rErrSigTerm	RAS_Errmsg.h	/^	RAS_rErrSigTerm,$/;"	e	enum:__anon3
-RAS_rErrStatInit	RAS_Errmsg.h	/^	RAS_rErrStatInit, \/\/$/;"	e	enum:__anon3
-RAS_rErrStatOpen	RAS_Errmsg.h	/^	RAS_rErrStatOpen,$/;"	e	enum:__anon3
-RAS_rErrThreadCreate	RAS_Errmsg.h	/^	RAS_rErrThreadCreate,$/;"	e	enum:__anon3
-RAS_rOK	RAS_Errmsg.h	/^	RAS_rOK = 1000, \/\/$/;"	e	enum:__anon3
-RAS_rSuccessMmchdl	RAS_Errmsg.h	/^	RAS_rSuccessMmchdl = 0 \/\/$/;"	e	enum:__anon3
+PROCESS_NAME	RAS_Inc.h	65;"	d
+RAS_rErrAlarmInit	RAS_Errmsg.h	/^	RAS_rErrAlarmInit,$/;"	e	enum:__anon1
+RAS_rErrConfInit	RAS_Errmsg.h	/^	RAS_rErrConfInit,$/;"	e	enum:__anon1
+RAS_rErrDBAttrNull	RAS_Errmsg.h	/^	RAS_rErrDBAttrNull,$/;"	e	enum:__anon1
+RAS_rErrDBCommit	RAS_Errmsg.h	/^	RAS_rErrDBCommit,$/;"	e	enum:__anon1
+RAS_rErrDBConn	RAS_Errmsg.h	/^	RAS_rErrDBConn,$/;"	e	enum:__anon1
+RAS_rErrDBDelete	RAS_Errmsg.h	/^	RAS_rErrDBDelete,$/;"	e	enum:__anon1
+RAS_rErrDBExecute	RAS_Errmsg.h	/^	RAS_rErrDBExecute,$/;"	e	enum:__anon1
+RAS_rErrDBFail	RAS_Errmsg.h	/^	RAS_rErrDBFail,$/;"	e	enum:__anon1
+RAS_rErrDBFetch	RAS_Errmsg.h	/^	RAS_rErrDBFetch,$/;"	e	enum:__anon1
+RAS_rErrDBGetValue	RAS_Errmsg.h	/^	RAS_rErrDBGetValue,$/;"	e	enum:__anon1
+RAS_rErrDBInsert	RAS_Errmsg.h	/^	RAS_rErrDBInsert,$/;"	e	enum:__anon1
+RAS_rErrDBNotFound	RAS_Errmsg.h	/^	RAS_rErrDBNotFound,$/;"	e	enum:__anon1
+RAS_rErrDBPstmt	RAS_Errmsg.h	/^	RAS_rErrDBPstmt,$/;"	e	enum:__anon1
+RAS_rErrDBSelect	RAS_Errmsg.h	/^	RAS_rErrDBSelect,$/;"	e	enum:__anon1
+RAS_rErrDBSetValue	RAS_Errmsg.h	/^	RAS_rErrDBSetValue,$/;"	e	enum:__anon1
+RAS_rErrEpollInit	RAS_Errmsg.h	/^	RAS_rErrEpollInit,$/;"	e	enum:__anon1
+RAS_rErrEventRecreateNo	RAS_Errmsg.h	/^	RAS_rErrEventRecreateNo,$/;"	e	enum:__anon1
+RAS_rErrEventRecreateYes	RAS_Errmsg.h	/^	RAS_rErrEventRecreateYes,	$/;"	e	enum:__anon1
+RAS_rErrFail	RAS_Errmsg.h	/^	RAS_rErrFail,$/;"	e	enum:__anon1
+RAS_rErrGetConfValue	RAS_Errmsg.h	/^	RAS_rErrGetConfValue,$/;"	e	enum:__anon1
+RAS_rErrGetValue	RAS_Errmsg.h	/^	RAS_rErrGetValue,$/;"	e	enum:__anon1
+RAS_rErrInvalidData	RAS_Errmsg.h	/^	RAS_rErrInvalidData,$/;"	e	enum:__anon1
+RAS_rErrInvalidParam	RAS_Errmsg.h	/^	RAS_rErrInvalidParam,$/;"	e	enum:__anon1
+RAS_rErrInvalidRegiKeyList	RAS_Errmsg.h	/^	RAS_rErrInvalidRegiKeyList,$/;"	e	enum:__anon1
+RAS_rErrInvalidValue	RAS_Errmsg.h	/^	RAS_rErrInvalidValue,$/;"	e	enum:__anon1
+RAS_rErrIpcGetKey	RAS_Errmsg.h	/^	RAS_rErrIpcGetKey,$/;"	e	enum:__anon1
+RAS_rErrIpcInit	RAS_Errmsg.h	/^	RAS_rErrIpcInit,$/;"	e	enum:__anon1
+RAS_rErrIpcRecv	RAS_Errmsg.h	/^	RAS_rErrIpcRecv,$/;"	e	enum:__anon1
+RAS_rErrIpcSend	RAS_Errmsg.h	/^	RAS_rErrIpcSend,$/;"	e	enum:__anon1
+RAS_rErrJsonAppendVal	RAS_Errmsg.h	/^	RAS_rErrJsonAppendVal,$/;"	e	enum:__anon1
+RAS_rErrJsonCheckSize	RAS_Errmsg.h	/^	RAS_rErrJsonCheckSize,$/;"	e	enum:__anon1
+RAS_rErrJsonGetArr	RAS_Errmsg.h	/^	RAS_rErrJsonGetArr,$/;"	e	enum:__anon1
+RAS_rErrJsonInvalidType	RAS_Errmsg.h	/^	RAS_rErrJsonInvalidType,$/;"	e	enum:__anon1
+RAS_rErrJsonMakeArr	RAS_Errmsg.h	/^	RAS_rErrJsonMakeArr,$/;"	e	enum:__anon1
+RAS_rErrJsonMakeStr	RAS_Errmsg.h	/^	RAS_rErrJsonMakeStr,$/;"	e	enum:__anon1
+RAS_rErrLogInit	RAS_Errmsg.h	/^	RAS_rErrLogInit,$/;"	e	enum:__anon1
+RAS_rErrMmcInit	RAS_Errmsg.h	/^	RAS_rErrMmcInit,$/;"	e	enum:__anon1
+RAS_rErrOutOfRange	RAS_Errmsg.h	/^	RAS_rErrOutOfRange,$/;"	e	enum:__anon1
+RAS_rErrRegiCreate	RAS_Errmsg.h	/^	RAS_rErrRegiCreate,$/;"	e	enum:__anon1
+RAS_rErrRegiGetKeyList	RAS_Errmsg.h	/^	RAS_rErrRegiGetKeyList,$/;"	e	enum:__anon1
+RAS_rErrRegiGetValue	RAS_Errmsg.h	/^	RAS_rErrRegiGetValue,$/;"	e	enum:__anon1
+RAS_rErrRegiInit	RAS_Errmsg.h	/^	RAS_rErrRegiInit,$/;"	e	enum:__anon1
+RAS_rErrRegiSetValue	RAS_Errmsg.h	/^	RAS_rErrRegiSetValue,$/;"	e	enum:__anon1
+RAS_rErrRegiUdpOpen	RAS_Errmsg.h	/^	RAS_rErrRegiUdpOpen,$/;"	e	enum:__anon1
+RAS_rErrSetValue	RAS_Errmsg.h	/^	RAS_rErrSetValue, $/;"	e	enum:__anon1
+RAS_rErrSocketInit	RAS_Errmsg.h	/^	RAS_rErrSocketInit,$/;"	e	enum:__anon1
+RAS_rErrStatInit	RAS_Errmsg.h	/^	RAS_rErrStatInit,$/;"	e	enum:__anon1
+RAS_rErrStatOpen	RAS_Errmsg.h	/^	RAS_rErrStatOpen,$/;"	e	enum:__anon1
+RAS_rErrThreadCreate	RAS_Errmsg.h	/^	RAS_rErrThreadCreate,$/;"	e	enum:__anon1
+RAS_rErrThreadInit	RAS_Errmsg.h	/^	RAS_rErrThreadInit,$/;"	e	enum:__anon1
+RAS_rOK	RAS_Errmsg.h	/^	RAS_rOK = 1000,$/;"	e	enum:__anon1
+RAS_rSuccessMmchdl	RAS_Errmsg.h	/^	RAS_rSuccessMmchdl = 0$/;"	e	enum:__anon1
 REGI_Init	RAS_Regi.c	/^int REGI_Init()$/;"	f
-ReturnCode_e	RAS_Errmsg.h	/^} ReturnCode_e;$/;"	t	typeref:enum:__anon3
+REGI_SECTION	RAS_Config.h	7;"	d
+ReturnCode_e	RAS_Errmsg.h	/^} ReturnCode_e;$/;"	t	typeref:enum:__anon1
+SIZE_IP	RAS_Inc.h	71;"	d
+SOCKET_Init	RAS_Socket.c	/^int SOCKET_Init( int *pnListenFd )$/;"	f
 SRCS	Makefile	/^SRCS= RAS_Main.c			\\$/;"	m
+START_CREATE	RAS_Inc.h	69;"	d
+START_SVC	RAS_Inc.h	67;"	d
 STAT_Init	RAS_Stat.c	/^int STAT_Init()$/;"	f
+STOP_CREATE	RAS_Inc.h	68;"	d
 STOP_GRACE_TIME_MSEC	RAS_Ipc.h	6;"	d
+STOP_SVC	RAS_Inc.h	66;"	d
+SYSTEM_ID	RAS_Regi.h	5;"	d
 SignalHandler	RAS_Main.c	/^static void SignalHandler( int nSigno )$/;"	f	file:
-TABLE_INFO	RAS_Inc.h	69;"	d
-TABLE_IP	RAS_Inc.h	65;"	d
+TABLE_INFO	RAS_Inc.h	77;"	d
+TABLE_IP	RAS_Inc.h	73;"	d
+THREAD_CNT	RAS_Inc.h	84;"	d
+THREAD_Init	RAS_Thread.c	/^int THREAD_Init()$/;"	f
+THREAD_Run	RAS_Thread.c	/^void *THREAD_Run( void *pvArg )$/;"	f
+THREAD_s	RAS_Inc.h	/^typedef struct THREAD_s$/;"	s
+THREAD_t	RAS_Inc.h	/^} THREAD_t;$/;"	t	typeref:struct:THREAD_s
+TIME_OUT	RAS_Event.h	6;"	d
 TRUE	RAS_Macro.h	5;"	d
 UPP_GNAME	RAS_Alarm.h	5;"	d
 VALID_RANGE	RAS_Macro.h	24;"	d
 _RAS_ALARM_H_	RAS_Alarm.h	3;"	d
 _RAS_CONFIG_H	RAS_Config.h	3;"	d
 _RAS_ERRMSG_H_	RAS_Errmsg.h	3;"	d
+_RAS_EVENT_H_	RAS_Event.h	3;"	d
 _RAS_INC_H_	RAS_Inc.h	3;"	d
 _RAS_IPC_H	RAS_Ipc.h	3;"	d
 _RAS_LOG_H_	RAS_Log.h	3;"	d
@@ -169,7 +191,10 @@ _RAS_MMCHDL_CLIIP_H_	RAS_Mmchdl_CliIp.h	3;"	d
 _RAS_MMCHDL_USRINFO_H_	RAS_Mmchdl_UsrInfo.h	3;"	d
 _RAS_MMC_H_	RAS_Mmc.h	3;"	d
 _RAS_REGI_H	RAS_Regi.h	3;"	d
+_RAS_SOCKET_H_	*RAS_Socket.h	3;"	d
+_RAS_SOCKET_H_	RAS_Socket.h	3;"	d
 _RAS_STAT_H_	RAS_Stat.h	4;"	d
+_RAS_THREAD_H	RAS_Thread.h	3;"	d
 __ITEM_END__	RAS_Stat.h	/^    __ITEM_END__$/;"	e	enum:__anon2
 atArgId	RAS_Mmchdl_UsrInfo.c	/^static oammmc_arg_info_t atArgId[] =$/;"	v	file:
 atArgInfo	RAS_Mmchdl_UsrInfo.c	/^static oammmc_arg_info_t atArgInfo[] =$/;"	v	file:
@@ -183,20 +208,25 @@ atCmd	RAS_Mmchdl_UsrInfo.c	/^static oammmc_cmd_t atCmd[] =$/;"	v	file:
 atGenderEnum	RAS_Mmchdl_UsrInfo.c	/^static mpenumx_t atGenderEnum[] =$/;"	v	file:
 en_item_index_t	RAS_Stat.h	/^}en_item_index_t;$/;"	t	typeref:enum:__anon2
 g_nAlarmStatus	RAS_Main.c	/^int g_nAlarmStatus = 0;$/;"	v
-g_nDoSvcFlag	RAS_Main.c	/^int g_nDoSvcFlag = DO_SVC_START;$/;"	v
+g_nSvcFlag	RAS_Main.c	/^int g_nSvcFlag = START_SVC;$/;"	v
 g_ptMpipc	RAS_Main.c	/^mpipc_t *g_ptMpipc = NULL;$/;"	v
 g_ptOammmc	RAS_Main.c	/^oammmc_t *g_ptOammmc = NULL;$/;"	v
 g_tEnv	RAS_Main.c	/^Env_t g_tEnv;$/;"	v
+g_tThread	RAS_Main.c	/^THREAD_t g_tThread[THREAD_CNT];$/;"	v
 main	RAS_Main.c	/^int main( void )$/;"	f
-nLogLevel	RAS_Config.h	/^	int nLogLevel;$/;"	m	struct:__anon1
-nLogMode	RAS_Config.h	/^	int nLogMode;$/;"	m	struct:__anon1
-nMmlEnable	RAS_Config.h	/^	int nMmlEnable;$/;"	m	struct:__anon1
-nMmtConnMax	RAS_Config.h	/^	int nMmtConnMax;$/;"	m	struct:__anon1
-nMmtEnable	RAS_Config.h	/^	int nMmtEnable;$/;"	m	struct:__anon1
-nMmtIsQuiet	RAS_Config.h	/^	int nMmtIsQuiet;$/;"	m	struct:__anon1
-nMmtLocalOnly	RAS_Config.h	/^	int nMmtLocalOnly;$/;"	m	struct:__anon1
-nMmtPort	RAS_Config.h	/^	int nMmtPort;$/;"	m	struct:__anon1
-nPort	RAS_Config.h	/^	int nPort;$/;"	m	struct:__anon1
+nEpollFd	RAS_Inc.h	/^	int nEpollFd;$/;"	m	struct:THREAD_s
+nLogLevel	RAS_Config.h	/^	int nLogLevel;$/;"	m	struct:__anon3
+nLogMode	RAS_Config.h	/^	int nLogMode;$/;"	m	struct:__anon3
+nMmlEnable	RAS_Config.h	/^	int nMmlEnable;$/;"	m	struct:__anon3
+nMmtConnMax	RAS_Config.h	/^	int nMmtConnMax;$/;"	m	struct:__anon3
+nMmtEnable	RAS_Config.h	/^	int nMmtEnable;$/;"	m	struct:__anon3
+nMmtIsQuiet	RAS_Config.h	/^	int nMmtIsQuiet;$/;"	m	struct:__anon3
+nMmtLocalOnly	RAS_Config.h	/^	int nMmtLocalOnly;$/;"	m	struct:__anon3
+nMmtPort	RAS_Config.h	/^	int nMmtPort;$/;"	m	struct:__anon3
+nPort	RAS_Config.h	/^	int nPort;$/;"	m	struct:__anon3
+nRegiLbPort	RAS_Config.h	/^	int nRegiLbPort;$/;"	m	struct:__anon3
+nThreadId	RAS_Inc.h	/^	pthread_t nThreadId;$/;"	m	struct:THREAD_s
 stctl_dtl_type_list	RAS_Stat.c	/^stctl_dtl_type_desc_t stctl_dtl_type_list[] = {$/;"	v
 stctl_item_list	RAS_Stat.c	/^stctl_item_desc_t stctl_item_list[] = {$/;"	v
-szIp	RAS_Config.h	/^	char szIp[40];$/;"	m	struct:__anon1
+szIp	RAS_Config.h	/^	char szIp[40];$/;"	m	struct:__anon3
+szIp	RAS_Inc.h	/^	char szIp[SIZE_IP + 1];$/;"	m	struct:THREAD_s

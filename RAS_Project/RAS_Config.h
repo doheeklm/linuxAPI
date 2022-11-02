@@ -4,6 +4,7 @@
 
 #define CONFIG_PATH			"./RAS_Config.ut"
 #define CONN_SECTION		"CONNECTION"
+#define REGI_SECTION		"REGI"
 #define LOG_SECTION			"LOG"
 #define MMC_SECTION			"MMC"
 
@@ -11,7 +12,8 @@ typedef struct
 {
 	char szIp[40];
 	int nPort;
-
+	int nRegiLbPort;
+	
 	int nLogMode;
 	int nLogLevel;
 
