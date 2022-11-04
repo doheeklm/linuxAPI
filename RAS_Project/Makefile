@@ -14,6 +14,8 @@ SRCS= RAS_Main.c			\
 	  RAS_Mmchdl_CliIpTrc.c	\
 	  RAS_Mmchdl_UsrInfo.c	\
 	  RAS_Mmc.c				\
+	  RAS_DB.c				\
+	  RAS_DBQuery.c			\
 	  RAS_Regi.c			\
 	  RAS_Alarm.c			\
 	  RAS_Stat.c			\

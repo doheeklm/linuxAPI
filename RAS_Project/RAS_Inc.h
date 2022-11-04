@@ -46,13 +46,13 @@
 #include "RAS_Config.h"
 #include "RAS_Log.h"
 #include "RAS_Ipc.h"
+#include "RAS_Regi.h"
+#include "RAS_DB.h"
+#include "RAS_DBQuery.h"
 #include "RAS_Mmchdl_CliIp.h"
 #include "RAS_Mmchdl_CliIpTrc.h"
 #include "RAS_Mmchdl_UsrInfo.h"
 #include "RAS_Mmc.h"
-#include "RAS_Regi.h"
-//#include "RAS_Pstmt.h"
-#include "RAS_DB.h"
 #include "RAS_Alarm.h"
 #include "RAS_Stat.h"
 #include "RAS_Thread.h"
@@ -67,27 +67,14 @@
 #define START_SVC				1
 #define STOP_CREATE				0
 #define START_CREATE			1
-
-#define SIZE_IP					15
-
-#define TABLE_IP				"RAS_IP"
-#define ATTR_IP					"cli_ip"
-#define ATTR_DESC				"desc"
-
-#define TABLE_INFO				"RAS_INFO"
-#define ATTR_ID					"id"
-#define ATTR_NAME				"name"
-#define ATTR_GENDER				"gender"
-#define ATTR_BIRTH				"birth"
-#define ATTR_ADDRESS			"address"
-
 #define THREAD_CNT				3
+#define SIZE_IP					15
 
 typedef struct THREAD_s
 {
-	pthread_t nThreadId;
-	int nEpollFd;
-	char szIp[SIZE_IP + 1];
+	pthread_t	nThreadId;
+	int			nEpollFd;
+	char		szClientIp[SIZE_IP + 1];
 } THREAD_t;
 
 #if 0

@@ -47,14 +47,14 @@ int IPC_Handler( mpipc_t *ptMpipc, iipc_msg_t *ptRecvMsg, void *pvData )
 
 	switch( ptMsg->head.msg_id )
 	{
-		case MSG_ID_ADD_CLI_IP:
-		case MSG_ID_DIS_CLI_IP:
-		case MSG_ID_DEL_CLI_IP:
-		case MSG_ID_ADD_CLI_IP_TRC:
-		case MSG_ID_DIS_CLI_IP_TRC:
-		case MSG_ID_DEL_CLI_IP_TRC:
-		case MSG_ID_DIS_USR_INFO:
-		case MSG_ID_DEL_USR_INFO:
+		case MSG_ID_ADD_CLI_IP:		//7748
+		case MSG_ID_DIS_CLI_IP:		//7749
+		case MSG_ID_DEL_CLI_IP:		//7750
+		case MSG_ID_ADD_CLI_IP_TRC: //7751
+		case MSG_ID_DIS_CLI_IP_TRC: //7752
+		case MSG_ID_DEL_CLI_IP_TRC: //7753
+		case MSG_ID_DIS_USR_INFO:	//7754
+		case MSG_ID_DEL_USR_INFO:	//7755
 		{
 			LOG_DBG_F( "msg_id = %d", ptMsg->head.msg_id );
 			return MPIPC_HDLR_RET_NOT_FOR_ME;
@@ -72,19 +72,19 @@ int IPC_Handler( mpipc_t *ptMpipc, iipc_msg_t *ptRecvMsg, void *pvData )
 	return MPIPC_HDLR_RET_DONE;
 }
 
-void IPC_Destroy( mpipc_t *ptMpipc )
+void IPC_Destroy()
 {
 	int nRC = 0;
 
-	if ( NULL != ptMpipc )
+	if ( NULL != g_ptMpipc )
 	{
-		nRC = mpipc_stop( ptMpipc );
+		nRC = mpipc_stop( g_ptMpipc );
 		if ( 0 > nRC )
 		{
 			LOG_ERR_F( "mpipc_stop fail <%d>", nRC );
 		}
 		LOG_SVC_F( "mpipc_stop" );
-		mpipc_destroy( ptMpipc );
+		mpipc_destroy( g_ptMpipc );
 		LOG_SVC_F( "mpipc_destroy" );
 	}
 	

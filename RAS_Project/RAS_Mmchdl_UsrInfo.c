@@ -3,23 +3,23 @@
 
 static mpenumx_t atGenderEnum[] =
 {
-	{ "MALE", ARG_ID_MALE, MSG_ID_DIS_USR_INFO },
-	{ "FEMALE", ARG_ID_FEMALE, MSG_ID_DIS_USR_INFO },
+	{ ARG_MALE_DESC, ARG_MALE_ID, MSG_ID_DIS_USR_INFO },
+	{ ARG_FEMALE_DESC, ARG_FEMALE_ID, MSG_ID_DIS_USR_INFO },
 	{ NULL, 0, 0 }
 };
 
 static oammmc_arg_info_t atArgInfo[] =
 {
-	{ 1, "USR_ID", NULL, OAMMMC_INT, ARG_ID_USR_ID, 1, INT_MAX, NULL, NULL },
-	{ 2, "USR_NAME", NULL, OAMMMC_STR, ARG_ID_USR_NAME, 1, 32, NULL, NULL },
-	{ 3, "USR_GENDER", NULL, OAMMMC_ENUM, ARG_ID_USR_GENDER, 0, 0, atGenderEnum, NULL },
-	{ 4, "USR_BIRTH", NULL, OAMMMC_STR, ARG_ID_USR_BIRTH, 1, 6, NULL, NULL },
+	{ 1, ARG_USR_ID_DESC, NULL, OAMMMC_INT, ARG_USR_ID_ID, 1, INT_MAX, NULL, NULL },
+	{ 2, ARG_USR_NAME_DESC, NULL, OAMMMC_STR, ARG_USR_NAME_ID, 1, 32, NULL, NULL },
+	{ 3, ARG_USR_GENDER_DESC, NULL, OAMMMC_ENUM, ARG_USR_GENDER_ID, 0, 0, atGenderEnum, NULL },
+	{ 4, ARG_USR_BIRTH_DESC, NULL, OAMMMC_STR, ARG_USR_BIRTH_ID, 1, 6, NULL, NULL },
 	{ 0, NULL, NULL, 0, 0, 0, 0, NULL, NULL }
 };
 
 static oammmc_arg_info_t atArgId[] =
 {
-	{ 1, "USR_ID", NULL, OAMMMC_INT, ARG_ID_USR_ID, 1, INT_MAX, NULL, NULL },
+	{ 1, ARG_USR_ID_DESC, NULL, OAMMMC_INT, ARG_USR_ID_ID, 1, INT_MAX, NULL, NULL },
 	{ 0, NULL, NULL, 0, 0, 0, 0, NULL, NULL }
 };
 
@@ -96,10 +96,7 @@ int MMCHDL_USRINFO_Dis( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 		}	
 	}
 
-	oammmc_out( ptOammmc, "%8s = %d\n", ATTR_ID, nId );
-	oammmc_out( ptOammmc, "%8s = %s\n", ATTR_NAME, pszName );
-	oammmc_out( ptOammmc, "%8s = %s\n", ATTR_GENDER, pszGender );
-	oammmc_out( ptOammmc, "%8s = %s\n", ATTR_BIRTH, pszBirth );
+	oammmc_out( ptOammmc, "%d %s %s %s", nId, pszName, pszGender, pszBirth );
 
 	return RAS_rSuccessMmchdl;
 }
@@ -136,7 +133,7 @@ int MMCHDL_USRINFO_Del( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 		}	
 	}
 
-	oammmc_out( ptOammmc, "%8s = %d\n", ATTR_ID, nId );
+	oammmc_out( ptOammmc, "%d", nId );
 	
 	return RAS_rSuccessMmchdl;
 }

@@ -3,6 +3,6 @@
 #define _RAS_MMC_H_
 
 int MMC_Init();
-void MMC_Destroy( oammmc_t *ptOammmc );
+void MMC_Destroy();
 
 #endif /* _RAS_MMC_H_ */

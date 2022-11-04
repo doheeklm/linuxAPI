@@ -2,8 +2,8 @@
 #ifndef _RAS_MMCHDL_CLIIPTRC_H_
 #define _RAS_MMCHDL_CLIIPTRC_H_
 
-#define ARG_ID_CLI_IP		63007
-#define	ARG_ID_PERIOD_TM	63006 
+#define	ARG_PERIOD_TM_ID	63006 
+#define ARG_PERIOD_TM_DESC	"PERIOD_TM"
 
 int MMCHDL_CLIIPTRC_Init( oammmc_t *ptOammmc );
 

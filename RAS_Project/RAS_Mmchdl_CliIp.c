@@ -1,16 +1,18 @@
 /* RAS_Mmchdl_CliIp.c */
 #include "RAS_Inc.h"
 
+extern DB_t g_tDBMain;
+
 static oammmc_arg_info_t atArgIpDesc[] =
 {
-	{ 1, "CLI_IP", NULL, OAMMMC_STR, ARG_ID_CLI_IP, 7, 39, NULL, NULL },
-	{ 2, "DESC", NULL, OAMMMC_STR, ARG_ID_DESC, 1, 32, NULL, NULL },
+	{ 1, "CLI_IP", NULL, OAMMMC_STR, ARG_CLI_IP_ID, 7, 15, NULL, NULL },
+	{ 2, "CLI_IP_DESC", NULL, OAMMMC_STR, ARG_CLI_IP_DESC_ID, 1, 32, NULL, NULL },
 	{ 0, NULL, NULL, 0, 0, 0, 0, NULL, NULL }
 };
 
 static oammmc_arg_info_t atArgIp[] =
 {
-	{ 1, "CLI_IP", NULL, OAMMMC_STR, ARG_ID_CLI_IP, 7, 39, NULL, NULL },
+	{ 1, "CLI_IP", NULL, OAMMMC_STR, ARG_CLI_IP_ID, 7, 15, NULL, NULL },
 	{ 0, NULL, NULL, 0, 0, 0, 0, NULL, NULL }
 };
 
@@ -46,6 +48,7 @@ int MMCHDL_CLIIP_Add( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 	CHECK_PARAM_RC( patArgList );
 	ptUarg = ptUarg;
 
+	int nRC = 0;
 	int nIndex = 0;
 	char *pszIp = NULL;
 	char *pszDesc = NULL;
@@ -75,9 +78,19 @@ int MMCHDL_CLIIP_Add( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 		}	
 	}
 
-	oammmc_out( ptOammmc, "%8s = %s\n", ATTR_IP, pszIp );
-	oammmc_out( ptOammmc, "%8s = %s", ATTR_DESC, pszDesc );
+	//TODO CLIENT IP 중복 체크
 
+	DB_SET_STRING_BY_KEY( g_tDBMain.patPstmt[PSTMT_INSERT_CLI_IP], ATTR_CLI_IP, pszIp );
+	
+	if ( NULL != pszDesc )
+	{
+		DB_SET_STRING_BY_KEY( g_tDBMain.patPstmt[PSTMT_INSERT_CLI_IP], ATTR_CLI_IP_DESC, pszDesc );
+	}	
+
+	DB_PREPARED_EXEC( g_tDBMain.ptDBConn, g_tDBMain.patPstmt[PSTMT_INSERT_CLI_IP], NULL, nRC );
+	
+	MMC_PRT_CLI_IP_ONE( ptOammmc, ARG_CLI_IP_DESC, pszIp, ARG_CLI_IP_DESC_DESC, pszDesc );
+	
 	return RAS_rSuccessMmchdl;
 }
 
@@ -113,7 +126,7 @@ int MMCHDL_CLIIP_Dis( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 		}	
 	}
 
-	oammmc_out( ptOammmc, "%8s = %s", ATTR_IP, pszIp );
+	oammmc_out( ptOammmc, "%s", pszIp );
 
 	return RAS_rSuccessMmchdl;
 }
@@ -127,9 +140,13 @@ int MMCHDL_CLIIP_Del( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 	ptUarg = ptUarg;
 	nArgNum = nArgNum;
 
+	int nRC = 0;
 	int nIndex = 0;
 	char *pszIp = NULL;
+	char *pszDesc = NULL;
 	oammmc_arg_t *ptArg = NULL;
+	DAL_RESULT_SET *ptRes = NULL;
+	DAL_ENTRY *ptEntry = NULL;
 
 	for ( nIndex = 0; nIndex < nArgNum; ++nIndex )
 	{
@@ -150,7 +167,31 @@ int MMCHDL_CLIIP_Del( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 		}	
 	}
 
-	oammmc_out( ptOammmc, "%8s = %s", ATTR_IP, pszIp );
+	DB_SET_STRING_BY_KEY( g_tDBMain.patPstmt[PSTMT_DELETE_CLI_IP], ATTR_CLI_IP, pszIp );
+
+	//TODO DAL error 2132 <NULL.. NOT NULLABLE>  
+	DB_PREPARED_EXEC( g_tDBMain.ptDBConn, g_tDBMain.patPstmt[PSTMT_SELECT_CLI_IP], &ptRes, nRC );
+	if ( 0 == nRC )
+	{
+		MMC_PRT_NOT_FOUND( ptOammmc );
+		return RAS_rErrDBNotFound;
+	}
+
+	ptEntry = dalFetchFirst( ptRes );
+	if ( NULL != ptEntry )
+	{
+		//TODO macro DB_GET_STRING_BY_KEY
+		nRC = dalGetStringByKey( ptEntry, ATTR_CLI_IP_DESC, &pszDesc );
+	}
+
+	DB_PREPARED_EXEC( g_tDBMain.ptDBConn, g_tDBMain.patPstmt[PSTMT_DELETE_CLI_IP], NULL, nRC );
+	if ( 0 == nRC )
+	{
+		MMC_PRT_NOT_FOUND( ptOammmc );
+		return RAS_rErrDBNotFound;
+	}
+	
+	MMC_PRT_CLI_IP_ONE( ptOammmc, ARG_CLI_IP_DESC, pszIp, ARG_CLI_IP_DESC_DESC, pszDesc );
 
 	return RAS_rSuccessMmchdl;
 }

@@ -26,14 +26,27 @@
 	  ((int)(_val) <= (int)(_max)) \
 	  ? TRUE : FALSE )
 
-#define MMC_PRT_CRLF( ptOammmc ) \
+#define MMC_PRT_CRLF( p_mmc ) \
 	do { \
-		oammmc_out( (ptOammmc), "\n" );\
+		oammmc_out( (p_mmc), "\n" );\
 	} while (0)
 
-#define MMC_PRT_LINE( ptOammmc, sline ) \
+#define MMC_PRT_LINE( p_mmc ) \
 	do { \
-		oammmc_out( (ptOammmc), "%-s\n", (sline) ); \
+		oammmc_out( (p_mmc), "====================\n" ); \
+	} while (0)
+
+#define MMC_PRT_CLI_IP_ONE( p_mmc, _attr_ip, _ip, _attr_desc, _desc ) \
+	do { \
+		oammmc_out( (p_mmc), "==============================\n" ); \
+		oammmc_out( (p_mmc), "%-12s = %s\n", _attr_ip, _ip ); \
+		oammmc_out( (p_mmc), "%-12s = %s\n", _attr_desc, _desc ); \
+		oammmc_out( (p_mmc), "==============================\n" ); \
+	} while (0)
+
+#define MMC_PRT_NOT_FOUND( p_mmc ) \
+	do { \
+		oammmc_out( (p_mmc), "not found" ); \
 	} while (0)
 
 #endif /* _RAS_MACRO_H_ */

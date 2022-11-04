@@ -2,8 +2,10 @@
 #ifndef _RAS_MMCHDL_CLIIP_H_
 #define _RAS_MMCHDL_CLIIP_H_
 
-#define ARG_ID_CLI_IP	63007
-#define ARG_ID_DESC		63008
+#define ARG_CLI_IP_ID			63007
+#define ARG_CLI_IP_DESC			"CLI_IP"
+#define ARG_CLI_IP_DESC_ID		63008
+#define ARG_CLI_IP_DESC_DESC	"CLI_IP_DESC"
 
 int MMCHDL_CLIIP_Init( oammmc_t *ptOammmc );
 

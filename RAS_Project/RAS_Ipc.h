@@ -16,6 +16,6 @@
 
 int IPC_Init();
 int IPC_Handler( mpipc_t *ptMpipc, iipc_msg_t *ptRecvMsg, void *pvData );
-void IPC_Destroy( mpipc_t *ptMpipc );
+void IPC_Destroy();
 
 #endif /* _RAS_IPC_H_ */

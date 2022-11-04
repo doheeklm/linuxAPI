@@ -32,17 +32,19 @@ typedef enum
 
 	RAS_rErrDBConn,
 	RAS_rErrDBCommit,
+	RAS_rErrDBExecute,
+	RAS_rErrDBNotFound,
+	RAS_rErrDBResFree,
 	RAS_rErrDBPstmt,
+	RAS_rErrDBSetValue,
+
+	RAS_rErrDBFail,
 	RAS_rErrDBFetch,
 	RAS_rErrDBGetValue,
-	RAS_rErrDBSetValue,
-	RAS_rErrDBNotFound,
 	RAS_rErrDBAttrNull,
-	RAS_rErrDBExecute,
 	RAS_rErrDBInsert,
 	RAS_rErrDBSelect,
 	RAS_rErrDBDelete,
-	RAS_rErrDBFail,
 	
 	RAS_rErrThreadCreate,
 	RAS_rErrStatOpen,

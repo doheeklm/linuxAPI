@@ -4,12 +4,13 @@
 int g_nSvcFlag = START_SVC;
 int g_nThreadIndex = 0; 
 int g_nAlarmStatus = 0; //Thread
+
 Env_t g_tEnv;
+DB_t g_tDBMain;
 mpipc_t *g_ptMpipc = NULL;
 oammmc_t *g_ptOammmc = NULL;
 THREAD_t g_tThread[THREAD_CNT];
 
-static void ALL_Close();
 static void SignalHandler( int nSigno );
 
 int main( void )
@@ -27,6 +28,8 @@ int main( void )
 	int nListenFd = 0;
 	int nEpollFd = 0;
 	int nCreateFlag = START_CREATE;
+
+	memset( &g_tDBMain, 0x00, sizeof(g_tDBMain) );
 
 	nRC = CONFIG_Init();
 	if ( RAS_rOK != nRC )
@@ -48,14 +51,20 @@ int main( void )
 		LOG_ERR_F( "IPC_Init fail <%d>", nRC );
 		goto _exit_main;	
 	}
-
-	//TODO Need DB
-	nRC = MMC_Init();
+	
+	nRC = DB_Init( &(g_tDBMain.ptDBConn) );
 	if ( RAS_rOK != nRC )
 	{
-		LOG_ERR_F( "MMC_Init fail <%d>", nRC );
+		LOG_ERR_F( "DB_Init fail <%d>", nRC );
 		goto _exit_main;
-	}
+	}	
+	
+	nRC = DB_InitPreparedStatement( &g_tDBMain );
+	if ( RAS_rOK != nRC )
+	{
+		LOG_ERR_F( "DB_InitPreparedStatement fail <%d>", nRC );
+		goto _exit_main;
+	}	
 	
 	nRC = REGI_Init();
 	if ( RAS_rOK != nRC )
@@ -63,8 +72,14 @@ int main( void )
 		LOG_ERR_F( "REGI_Init fail <%d>", nRC );
 		goto _exit_main;
 	}
+
+	nRC = MMC_Init();
+	if ( RAS_rOK != nRC )
+	{
+		LOG_ERR_F( "MMC_Init fail <%d>", nRC );
+		goto _exit_main;
+	}
 	
-	//TODO Need DB
 	nRC = ALARM_Init();
 	if ( RAS_rOK != nRC )
 	{
@@ -88,7 +103,7 @@ int main( void )
 
 	while ( g_nSvcFlag )
 	{
-		if ( START_CREATE == nCreateFlag );
+		if ( START_CREATE == nCreateFlag )
 		{
 			nRC = SOCKET_Init( &nListenFd );
 			if ( RAS_rOK != nRC )
@@ -113,10 +128,11 @@ int main( void )
 		if ( RAS_rErrEventRecreateYes == nRC )
 		{
 			nCreateFlag = START_CREATE;
-			continue;
 		}
-
-		nCreateFlag = STOP_CREATE; //RAS_rOK, RAS_rErrEventRecreateNo
+		else
+		{
+			nCreateFlag = STOP_CREATE;
+		}
 	}
 
 	printf( "end while loop\n" );
@@ -132,22 +148,18 @@ int main( void )
 	}
 
 _exit_main:
-	ALL_Close();
-
-	return 0;
-}
-
-static void ALL_Close()
-{
 	//epoll
 	//socket
 	//thread
 	stgen_close();
 	//alarm
+	MMC_Destroy();
 	//regi
-	MMC_Destroy( g_ptOammmc );
-	IPC_Destroy( g_ptMpipc );
+	DB_Close( &g_tDBMain );
+	IPC_Destroy();
 	MPGLOG_DESTROY();
+	
+	return 0;
 }
 
 static void SignalHandler( int nSigno )

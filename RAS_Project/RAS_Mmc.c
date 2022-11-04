@@ -28,7 +28,7 @@ int MMC_Init()
 			return RAS_rErrMmcInit;
 		}
 
-		LOG_DBG_F( "mmt_enabled" );
+		LOG_DBG_F( "oammmc_bind_mmt success" );
 	}
 
 	/*
@@ -43,7 +43,7 @@ int MMC_Init()
 			return RAS_rErrMmcInit;
 		}
 
-		LOG_DBG_F( "mml_enabled" );
+		LOG_DBG_F( "oammmc_bind_mml success" );
 	}
 
 	if ( 0 == g_tEnv.nMmtEnable && 0 == g_tEnv.nMmlEnable )
@@ -93,20 +93,20 @@ int MMC_Init()
 	return RAS_rOK;
 }
 
-void MMC_Destroy( oammmc_t *ptOammmc )
+void MMC_Destroy()
 {
 	int nRC = 0;
 	
-	if ( NULL != ptOammmc )
+	if ( NULL != g_ptOammmc )
 	{
-		nRC = oammmc_stop( ptOammmc );
+		nRC = oammmc_stop( g_ptOammmc );
 		if ( 0 > nRC )
 		{
 			LOG_ERR_F( "oammmc_stop fail <%d>", nRC );
 		}
-		LOG_SVC_F( "oammmc_stop" );
-		oammmc_destroy( ptOammmc );
-		LOG_SVC_F( "oammmc_destroy" );
+		LOG_SVC_F( "oammmc_stop success" );
+		oammmc_destroy( g_ptOammmc );
+		LOG_SVC_F( "oammmc_destroy success" );
 	}
 
 	return;

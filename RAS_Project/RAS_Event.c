@@ -3,6 +3,7 @@
 
 extern int g_nThreadIndex;
 extern THREAD_t g_tThread[THREAD_CNT];
+extern DB_t g_tDBMain;
 
 int EVENT_Init( int *pnEpollFd, int nListenFd )
 {
@@ -11,32 +12,26 @@ int EVENT_Init( int *pnEpollFd, int nListenFd )
 	struct epoll_event tEvent;
 	memset( &tEvent, 0x00, sizeof(tEvent) );
 
-	/*
-	 *	Create Epoll
-	 */
 	*pnEpollFd = epoll_create( 1 );
 	if ( -1 == *pnEpollFd )
 	{
-		LOG_ERR_F( "epoll_create fail" );
+		LOG_ERR_F( "epoll_create fail <%d>", *pnEpollFd );
 		return RAS_rErrEpollInit;
 	}
 
-	LOG_SVC_F( "epoll_create" );
-
-	/*
-	 *	Add ListenFd to Epoll List
-	 */
+	LOG_SVC_F( "epoll_create success" );
+	
 	tEvent.events = EPOLLIN;
 	tEvent.data.fd = nListenFd;
 
 	nRC = epoll_ctl( *pnEpollFd, EPOLL_CTL_ADD, nListenFd, &tEvent );
 	if ( -1 == nRC )
 	{
-		LOG_ERR_F( "epoll_ctl_add fail" );
+		LOG_ERR_F( "epoll_ctl fail <%d>", nRC );
 		return RAS_rErrEpollInit;
 	}
 
-	LOG_SVC_F( "epoll_ctl_add" );
+	LOG_SVC_F( "epoll_ctl success <ADD LISTENFD TO EPOLL>" );
 
 	return RAS_rOK;
 }
@@ -70,25 +65,18 @@ int EVENT_WaitAndAccept( int nEpollFd, int nListenFd )
 		}
 		else
 		{
-			return RAS_rErrEventRecreateYes;
+			goto _remove_and_recreate;
 		}
 	}
 
-	for ( nIndex = 0; nIndex < nCntReadyFd; nIndex++ )
+	for ( nIndex = 0; nIndex < nCntFd; nIndex++ )
 	{
 		if ( (atEvents[nIndex].events & EPOLLERR)
 				|| (atEvents[nIndex].events & EPOLLHUP)
 				|| (atEvents[nIndex].events & EPOLLRDHUP) )
 		{
-			nRC = epoll_ctl( nEpollFd, EPOLL_CTL_DEL, nListenFd, &tEvent );
-			if ( -1 == nRC )
-			{
-				LOG_ERR_F( "epoll_ctl_del fail" )
-			}
-
-			LOG_SVC_F( "Fd %d fail <%u>", atEvents[nIndex].data.fd, atEvents[nIndex].events );
-
-			return RAS_rErrEventRecreateYes;
+			LOG_ERR_F( "data.fd=%d events=%u", atEvents[nIndex].data.fd, atEvents[nIndex].events );
+			goto _remove_and_recreate;
 		}
 		else if ( atEvents[nIndex].events & EPOLLIN )
 		{
@@ -101,20 +89,29 @@ int EVENT_WaitAndAccept( int nEpollFd, int nListenFd )
 			nAcceptFd = accept( nListenFd, &tClientAddr, &tAddrLen );
 			if ( -1 == nAcceptFd )
 			{
-				LOG_ERR_F( "accept fail" );
-				return RAS_rErrEventRecreateYes;
+				LOG_ERR_F( "accept fail <%d>", nRC );
+				goto _remove_and_recreate;
 			}
 
 			pszClientIp = inet_ntoa( tClientAddr.sin_addr );
-			LOG_SVC_F( "Accept ClientIp<%s>", pszClientIp );
+			LOG_SVC_F( "Accept ClientIp <%s>", pszClientIp );
 
-			//TODO RAS_DB.h RAS_DB.c
-			nRC = DB_CheckIp( pszClientIp );
+			nRC = DB_CheckClientIp( g_tDBMain, pszClientIp );
 			if ( RAS_rOK != nRC )
 			{
-				LOG_ERR_F( "DB_CheckIp fail <%d>", nRC );
-				return RAS_rErrEventRecreateYes;
+				LOG_ERR_F( "DB_CheckIp fail <%d> (%s)", nRC, pszClientIp );
+				/*
+				 * Telcobase DB에 연동 허용되지 않은 Client IP면 즉시 연결 해제
+				 */
+				goto _remove_and_recreate;
 			}
+	
+			LOG_SVC_F( "Connected ClientIp (%s)", pszClientIp );
+
+			strlcpy( g_tThread[g_nThreadIndex].szClientIp, pszClientIp, sizeof(g_tThread[g_nThreadIndex].szClientIp) );
+			g_tThread[g_nThreadIndex].szClientIp[ strlen(g_tThread[g_nThreadIndex].szClientIp) ] = '\0';
+
+			LOG_SVC_F( "Assigned to Thread ClientIp (%s)", g_tThread[g_nThreadIndex].szClientIp );
 
 			tEvent.events = EPOLLIN || EPOLLRDHUP || EPOLLERR || EPOLLHUP;
 			tEvent.data.fd = nAcceptFd;
@@ -122,18 +119,31 @@ int EVENT_WaitAndAccept( int nEpollFd, int nListenFd )
 			nRC = epoll_ctl( g_tThread[g_nThreadIndex].nEpollFd, EPOLL_CTL_ADD, nAcceptFd, &tEvent );
 			if ( -1 == nRC )
 			{
-				LOG_ERR_F( "epoll_ctl_add fail" );
-				return RAS_rErrEventRecreateYes;				
+				LOG_ERR_F( "epoll_ctl fail <%d>", nRC );
+				goto _remove_and_recreate;
 			}
-			
+		
+			LOG_SVC_F( "epoll_ctl success <ADD ACCEPTFD TO EPOLL>" );
+
 			g_nThreadIndex++;
 			
 			if ( THREAD_CNT == g_nThreadIndex )
 			{
-				//TODO
+				g_nThreadIndex = 0;
 			}
 		}
 	}
 
 	return RAS_rOK;
+
+_remove_and_recreate:
+	nRC = epoll_ctl( nEpollFd, EPOLL_CTL_DEL, nListenFd, &tEvent );
+	if ( -1 == nRC )
+	{
+		LOG_ERR_F( "epoll_ctl fail <%d>", nRC );
+	}
+
+	LOG_SVC_F( "epoll_ctl success <DELETE LISTENFD FROM EPOLL>" );
+			
+	return RAS_rErrEventRecreateYes;
 } 

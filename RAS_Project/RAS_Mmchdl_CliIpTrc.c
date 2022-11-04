@@ -3,14 +3,14 @@
 
 static oammmc_arg_info_t atArgIp[] =
 {
-	{ 1, "CLI_IP", NULL, OAMMMC_STR, ARG_ID_CLI_IP, 7, 15, NULL, NULL },
+	{ 1, ARG_CLI_IP_DESC, NULL, OAMMMC_STR, ARG_CLI_IP_ID, 7, 15, NULL, NULL },
 	{ 0, NULL, NULL, 0, 0, 0, 0, NULL, NULL }
 };
 
 static oammmc_arg_info_t atArgIpPeriodTm[] =
 {
-	{ 1, "CLI_IP", NULL, OAMMMC_STR, ARG_ID_CLI_IP, 7, 15, NULL, NULL },
-	{ 2, "PERIOD_TM", NULL, OAMMMC_STR, ARG_ID_PERIOD_TM, 1, 10800, NULL, NULL },
+	{ 1, ARG_CLI_IP_DESC, NULL, OAMMMC_STR, ARG_CLI_IP_ID, 7, 15, NULL, NULL },
+	{ 2, ARG_PERIOD_TM_DESC, NULL, OAMMMC_STR, ARG_PERIOD_TM_ID, 1, 10800, NULL, NULL },
 	{ 0, NULL, NULL, 0, 0, 0, 0, NULL, NULL }
 };
 
