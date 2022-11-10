@@ -7,13 +7,14 @@ int REGI_Init()
 {
 	int nRC = 0;
 
-	nRC = TAP_Registry_udp_open( g_tEnv.szIp, g_tEnv.nRegiLbPort, '0', SYSTEM_ID );
+	nRC = TAP_Registry_udp_open( g_tEnv.szRegiIp, g_tEnv.nRegiPort, '0', REGI_SYS_ID );
 	if ( 0 > nRC )
 	{
 		LOG_ERR_F( "TAP_Registry_udp_open fail <%d>", nRC );
+		return RAS_rErrRegiInit;
 	}
 
-	nRC = TAP_Registry_udp_manager_check_alive( SYSTEM_ID );
+	nRC = TAP_Registry_udp_manager_check_alive( REGI_SYS_ID );
 	if ( 0 > nRC )
 	{
 		LOG_ERR_F( "TAP_Registry_udp_manager_check_alive fail <%d>", nRC );

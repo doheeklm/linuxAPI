@@ -10,9 +10,10 @@
 
 typedef struct
 {
-	char szIp[40];
+	char szIp[16];
 	int nPort;
-	int nRegiLbPort;
+	char szRegiIp[16];
+	int nRegiPort;
 	
 	int nLogMode;
 	int nLogLevel;

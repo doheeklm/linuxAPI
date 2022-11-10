@@ -29,11 +29,13 @@ int CONFIG_Init()
 		return RAS_rErrConfInit;
 	}
 
-	LOG_SVC_F( "IP(%s) PORT(%d) REGI_LBPORT(%d)\n"
+	LOG_SVC_F( "IP(%s) PORT(%d)\n"
+			"REGI_IP(%s) REGI_PORT(%d)\n"
 			"log_level(%d) log_mode(%d)\n"
 			"mmt_enable(%d) mmt_port(%d) mmt_conn_max(%d)\n"
 			"mmt_local_only(%d) mmt_is_quiet(%d) mml_enable(%d)",
-			g_tEnv.szIp, g_tEnv.nPort, g_tEnv.nRegiLbPort,
+			g_tEnv.szIp, g_tEnv.nPort,
+			g_tEnv.szRegiIp, g_tEnv.nRegiPort,
 			g_tEnv.nLogMode, g_tEnv.nLogLevel,
 			g_tEnv.nMmtEnable, g_tEnv.nMmtPort, g_tEnv.nMmtConnMax,
 			g_tEnv.nMmtLocalOnly, g_tEnv.nMmtIsQuiet, g_tEnv.nMmlEnable );
@@ -59,7 +61,14 @@ static int CONFIG_GetConnConf()
 		return RAS_rErrGetConfValue;
 	}
 
-	nRC = mpconf_get_int( NULL, CONFIG_PATH, CONN_SECTION, "REGI_LBPORT", &(g_tEnv.nRegiLbPort), 0, 0 );
+	nRC = mpconf_get_str( NULL, CONFIG_PATH, CONN_SECTION, "REGI_IP", g_tEnv.szRegiIp, sizeof(g_tEnv.szRegiIp), NULL );
+	if ( 0 > nRC )
+	{
+		printf( "mpconf_get_str() fail <%d>", nRC );
+		return RAS_rErrGetConfValue;
+	}
+
+	nRC = mpconf_get_int( NULL, CONFIG_PATH, CONN_SECTION, "REGI_PORT", &(g_tEnv.nRegiPort), 0, 0 );
 	if ( 0 > nRC )
 	{
 		printf( "mpconf_get_int() fail <%d>", nRC );

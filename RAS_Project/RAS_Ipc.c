@@ -3,6 +3,9 @@
 
 extern mpipc_t *g_ptMpipc;
 
+//CLEAR DB 개별생성 (ipc thread)
+DB_t g_tDBIpc;
+
 int IPC_Init()
 {
 	int nRC = 0;
@@ -13,7 +16,6 @@ int IPC_Init()
 		LOG_ERR_F( "mpipc_init fail" );
 		return RAS_rErrFail; 
 	}
-
 	LOG_SVC_F( "mpipc_init" );
 
 	nRC = mpipc_regi_hdlr( g_ptMpipc, IPC_Handler, NULL );
@@ -22,7 +24,6 @@ int IPC_Init()
 		LOG_ERR_F( "mpipc_regi_hdlr fail <%d>", nRC );
 		return RAS_rErrFail;
 	}
-
 	LOG_SVC_F( "mpipc_regi_hdlr" );
 	
 	nRC = mpipc_start( g_ptMpipc );
@@ -31,7 +32,6 @@ int IPC_Init()
 		LOG_ERR_F( "mpipc_start fail <%d>", nRC );
 		return RAS_rErrFail;
 	}
-
 	LOG_SVC_F( "mpipc_start" );
 
 	return RAS_rOK;
@@ -42,6 +42,24 @@ int IPC_Handler( mpipc_t *ptMpipc, iipc_msg_t *ptRecvMsg, void *pvData )
 	CHECK_PARAM_RC( ptMpipc );
 	CHECK_PARAM_RC( ptRecvMsg );
 	pvData = pvData;
+
+	int nRC = 0;
+
+	memset( &g_tDBIpc, 0x00, sizeof(g_tDBIpc) );
+
+	nRC = DB_Init( &(g_tDBIpc.ptDBConn) ); 
+	if ( RAS_rOK != nRC )
+	{
+		LOG_ERR_F( "DB_Init fail <%d>", nRC );
+		return nRC;
+	}
+
+	nRC = DB_InitPreparedStatement( &g_tDBIpc );
+	if ( RAS_rOK != nRC )
+	{
+		LOG_ERR_F( "DB_InitPreparedStatement fail <%d>", nRC );
+		return nRC;
+	}
 
 	MESSAGE *ptMsg = (MESSAGE *)&ptRecvMsg->buf;
 
@@ -57,18 +75,25 @@ int IPC_Handler( mpipc_t *ptMpipc, iipc_msg_t *ptRecvMsg, void *pvData )
 		case MSG_ID_DEL_USR_INFO:	//7755
 		{
 			LOG_DBG_F( "msg_id = %d", ptMsg->head.msg_id );
+
 			return MPIPC_HDLR_RET_NOT_FOR_ME;
 		}
 			break;
 		default:
 		{
 			LOG_ERR_F( "unknown message. src_proc=%d id=%d", ptRecvMsg->u.h.src, ptMsg->head.msg_id );
+
+			DB_Close( &g_tDBIpc );
+
 			return MPIPC_HDLR_RET_NOT_FOR_ME;
 		}
 			break;
 	}
 
 	LOG_DBG_F( "msg_id = %d", ptMsg->head.msg_id );
+
+	DB_Close( &g_tDBIpc );
+
 	return MPIPC_HDLR_RET_DONE;
 }
 

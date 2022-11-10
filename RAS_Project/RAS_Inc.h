@@ -41,18 +41,17 @@
 #include "mpconf.h"
 #include "mpdal.h"
 
-#include "RAS_Errmsg.h"
+#include "RAS_Err.h"
 #include "RAS_Macro.h"
 #include "RAS_Config.h"
 #include "RAS_Log.h"
 #include "RAS_Ipc.h"
-#include "RAS_Regi.h"
 #include "RAS_DB.h"
-#include "RAS_DBQuery.h"
-#include "RAS_Mmchdl_CliIp.h"
-#include "RAS_Mmchdl_CliIpTrc.h"
-#include "RAS_Mmchdl_UsrInfo.h"
+#include "RAS_Regi.h"
 #include "RAS_Mmc.h"
+#include "RAS_Mmchdl_Ip.h"
+#include "RAS_Mmchdl_Trc.h"
+#include "RAS_Mmchdl_Info.h"
 #include "RAS_Alarm.h"
 #include "RAS_Stat.h"
 #include "RAS_Thread.h"
@@ -63,12 +62,16 @@
 //#include "RAS_Trace.h"
 
 #define PROCESS_NAME			"MIPCSVR"
+
 #define STOP_SVC				0
 #define START_SVC				1
 #define STOP_CREATE				0
 #define START_CREATE			1
+
 #define THREAD_CNT				3
 #define SIZE_IP					15
+
+#define EMPTY_STRING			""
 
 typedef struct THREAD_s
 {

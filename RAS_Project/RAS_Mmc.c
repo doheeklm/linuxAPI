@@ -21,7 +21,8 @@ int MMC_Init()
 	 */
 	if ( 1 == g_tEnv.nMmtEnable )
 	{
-		nRC = oammmc_bind_mmt( g_ptOammmc, PROCESS_NAME, g_tEnv.nMmtPort, g_tEnv.nMmtConnMax, g_tEnv.nMmtLocalOnly, g_tEnv.nMmtIsQuiet );
+		nRC = oammmc_bind_mmt( g_ptOammmc, PROCESS_NAME,
+				g_tEnv.nMmtPort, g_tEnv.nMmtConnMax, g_tEnv.nMmtLocalOnly, g_tEnv.nMmtIsQuiet );
 		if ( 0 > nRC )
 		{
 			LOG_ERR_F( "oammmc_bind_mmt fail <%d>", nRC );
@@ -55,24 +56,24 @@ int MMC_Init()
 	/*
 	 *	Register Command
 	 */
-	nRC = MMCHDL_CLIIP_Init( g_ptOammmc );
+	nRC = MMCHDL_IP_Init( g_ptOammmc );
 	if ( RAS_rOK != nRC )
 	{
-		LOG_ERR_F( "MMCHDL_CLIIP_Init fail <%d>", nRC );
+		LOG_ERR_F( "MMCHDL_IP_Init fail <%d>", nRC );
 		return RAS_rErrMmcInit;
 	}
 	
-	nRC = MMCHDL_CLIIPTRC_Init( g_ptOammmc );
+	nRC = MMCHDL_TRC_Init( g_ptOammmc );
 	if ( RAS_rOK != nRC )
 	{
-		LOG_ERR_F( "MMCHDL_CLIIPTRC_Init fail <%d>", nRC );
+		LOG_ERR_F( "MMCHDL_TRC_Init fail <%d>", nRC );
 		return RAS_rErrMmcInit;
 	}
 
-	nRC = MMCHDL_USRINFO_Init( g_ptOammmc );
+	nRC = MMCHDL_INFO_Init( g_ptOammmc );
 	if ( RAS_rOK != nRC )
 	{
-		LOG_ERR_F( "MMCHDL_USRINFO_Init fail <%d>", nRC );
+		LOG_ERR_F( "MMCHDL_INFO_Init fail <%d>", nRC );
 		return RAS_rErrMmcInit;
 	}
 	

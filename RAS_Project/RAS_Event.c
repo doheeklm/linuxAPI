@@ -3,7 +3,6 @@
 
 extern int g_nThreadIndex;
 extern THREAD_t g_tThread[THREAD_CNT];
-extern DB_t g_tDBMain;
 
 int EVENT_Init( int *pnEpollFd, int nListenFd )
 {
@@ -30,29 +29,28 @@ int EVENT_Init( int *pnEpollFd, int nListenFd )
 		LOG_ERR_F( "epoll_ctl fail <%d>", nRC );
 		return RAS_rErrEpollInit;
 	}
-
+//TODO close epoll
 	LOG_SVC_F( "epoll_ctl success <ADD LISTENFD TO EPOLL>" );
 
 	return RAS_rOK;
 }
 
-int EVENT_WaitAndAccept( int nEpollFd, int nListenFd )
+int EVENT_WaitAndAccept( int nEpollFd, int nListenFd, DB_t tDBMain )
 {
+	CHECK_PARAM_RC( tDBMain.ptDBConn );
+	CHECK_PARAM_RC( tDBMain.patPstmt );
+
 	int nRC = 0;
 	int nIndex = 0;
 	int nCntFd = 0;
 	int nAcceptFd = 0;
-
 	struct epoll_event tEvent;
 	struct epoll_event atEvents[MAX_CLIENT_CONNECT];
 	struct sockaddr_in tClientAddr;
-
 	memset( &tEvent, 0x00, sizeof(tEvent) );
 	memset( atEvents, 0x00, sizeof(atEvents) );
 	memset( &tClientAddr, 0x00, sizeof(tClientAddr) );
-	
 	socklen_t tAddrLen = 0;
-
 	char* pszClientIp = NULL;
 
 	nCntFd = epoll_wait( nEpollFd, atEvents, MAX_CLIENT_CONNECT, TIME_OUT );
@@ -96,7 +94,7 @@ int EVENT_WaitAndAccept( int nEpollFd, int nListenFd )
 			pszClientIp = inet_ntoa( tClientAddr.sin_addr );
 			LOG_SVC_F( "Accept ClientIp <%s>", pszClientIp );
 
-			nRC = DB_CheckClientIp( g_tDBMain, pszClientIp );
+			nRC = DB_CheckClientIp( tDBMain, pszClientIp );
 			if ( RAS_rOK != nRC )
 			{
 				LOG_ERR_F( "DB_CheckIp fail <%d> (%s)", nRC, pszClientIp );

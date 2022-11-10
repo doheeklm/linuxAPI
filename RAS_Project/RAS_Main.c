@@ -6,12 +6,13 @@ int g_nThreadIndex = 0;
 int g_nAlarmStatus = 0; //Thread
 
 Env_t g_tEnv;
-DB_t g_tDBMain;
 mpipc_t *g_ptMpipc = NULL;
 oammmc_t *g_ptOammmc = NULL;
 THREAD_t g_tThread[THREAD_CNT];
 
 static void SignalHandler( int nSigno );
+
+//TODO Mandatory Param Check
 
 int main( void )
 {
@@ -29,7 +30,9 @@ int main( void )
 	int nEpollFd = 0;
 	int nCreateFlag = START_CREATE;
 
-	memset( &g_tDBMain, 0x00, sizeof(g_tDBMain) );
+	//CLEAR DB 개별생성(main thread)
+	DB_t tDBMain;
+	memset( &tDBMain, 0x00, sizeof(tDBMain) );
 
 	nRC = CONFIG_Init();
 	if ( RAS_rOK != nRC )
@@ -52,20 +55,6 @@ int main( void )
 		goto _exit_main;	
 	}
 	
-	nRC = DB_Init( &(g_tDBMain.ptDBConn) );
-	if ( RAS_rOK != nRC )
-	{
-		LOG_ERR_F( "DB_Init fail <%d>", nRC );
-		goto _exit_main;
-	}	
-	
-	nRC = DB_InitPreparedStatement( &g_tDBMain );
-	if ( RAS_rOK != nRC )
-	{
-		LOG_ERR_F( "DB_InitPreparedStatement fail <%d>", nRC );
-		goto _exit_main;
-	}	
-	
 	nRC = REGI_Init();
 	if ( RAS_rOK != nRC )
 	{
@@ -79,7 +68,22 @@ int main( void )
 		LOG_ERR_F( "MMC_Init fail <%d>", nRC );
 		goto _exit_main;
 	}
+
+	//CLEAR DB Init
+	nRC = DB_Init( &(tDBMain.ptDBConn) );
+	if ( RAS_rOK != nRC )
+	{
+		LOG_ERR_F( "DB_Init fail <%d>", nRC );
+		goto _exit_main;
+	}	
 	
+	nRC = DB_InitPreparedStatement( &tDBMain );
+	if ( RAS_rOK != nRC )
+	{
+		LOG_ERR_F( "DB_InitPreparedStatement fail <%d>", nRC );
+		goto _exit_main;
+	}	
+
 	nRC = ALARM_Init();
 	if ( RAS_rOK != nRC )
 	{
@@ -124,7 +128,7 @@ int main( void )
 			LOG_SVC_F( "EVENT_Init nEpollFd=%d", nEpollFd );
 		}
 
-		nRC = EVENT_WaitAndAccept( nEpollFd, nListenFd );
+		nRC = EVENT_WaitAndAccept( nEpollFd, nListenFd, tDBMain );
 		if ( RAS_rErrEventRecreateYes == nRC )
 		{
 			nCreateFlag = START_CREATE;
@@ -153,9 +157,12 @@ _exit_main:
 	//thread
 	stgen_close();
 	//alarm
-	MMC_Destroy();
 	//regi
-	DB_Close( &g_tDBMain );
+	
+	//CLEAR Init과 같은 레벨에서 Close
+	DB_Close( &tDBMain );
+	
+	MMC_Destroy();
 	IPC_Destroy();
 	MPGLOG_DESTROY();
 	

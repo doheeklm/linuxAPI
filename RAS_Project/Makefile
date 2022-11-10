@@ -7,15 +7,15 @@ include $(MAKECONFIG)
 #
 
 SRCS= RAS_Main.c			\
+	  RAS_Err.c				\
 	  RAS_Config.c			\
 	  RAS_Log.c				\
 	  RAS_Ipc.c				\
-	  RAS_Mmchdl_CliIp.c	\
-	  RAS_Mmchdl_CliIpTrc.c	\
-	  RAS_Mmchdl_UsrInfo.c	\
-	  RAS_Mmc.c				\
 	  RAS_DB.c				\
-	  RAS_DBQuery.c			\
+	  RAS_Mmc.c				\
+	  RAS_Mmchdl_Ip.c		\
+	  RAS_Mmchdl_Trc.c		\
+	  RAS_Mmchdl_Info.c		\
 	  RAS_Regi.c			\
 	  RAS_Alarm.c			\
 	  RAS_Stat.c			\

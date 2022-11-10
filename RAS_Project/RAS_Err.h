@@ -1,6 +1,13 @@
-/* RAS_Errmsg.h */
-#ifndef _RAS_ERRMSG_H_
-#define _RAS_ERRMSG_H_
+/* RAS_Err.h */
+#ifndef _RAS_ERR_H_
+#define _RAS_ERR_H_
+
+#define MMC_FAIL_REASON_INVALID_PARAM	"INVALID PARAMETER"
+#define MMC_FAIL_REASON_DB_FAIL			"DB FAIL"
+#define MMC_FAIL_REASON_DB_NOT_FOUND	"DB NOT FOUND"
+#define MMC_FAIL_REASON_REGI_FAIL		"REGI FAIL"
+#define MMC_FAIL_REASON_REGI_KEY_EXIST	"REGI KEY EXIST"
+#define MMC_FAIL_REASON_REGI_NOT_FOUND	"REGI NOT FOUND"
 
 typedef enum
 {
@@ -23,8 +30,8 @@ typedef enum
 	RAS_rErrEventRecreateNo,
 	RAS_rErrEventRecreateYes,	
 	RAS_rErrIpcGetKey,
-	RAS_rErrInvalidParam,
-	
+	RAS_rErrInvalidParam,//
+
 	RAS_rErrIpcRecv,
 	RAS_rErrIpcSend,
 	RAS_rErrInvalidData,
@@ -32,11 +39,11 @@ typedef enum
 
 	RAS_rErrDBConn,
 	RAS_rErrDBCommit,
-	RAS_rErrDBExecute,
-	RAS_rErrDBNotFound,
-	RAS_rErrDBResFree,
+	RAS_rErrDBExecute,//
+	RAS_rErrDBExecUpdate,//
+	RAS_rErrDBNotFound,//
 	RAS_rErrDBPstmt,
-	RAS_rErrDBSetValue,
+	RAS_rErrDBSetValue,//
 
 	RAS_rErrDBFail,
 	RAS_rErrDBFetch,
@@ -49,12 +56,13 @@ typedef enum
 	RAS_rErrThreadCreate,
 	RAS_rErrStatOpen,
 
-	RAS_rErrRegiUdpOpen,
-	RAS_rErrRegiGetKeyList,
-	RAS_rErrInvalidRegiKeyList,
-	RAS_rErrRegiSetValue,
-	RAS_rErrRegiGetValue,
-	RAS_rErrRegiCreate,
+	RAS_rErrRegiCreate,//
+	RAS_rErrRegiKeyExist,//
+	RAS_rErrRegiSetValue,//
+	RAS_rErrRegiGetKeyAndValue,//
+	RAS_rErrRegiGetValue,//
+	RAS_rErrRegiDelete,//
+	RAS_rErrRegiNotFound,//
 
 	RAS_rErrJsonCheckSize,
 	RAS_rErrJsonGetArr,
@@ -66,4 +74,6 @@ typedef enum
 	RAS_rSuccessMmchdl = 0
 } ReturnCode_e;
 
-#endif /* _RAS_ERRMSG_H_ */
+char *ERR_GetDesc( int nErrCode );
+
+#endif /* _RAS_ERR_H_ */
