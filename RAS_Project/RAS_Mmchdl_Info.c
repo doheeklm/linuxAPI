@@ -57,45 +57,110 @@ int MMCHDL_INFO_Dis( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 	ptUarg = ptUarg;
 	nArgNum = nArgNum;
 
+	int nRC = 0;
+	int nAddFlag = RAS_FALSE;
 	int nIndex = 0;
+	int nCntTuple = 0;
 	int nId = 0;
 	char *pszName = NULL;
 	char *pszGender = NULL;
 	char *pszBirth = NULL;
+	char *pszAddress = NULL;
 	oammmc_arg_t *ptArg = NULL;
+	char szQuery[256];
+	memset( szQuery, 0x00, sizeof(szQuery) );
+	char szTemp[256];
+	memset( szTemp, 0x00, sizeof(szTemp) );
+	DAL_RESULT_SET *ptRes = NULL;
+	DAL_ENTRY *ptEntry = NULL;
 
-	for ( nIndex = 0; nIndex < nArgNum; ++nIndex )
+	snprintf( szQuery, sizeof(szQuery), "select * from %s", USR_INFO_TBL );
+	szQuery[ strlen(szQuery) ] = '\0';
+
+	if ( 0 < nArgNum )
+	{
+		STRLCAT_CHECK_OVERFLOW( szQuery, " where ", sizeof(szQuery), nRC );
+	}
+
+	for ( nIndex = 0; nIndex < nArgNum; nIndex++ )
 	{
 		ptArg = &patArgList[ nIndex ];
-		
+	
+		if ( RAS_TRUE == nAddFlag )
+		{
+			STRLCAT_CHECK_OVERFLOW( szQuery, " and ", sizeof(szQuery), nRC );
+			memset( szTemp, 0x00, sizeof(szTemp) );
+		}
+
 		switch ( OAMMMC_ARG_ID( ptArg ) )
 		{
 			case ARG_NUM_ID:
 			{
 				nId = OAMMMC_VAL_INT( ptArg );
+				SNPRINTF_QUERY_INT( szTemp, sizeof(szTemp), ATTR_ID, nId );
+				STRLCAT_CHECK_OVERFLOW( szQuery, szTemp, sizeof(szQuery), nRC );
+				nAddFlag = RAS_TRUE;
 			}
 				break;
 			case ARG_NUM_NAME:
 			{
 				pszName = OAMMMC_VAL_STR( ptArg );
+				SNPRINTF_QUERY_STR( szTemp, sizeof(szTemp), ATTR_NAME, pszName );				
+				STRLCAT_CHECK_OVERFLOW( szQuery, szTemp, sizeof(szQuery), nRC );
+				nAddFlag = RAS_TRUE;
 			}
 				break;
 			case ARG_NUM_GENDER:
 			{
 				pszGender = OAMMMC_VAL_STR( ptArg );
+				SNPRINTF_QUERY_STR( szTemp, sizeof(szTemp), ATTR_GENDER, pszGender );
+				STRLCAT_CHECK_OVERFLOW( szQuery, szTemp, sizeof(szQuery), nRC );
+				nAddFlag = RAS_TRUE;
 			}
 				break;
 			case ARG_NUM_BIRTH:
 			{
 				pszBirth = OAMMMC_VAL_STR( ptArg );
+				SNPRINTF_QUERY_STR( szTemp, sizeof(szTemp), ATTR_BIRTH, pszBirth );
+				STRLCAT_CHECK_OVERFLOW( szQuery, szTemp, sizeof(szQuery), nRC );
+				nAddFlag = RAS_FALSE;
 			}
 				break;
 		}	
 	}
 
-	oammmc_out( ptOammmc, "%d %s %s %s", nId, pszName, pszGender, pszBirth );
+	STRLCAT_CHECK_OVERFLOW( szQuery, ";", sizeof(szQuery), nRC );
 
+	DB_EXECUTE( g_tDBIpc, szQuery, &ptRes, nRC );
+
+	PRT_INFO_ALL_HEADER( ptOammmc, ATTR_ID, ATTR_NAME, ATTR_GENDER, ATTR_BIRTH, ATTR_ADDRESS );
+
+	for ( ptEntry = dalFetchFirst( ptRes ); ptEntry != NULL; ptEntry = dalFetchNext( ptRes ) )
+	{
+		DB_GET_INT_BY_KEY( ptEntry, ATTR_ID, &nId, nRC );
+		DB_GET_STRING_BY_KEY( ptEntry, ATTR_NAME, &pszName, nRC );	
+		DB_GET_STRING_BY_KEY( ptEntry, ATTR_GENDER, &pszGender, nRC );	
+		DB_GET_STRING_BY_KEY( ptEntry, ATTR_BIRTH, &pszBirth, nRC );	
+		DB_GET_STRING_BY_KEY( ptEntry, ATTR_ADDRESS, &pszAddress, nRC );	
+
+		PRT_INFO_ALL_BODY( ptOammmc, nId, pszName, pszGender, pszBirth, pszAddress );	
+		nCntTuple++;
+	}
+
+	//TODO cnt 하나일때 prt 다르게?
+	
+	PRT_LINEx3( ptOammmc );
+	PRT_CNT( ptOammmc, nCntTuple );
+
+	DB_FREE( ptRes );
+	DB_Close( &g_tDBIpc );	
 	return RAS_rSuccessMmchdl;
+
+end_of_function:
+	PRT_FAIL( ptOammmc, "%s\n", ERR_GetDesc(nRC) );
+	DB_FREE( ptRes );
+	DB_Close( &g_tDBIpc );
+	return nRC;
 }
 
 int MMCHDL_INFO_Del( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
@@ -118,7 +183,7 @@ int MMCHDL_INFO_Del( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 	DAL_RESULT_SET *ptRes = NULL;
 	DAL_ENTRY *ptEntry = NULL;
 
-	for ( nIndex = 0; nIndex < nArgNum; ++nIndex )
+	for ( nIndex = 0; nIndex < nArgNum; nIndex++ )
 	{
 		ptArg = &patArgList[ nIndex ];
 		
@@ -133,8 +198,8 @@ int MMCHDL_INFO_Del( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 		}	
 	}
 	
-	DB_SET_INT_BY_KEY( g_tDBIpc.patPstmt[PSTMT_SELECT_USR_INFO_BY_ID], ATTR_ID, nId, nRC );
-	DB_PREPARED_EXEC( g_tDBIpc, g_tDBIpc.patPstmt[PSTMT_SELECT_USR_INFO_BY_ID], &ptRes, nRC );
+	DB_SET_INT_BY_KEY( g_tDBIpc.patPstmt[PSTMT_SELECT_INFO_BY_ID], ATTR_ID, nId, nRC );
+	DB_PREPARED_EXEC( g_tDBIpc, g_tDBIpc.patPstmt[PSTMT_SELECT_INFO_BY_ID], &ptRes, nRC );
 
 	ptEntry = dalFetchFirst( ptRes );
 	if ( NULL != ptEntry )
@@ -145,8 +210,8 @@ int MMCHDL_INFO_Del( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 		DB_GET_STRING_BY_KEY( ptEntry, ATTR_ADDRESS, &pszAddress, nRC );
 	}
 
-	DB_SET_INT_BY_KEY( g_tDBIpc.patPstmt[PSTMT_DELETE_USR_INFO], ATTR_ID, nId, nRC );
-	DB_PREPARED_EXEC_UPDATE( g_tDBIpc, g_tDBIpc.patPstmt[PSTMT_DELETE_USR_INFO], nRC );
+	DB_SET_INT_BY_KEY( g_tDBIpc.patPstmt[PSTMT_DELETE_INFO], ATTR_ID, nId, nRC );
+	DB_PREPARED_EXEC_UPDATE( g_tDBIpc, g_tDBIpc.patPstmt[PSTMT_DELETE_INFO], nRC );
 	PRT_INFO_ONE( ptOammmc, ATTR_ID, nId, ATTR_NAME, pszName,
 			ATTR_GENDER, pszGender, ATTR_BIRTH, pszBirth, ATTR_ADDRESS, pszAddress );
 

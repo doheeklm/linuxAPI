@@ -6,7 +6,8 @@ char *ERR_GetDesc( int nErrCode )
 	switch( nErrCode )
 	{
 		STR_CASE( RAS_rErrInvalidParam, MMC_FAIL_REASON_INVALID_PARAM );
-
+		STR_CASE( RAS_rErrOverflow, MMC_FAIL_REASON_SYSTEM_FAIL );
+		
 		STR_CASE( RAS_rErrDBSetValue, MMC_FAIL_REASON_DB_FAIL );
 		STR_CASE( RAS_rErrDBGetValue, MMC_FAIL_REASON_DB_FAIL );
 		STR_CASE( RAS_rErrDBExecute, MMC_FAIL_REASON_DB_FAIL );

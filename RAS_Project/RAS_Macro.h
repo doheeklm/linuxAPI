@@ -2,8 +2,8 @@
 #ifndef _RAS_MACRO_H_
 #define _RAS_MACRO_H_
 
-#define TRUE	1
-#define FALSE	0
+#define RAS_TRUE					0
+#define RAS_FALSE					1
 
 #define F_FORMAT( format )			"%s:: "format"\n", __func__
 #define LOG_ERR_F( format, ... )	LOG_ERR( F_FORMAT(format), ##__VA_ARGS__ );
@@ -28,6 +28,28 @@
 
 #define CHECK_PARAM_RC( _expr_t ) CHECK_PARAM( (_expr_t), return RAS_rErrInvalidParam )
 
+#define STRLCAT_CHECK_OVERFLOW( _dst, _src, _dstsize, _rc ) \
+	do { \
+		if ( strlcat( _dst, _src, _dstsize ) >= _dstsize ) \
+		{ \
+			LOG_ERR_F( "strlcat overflow error" ); \
+			_rc = RAS_rErrOverflow; \
+			goto end_of_function; \
+		} \
+	} while (0)
+
+#define SNPRINTF_QUERY_INT( _buf, _bufsize, _attr, _val ) \
+	do { \
+		snprintf( _buf, _bufsize, "%s = %d", _attr, _val ); \
+		_buf[ strlen(_buf) ] = '\0'; \
+	} while (0)
+
+#define SNPRINTF_QUERY_STR( _buf, _bufsize, _attr, _val ) \
+	do { \
+		snprintf( _buf, _bufsize, "%s = '%s'", _attr, _val ); \
+		_buf[ strlen(_buf) ] = '\0'; \
+	} while (0)
+
 #define VALID_RANGE( _val, _min, _max ) \
 	( ((int)(_val) >= (int)(_min)) && \
 	  ((int)(_val) <= (int)(_max)) \
@@ -35,33 +57,55 @@
 
 #define PRT_LINE( p_mmc ) \
 	do { \
-		oammmc_out( (p_mmc), "=================================\n" ); \
+		oammmc_out( (p_mmc), "---------------------------------\n" ); \
+	} while (0)
+
+#define PRT_LINEx3( p_mmc ) \
+	do { \
+		oammmc_out( (p_mmc), "---------------------------------" \
+ 							 "---------------------------------" \
+							 "---------------------------------\n" ); \
+	} while (0)
+
+#define PRT_CNT( p_mmc, _cnt ) \
+	do { \
+		oammmc_out( (p_mmc), "Total Count = %d", _cnt ); \
 	} while (0)
 
 #define PRT_IP_ALL_HEADER( p_mmc, _arg_ip, _arg_optional ) \
 	do { \
 		PRT_LINE( p_mmc ); \
-		oammmc_out( (p_mmc), "%-20s %-20s\n", _arg_ip, _arg_optional ); \
+		oammmc_out( (p_mmc), "%-16s %-33s\n", _arg_ip, _arg_optional ); \
 		PRT_LINE( p_mmc ); \
 	} while (0)
 
 #define PRT_IP_ALL_BODY( p_mmc, _ip, _optional ) \
 	do { \
-		oammmc_out( (p_mmc), "%-20s %-20s\n", _ip, _optional ); \
+		oammmc_out( (p_mmc), "%-16s %-33s\n", _ip, _optional ); \
 	} while (0)
 
-#define PRT_IP_ALL_CNT( p_mmc, _cnt ) \
-	do { \
-		PRT_LINE( p_mmc ); \
-		oammmc_out( (p_mmc), "Total Count = %d", _cnt ); \
-	} while (0)
-
+//for _arg_optional,
+//ip-ARG_DESC_DESC, trc-ARG_DESC_TIME
 #define PRT_IP_ONE( p_mmc, _arg_ip, _ip, _arg_optional, _optional ) \
 	do { \
 		PRT_LINE( p_mmc ); \
 		oammmc_out( (p_mmc), "%-12s = %s\n", _arg_ip, _ip ); \
 		oammmc_out( (p_mmc), "%-12s = %s\n", _arg_optional, _optional ); \
 		PRT_LINE( p_mmc ); \
+	} while (0)
+
+#define PRT_INFO_ALL_HEADER( p_mmc, _arg_id, _arg_name, _arg_gender, _arg_birth, _arg_address ) \
+	do { \
+		PRT_LINEx3( p_mmc ); \
+		oammmc_out( (p_mmc), "%-11s %-33s %-7s %-7s %-20s\n", \
+			   _arg_id, _arg_name, _arg_gender, _arg_birth, _arg_address ); \
+		PRT_LINEx3( p_mmc ); \
+	} while (0)
+
+#define PRT_INFO_ALL_BODY( p_mmc, _id, _name, _gender, _birth, _address ) \
+	do { \
+		oammmc_out( (p_mmc), "%-11d %-33s %-7s %-7s %-20s\n", \
+			   _id, _name, _gender, _birth, _address ); \
 	} while (0)
 
 #define PRT_INFO_ONE( p_mmc, _arg_id, _id, _arg_name, _name, _arg_gender, _gender, \
@@ -146,6 +190,17 @@
 		} \
 	} while (0)
 
+#define DB_GET_INT_BY_KEY( p_entry, _key, p_value, _rc ) \
+	do { \
+		if ( -1 == dalGetIntByKey( p_entry, _key, p_value ) ) \
+		{ \
+			LOG_ERR_F( "dalGetIntByKey (%s) fail <%d:%s>", \
+					_key, dalErrno(), dalErrmsg(dalErrno()) ); \
+			_rc = RAS_rErrDBGetValue; \
+			goto end_of_function; \
+		} \
+	} while (0)
+
 #define DB_GET_STRING_BY_KEY( p_entry, _key, p_value, _rc ) \
 	do { \
 		if ( -1 == dalGetStringByKey( p_entry, _key, p_value ) ) \
@@ -157,9 +212,27 @@
 		} \
 	} while (0)
 
-#define DB_PREPARED_EXEC( db, p_pstmt, pp_res, _rc ) \
+#define DB_EXECUTE( _db, _query, pp_res, _rc ) \
 	do { \
-		_rc = dalPreparedExec( db.ptDBConn, p_pstmt, pp_res ); \
+		_rc = dalExecute( _db.ptDBConn, _query, pp_res ); \
+		if ( -1 == _rc ) \
+		{ \
+			LOG_ERR_F( "dalExecute (%s) fail <%d:%s>", \
+					_query, dalErrno(), dalErrmsg(dalErrno()) ); \
+			_rc = RAS_rErrDBExecute; \
+			goto end_of_function; \
+		} \
+		else if ( 0 == _rc ) \
+		{ \
+			LOG_ERR_F( "dalExecute zero" ); \
+			_rc = RAS_rErrDBNotFound; \
+			goto end_of_function; \
+		} \
+	} while (0)
+
+#define DB_PREPARED_EXEC( _db, p_pstmt, pp_res, _rc ) \
+	do { \
+		_rc = dalPreparedExec( _db.ptDBConn, p_pstmt, pp_res ); \
 		if ( -1 == _rc ) \
 		{ \
 			LOG_ERR_F( "dalPreparedExec fail <%d:%s>", \
@@ -175,9 +248,9 @@
 		} \
 	} while (0)
 
-#define DB_PREPARED_EXEC_UPDATE( db, p_pstmt, _rc ) \
+#define DB_PREPARED_EXEC_UPDATE( _db, p_pstmt, _rc ) \
 	do { \
-		_rc = dalPreparedExecUpdate( db.ptDBConn, p_pstmt ); \
+		_rc = dalPreparedExecUpdate( _db.ptDBConn, p_pstmt ); \
 		if ( -1 == _rc ) \
 		{ \
 			LOG_ERR_F( "dalPreparedExecUpdate fail <%d:%s>", \

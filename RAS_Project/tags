@@ -69,16 +69,18 @@ CONN_SECTION	RAS_Config.h	6;"	d
 DB_CheckClientIp	RAS_DB.c	/^int DB_CheckClientIp( DB_t tDB, char *pszIp )$/;"	f
 DB_Close	RAS_DB.c	/^void DB_Close( DB_t *ptDB )$/;"	f
 DB_ClosePreparedStatement	RAS_DB.c	/^void DB_ClosePreparedStatement( DB_t *ptDB )$/;"	f
-DB_DESTROY_PSTMT	RAS_Macro.h	104;"	d
-DB_FREE	RAS_Macro.h	118;"	d
-DB_GET_STRING_BY_KEY	RAS_Macro.h	149;"	d
-DB_INIT_PSTMT	RAS_Macro.h	93;"	d
+DB_DESTROY_PSTMT	RAS_Macro.h	148;"	d
+DB_EXECUTE	RAS_Macro.h	215;"	d
+DB_FREE	RAS_Macro.h	162;"	d
+DB_GET_INT_BY_KEY	RAS_Macro.h	193;"	d
+DB_GET_STRING_BY_KEY	RAS_Macro.h	204;"	d
+DB_INIT_PSTMT	RAS_Macro.h	137;"	d
 DB_Init	RAS_DB.c	/^int DB_Init( DAL_CONN **pptDBConn )$/;"	f
 DB_InitPreparedStatement	RAS_DB.c	/^int DB_InitPreparedStatement( DB_t *ptDB )$/;"	f
-DB_PREPARED_EXEC	RAS_Macro.h	160;"	d
-DB_PREPARED_EXEC_UPDATE	RAS_Macro.h	178;"	d
-DB_SET_INT_BY_KEY	RAS_Macro.h	127;"	d
-DB_SET_STRING_BY_KEY	RAS_Macro.h	138;"	d
+DB_PREPARED_EXEC	RAS_Macro.h	233;"	d
+DB_PREPARED_EXEC_UPDATE	RAS_Macro.h	251;"	d
+DB_SET_INT_BY_KEY	RAS_Macro.h	171;"	d
+DB_SET_STRING_BY_KEY	RAS_Macro.h	182;"	d
 DB_s	RAS_DB.h	/^typedef struct DB_s$/;"	s
 DB_t	RAS_DB.h	/^} DB_t;$/;"	t	typeref:struct:DB_s
 EMPTY_STRING	RAS_Inc.h	74;"	d
@@ -87,26 +89,25 @@ EVENT_Init	RAS_Event.c	/^int EVENT_Init( int *pnEpollFd, int nListenFd )$/;"	f
 EVENT_WaitAndAccept	RAS_Event.c	/^int EVENT_WaitAndAccept( int nEpollFd, int nListenFd, DB_t tDBMain )$/;"	f
 EXENAME	Makefile	/^EXENAME=	main$/;"	m
 Env_t	RAS_Config.h	/^} Env_t;$/;"	t	typeref:struct:__anon1
-FALSE	RAS_Macro.h	6;"	d
 F_FORMAT	RAS_Macro.h	8;"	d
-HTTP_REQUEST_DELETE	RAS_Stat.h	/^    HTTP_REQUEST_DELETE,$/;"	e	enum:__anon2
-HTTP_REQUEST_GET	RAS_Stat.h	/^    HTTP_REQUEST_GET,$/;"	e	enum:__anon2
-HTTP_REQUEST_POST	RAS_Stat.h	/^    HTTP_REQUEST_POST,$/;"	e	enum:__anon2
-HTTP_REQUEST_UNKNOWN	RAS_Stat.h	/^    HTTP_REQUEST_UNKNOWN,$/;"	e	enum:__anon2
-HTTP_RESPONSE_DEL200	RAS_Stat.h	/^    HTTP_RESPONSE_DEL200,$/;"	e	enum:__anon2
-HTTP_RESPONSE_DEL400	RAS_Stat.h	/^    HTTP_RESPONSE_DEL400,$/;"	e	enum:__anon2
-HTTP_RESPONSE_DEL404	RAS_Stat.h	/^    HTTP_RESPONSE_DEL404,$/;"	e	enum:__anon2
-HTTP_RESPONSE_DEL500	RAS_Stat.h	/^    HTTP_RESPONSE_DEL500,$/;"	e	enum:__anon2
-HTTP_RESPONSE_GET200	RAS_Stat.h	/^    HTTP_RESPONSE_GET200,$/;"	e	enum:__anon2
-HTTP_RESPONSE_GET400	RAS_Stat.h	/^    HTTP_RESPONSE_GET400,$/;"	e	enum:__anon2
-HTTP_RESPONSE_GET404	RAS_Stat.h	/^    HTTP_RESPONSE_GET404,$/;"	e	enum:__anon2
-HTTP_RESPONSE_GET500	RAS_Stat.h	/^    HTTP_RESPONSE_GET500,$/;"	e	enum:__anon2
-HTTP_RESPONSE_POST201	RAS_Stat.h	/^    HTTP_RESPONSE_POST201,$/;"	e	enum:__anon2
-HTTP_RESPONSE_POST400	RAS_Stat.h	/^    HTTP_RESPONSE_POST400,$/;"	e	enum:__anon2
-HTTP_RESPONSE_POST500	RAS_Stat.h	/^    HTTP_RESPONSE_POST500,$/;"	e	enum:__anon2
-HTTP_RESPONSE_UNKNOWN405	RAS_Stat.h	/^    HTTP_RESPONSE_UNKNOWN405,$/;"	e	enum:__anon2
-HTTP_TOTAL_REQUEST	RAS_Stat.h	/^    HTTP_TOTAL_REQUEST,$/;"	e	enum:__anon2
-HTTP_TOTAL_RESPONSE	RAS_Stat.h	/^    HTTP_TOTAL_RESPONSE,$/;"	e	enum:__anon2
+HTTP_REQUEST_DELETE	RAS_Stat.h	/^    HTTP_REQUEST_DELETE,$/;"	e	enum:__anon3
+HTTP_REQUEST_GET	RAS_Stat.h	/^    HTTP_REQUEST_GET,$/;"	e	enum:__anon3
+HTTP_REQUEST_POST	RAS_Stat.h	/^    HTTP_REQUEST_POST,$/;"	e	enum:__anon3
+HTTP_REQUEST_UNKNOWN	RAS_Stat.h	/^    HTTP_REQUEST_UNKNOWN,$/;"	e	enum:__anon3
+HTTP_RESPONSE_DEL200	RAS_Stat.h	/^    HTTP_RESPONSE_DEL200,$/;"	e	enum:__anon3
+HTTP_RESPONSE_DEL400	RAS_Stat.h	/^    HTTP_RESPONSE_DEL400,$/;"	e	enum:__anon3
+HTTP_RESPONSE_DEL404	RAS_Stat.h	/^    HTTP_RESPONSE_DEL404,$/;"	e	enum:__anon3
+HTTP_RESPONSE_DEL500	RAS_Stat.h	/^    HTTP_RESPONSE_DEL500,$/;"	e	enum:__anon3
+HTTP_RESPONSE_GET200	RAS_Stat.h	/^    HTTP_RESPONSE_GET200,$/;"	e	enum:__anon3
+HTTP_RESPONSE_GET400	RAS_Stat.h	/^    HTTP_RESPONSE_GET400,$/;"	e	enum:__anon3
+HTTP_RESPONSE_GET404	RAS_Stat.h	/^    HTTP_RESPONSE_GET404,$/;"	e	enum:__anon3
+HTTP_RESPONSE_GET500	RAS_Stat.h	/^    HTTP_RESPONSE_GET500,$/;"	e	enum:__anon3
+HTTP_RESPONSE_POST201	RAS_Stat.h	/^    HTTP_RESPONSE_POST201,$/;"	e	enum:__anon3
+HTTP_RESPONSE_POST400	RAS_Stat.h	/^    HTTP_RESPONSE_POST400,$/;"	e	enum:__anon3
+HTTP_RESPONSE_POST500	RAS_Stat.h	/^    HTTP_RESPONSE_POST500,$/;"	e	enum:__anon3
+HTTP_RESPONSE_UNKNOWN405	RAS_Stat.h	/^    HTTP_RESPONSE_UNKNOWN405,$/;"	e	enum:__anon3
+HTTP_TOTAL_REQUEST	RAS_Stat.h	/^    HTTP_TOTAL_REQUEST,$/;"	e	enum:__anon3
+HTTP_TOTAL_RESPONSE	RAS_Stat.h	/^    HTTP_TOTAL_RESPONSE,$/;"	e	enum:__anon3
 IPC_Destroy	RAS_Ipc.c	/^void IPC_Destroy()$/;"	f
 IPC_Handler	RAS_Ipc.c	/^int IPC_Handler( mpipc_t *ptMpipc, iipc_msg_t *ptRecvMsg, void *pvData )$/;"	f
 IPC_Init	RAS_Ipc.c	/^int IPC_Init()$/;"	f
@@ -136,12 +137,13 @@ MMCHDL_TRC_Del	RAS_Mmchdl_Trc.c	/^int MMCHDL_TRC_Del( oammmc_t *ptOammmc, oammmc
 MMCHDL_TRC_Dis	RAS_Mmchdl_Trc.c	/^int MMCHDL_TRC_Dis( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,$/;"	f
 MMCHDL_TRC_Init	RAS_Mmchdl_Trc.c	/^int MMCHDL_TRC_Init( oammmc_t *ptOammmc )$/;"	f
 MMC_Destroy	RAS_Mmc.c	/^void MMC_Destroy()$/;"	f
-MMC_FAIL_REASON_DB_FAIL	RAS_Err.h	6;"	d
-MMC_FAIL_REASON_DB_NOT_FOUND	RAS_Err.h	7;"	d
-MMC_FAIL_REASON_INVALID_PARAM	RAS_Err.h	5;"	d
-MMC_FAIL_REASON_REGI_FAIL	RAS_Err.h	8;"	d
-MMC_FAIL_REASON_REGI_KEY_EXIST	RAS_Err.h	9;"	d
-MMC_FAIL_REASON_REGI_NOT_FOUND	RAS_Err.h	10;"	d
+MMC_FAIL_REASON_DB_FAIL	RAS_Err.h	7;"	d
+MMC_FAIL_REASON_DB_NOT_FOUND	RAS_Err.h	8;"	d
+MMC_FAIL_REASON_INVALID_PARAM	RAS_Err.h	6;"	d
+MMC_FAIL_REASON_REGI_FAIL	RAS_Err.h	9;"	d
+MMC_FAIL_REASON_REGI_KEY_EXIST	RAS_Err.h	10;"	d
+MMC_FAIL_REASON_REGI_NOT_FOUND	RAS_Err.h	11;"	d
+MMC_FAIL_REASON_SYSTEM_FAIL	RAS_Err.h	5;"	d
 MMC_Init	RAS_Mmc.c	/^int MMC_Init()$/;"	f
 MMC_SECTION	RAS_Config.h	9;"	d
 MSG_ID_ADD_CLI_IP	RAS_Ipc.h	8;"	d
@@ -153,25 +155,29 @@ MSG_ID_DIS_CLI_IP	RAS_Ipc.h	9;"	d
 MSG_ID_DIS_CLI_IP_TRC	RAS_Ipc.h	12;"	d
 MSG_ID_DIS_USR_INFO	RAS_Ipc.h	14;"	d
 PROCESS_NAME	RAS_Inc.h	64;"	d
-PRT_FAIL	RAS_Macro.h	84;"	d
-PRT_INFO_ONE	RAS_Macro.h	67;"	d
-PRT_IP_ALL_BODY	RAS_Macro.h	48;"	d
-PRT_IP_ALL_CNT	RAS_Macro.h	53;"	d
-PRT_IP_ALL_HEADER	RAS_Macro.h	41;"	d
-PRT_IP_ONE	RAS_Macro.h	59;"	d
-PRT_LINE	RAS_Macro.h	36;"	d
-PRT_NOT_FOUND	RAS_Macro.h	79;"	d
-PSTMT_ALARM_CNT_USR	RAS_DB.h	/^	PSTMT_ALARM_CNT_USR,$/;"	e	enum:__anon3
-PSTMT_DELETE_CLI_IP	RAS_DB.h	/^	PSTMT_DELETE_CLI_IP,$/;"	e	enum:__anon3
-PSTMT_DELETE_USR_INFO	RAS_DB.h	/^	PSTMT_DELETE_USR_INFO,$/;"	e	enum:__anon3
-PSTMT_INSERT_CLI_IP	RAS_DB.h	/^	PSTMT_INSERT_CLI_IP = 0,$/;"	e	enum:__anon3
-PSTMT_INSERT_USR_INFO	RAS_DB.h	/^	PSTMT_INSERT_USR_INFO,$/;"	e	enum:__anon3
-PSTMT_MAX	RAS_DB.h	/^	PSTMT_MAX$/;"	e	enum:__anon3
-PSTMT_SELECT_CLI_IP_ALL	RAS_DB.h	/^	PSTMT_SELECT_CLI_IP_ALL,$/;"	e	enum:__anon3
-PSTMT_SELECT_CLI_IP_BY_IP	RAS_DB.h	/^	PSTMT_SELECT_CLI_IP_BY_IP,$/;"	e	enum:__anon3
-PSTMT_SELECT_USR_INFO_ALL	RAS_DB.h	/^	PSTMT_SELECT_USR_INFO_ALL,$/;"	e	enum:__anon3
-PSTMT_SELECT_USR_INFO_BY_ID	RAS_DB.h	/^	PSTMT_SELECT_USR_INFO_BY_ID,$/;"	e	enum:__anon3
-Pstmt_e	RAS_DB.h	/^} Pstmt_e;$/;"	t	typeref:enum:__anon3
+PRT_CNT	RAS_Macro.h	70;"	d
+PRT_FAIL	RAS_Macro.h	128;"	d
+PRT_INFO_ALL_BODY	RAS_Macro.h	105;"	d
+PRT_INFO_ALL_HEADER	RAS_Macro.h	97;"	d
+PRT_INFO_ONE	RAS_Macro.h	111;"	d
+PRT_IP_ALL_BODY	RAS_Macro.h	82;"	d
+PRT_IP_ALL_HEADER	RAS_Macro.h	75;"	d
+PRT_IP_ONE	RAS_Macro.h	89;"	d
+PRT_LINE	RAS_Macro.h	58;"	d
+PRT_LINEx3	RAS_Macro.h	63;"	d
+PRT_NOT_FOUND	RAS_Macro.h	123;"	d
+PSTMT_ALARM_CNT_USR	RAS_DB.h	/^	PSTMT_ALARM_CNT_USR,$/;"	e	enum:__anon2
+PSTMT_DELETE_INFO	RAS_DB.h	/^	PSTMT_DELETE_INFO,$/;"	e	enum:__anon2
+PSTMT_DELETE_IP	RAS_DB.h	/^	PSTMT_DELETE_IP,$/;"	e	enum:__anon2
+PSTMT_INSERT_INFO	RAS_DB.h	/^	PSTMT_INSERT_INFO,$/;"	e	enum:__anon2
+PSTMT_INSERT_IP	RAS_DB.h	/^	PSTMT_INSERT_IP = 0,$/;"	e	enum:__anon2
+PSTMT_MAX	RAS_DB.h	/^	PSTMT_MAX$/;"	e	enum:__anon2
+PSTMT_SELECT_INFO_BY_ID	RAS_DB.h	/^	PSTMT_SELECT_INFO_BY_ID,$/;"	e	enum:__anon2
+PSTMT_SELECT_IP_ALL	RAS_DB.h	/^	PSTMT_SELECT_IP_ALL,$/;"	e	enum:__anon2
+PSTMT_SELECT_IP_BY_IP	RAS_DB.h	/^	PSTMT_SELECT_IP_BY_IP,$/;"	e	enum:__anon2
+Pstmt_e	RAS_DB.h	/^} Pstmt_e;$/;"	t	typeref:enum:__anon2
+RAS_FALSE	RAS_Macro.h	6;"	d
+RAS_TRUE	RAS_Macro.h	5;"	d
 RAS_rErrAlarmInit	RAS_Err.h	/^	RAS_rErrAlarmInit,$/;"	e	enum:__anon4
 RAS_rErrConfInit	RAS_Err.h	/^	RAS_rErrConfInit,$/;"	e	enum:__anon4
 RAS_rErrDBAttrNull	RAS_Err.h	/^	RAS_rErrDBAttrNull,$/;"	e	enum:__anon4
@@ -210,6 +216,7 @@ RAS_rErrJsonMakeStr	RAS_Err.h	/^	RAS_rErrJsonMakeStr,$/;"	e	enum:__anon4
 RAS_rErrLogInit	RAS_Err.h	/^	RAS_rErrLogInit,$/;"	e	enum:__anon4
 RAS_rErrMmcInit	RAS_Err.h	/^	RAS_rErrMmcInit,$/;"	e	enum:__anon4
 RAS_rErrOutOfRange	RAS_Err.h	/^	RAS_rErrOutOfRange,$/;"	e	enum:__anon4
+RAS_rErrOverflow	RAS_Err.h	/^	RAS_rErrOverflow,\/\/$/;"	e	enum:__anon4
 RAS_rErrRegiCreate	RAS_Err.h	/^	RAS_rErrRegiCreate,\/\/$/;"	e	enum:__anon4
 RAS_rErrRegiDelete	RAS_Err.h	/^	RAS_rErrRegiDelete,\/\/$/;"	e	enum:__anon4
 RAS_rErrRegiGetKeyAndValue	RAS_Err.h	/^	RAS_rErrRegiGetKeyAndValue,\/\/$/;"	e	enum:__anon4
@@ -226,31 +233,32 @@ RAS_rErrThreadCreate	RAS_Err.h	/^	RAS_rErrThreadCreate,$/;"	e	enum:__anon4
 RAS_rErrThreadInit	RAS_Err.h	/^	RAS_rErrThreadInit,$/;"	e	enum:__anon4
 RAS_rOK	RAS_Err.h	/^	RAS_rOK = 1000,$/;"	e	enum:__anon4
 RAS_rSuccessMmchdl	RAS_Err.h	/^	RAS_rSuccessMmchdl = 0$/;"	e	enum:__anon4
-REGI_CREATE	RAS_Macro.h	208;"	d
-REGI_DELETE	RAS_Macro.h	276;"	d
+REGI_CREATE	RAS_Macro.h	281;"	d
+REGI_DELETE	RAS_Macro.h	349;"	d
 REGI_DELIM	RAS_Regi.h	7;"	d
 REGI_DIR	RAS_Regi.h	5;"	d
-REGI_GET_KEY_AND_VALUE	RAS_Macro.h	264;"	d
-REGI_GET_VALUE	RAS_Macro.h	238;"	d
+REGI_GET_KEY_AND_VALUE	RAS_Macro.h	337;"	d
+REGI_GET_VALUE	RAS_Macro.h	311;"	d
 REGI_Init	RAS_Regi.c	/^int REGI_Init()$/;"	f
 REGI_KEY_MAX	RAS_Regi.h	8;"	d
 REGI_SECTION	RAS_Config.h	7;"	d
-REGI_SET_VALUE	RAS_Macro.h	226;"	d
-REGI_STR_KEY	RAS_Macro.h	196;"	d
-REGI_STR_VALUE	RAS_Macro.h	202;"	d
+REGI_SET_VALUE	RAS_Macro.h	299;"	d
+REGI_STR_KEY	RAS_Macro.h	269;"	d
+REGI_STR_VALUE	RAS_Macro.h	275;"	d
 REGI_SYS_ID	RAS_Regi.h	6;"	d
 ReturnCode_e	RAS_Err.h	/^} ReturnCode_e;$/;"	t	typeref:enum:__anon4
 SIZE_IP	RAS_Inc.h	72;"	d
+SNPRINTF_QUERY_INT	RAS_Macro.h	41;"	d
+SNPRINTF_QUERY_STR	RAS_Macro.h	47;"	d
 SOCKET_Init	RAS_Socket.c	/^int SOCKET_Init( int *pnListenFd )$/;"	f
-SQL_ALARM_CNT_USR	RAS_DB.h	26;"	d
-SQL_DELETE_CLI_IP	RAS_DB.h	19;"	d
-SQL_DELETE_USR_INFO	RAS_DB.h	24;"	d
-SQL_INSERT_CLI_IP	RAS_DB.h	16;"	d
-SQL_INSERT_USR_INFO	RAS_DB.h	21;"	d
-SQL_SELECT_CLI_IP_ALL	RAS_DB.h	17;"	d
-SQL_SELECT_CLI_IP_BY_IP	RAS_DB.h	18;"	d
-SQL_SELECT_USR_INFO_ALL	RAS_DB.h	22;"	d
-SQL_SELECT_USR_INFO_BY_ID	RAS_DB.h	23;"	d
+SQL_ALARM_CNT_USR	RAS_DB.h	28;"	d
+SQL_DELETE_INFO	RAS_DB.h	26;"	d
+SQL_DELETE_IP	RAS_DB.h	20;"	d
+SQL_INSERT_INFO	RAS_DB.h	22;"	d
+SQL_INSERT_IP	RAS_DB.h	16;"	d
+SQL_SELECT_INFO_BY_ID	RAS_DB.h	25;"	d
+SQL_SELECT_IP_ALL	RAS_DB.h	18;"	d
+SQL_SELECT_IP_BY_IP	RAS_DB.h	19;"	d
 SRCS	Makefile	/^SRCS= RAS_Main.c			\\$/;"	m
 START_CREATE	RAS_Inc.h	69;"	d
 START_SVC	RAS_Inc.h	67;"	d
@@ -258,6 +266,7 @@ STAT_Init	RAS_Stat.c	/^int STAT_Init()$/;"	f
 STOP_CREATE	RAS_Inc.h	68;"	d
 STOP_GRACE_TIME_MSEC	RAS_Ipc.h	6;"	d
 STOP_SVC	RAS_Inc.h	66;"	d
+STRLCAT_CHECK_OVERFLOW	RAS_Macro.h	31;"	d
 STR_ARG	RAS_Macro.h	13;"	d
 STR_CASE	RAS_Macro.h	16;"	d
 STR_CASE_DFLT_UKN	RAS_Macro.h	18;"	d
@@ -271,10 +280,9 @@ THREAD_Run	RAS_Thread.c	/^void *THREAD_Run( void *pvArg )$/;"	f
 THREAD_s	RAS_Inc.h	/^typedef struct THREAD_s$/;"	s
 THREAD_t	RAS_Inc.h	/^} THREAD_t;$/;"	t	typeref:struct:THREAD_s
 TIME_OUT	RAS_Event.h	6;"	d
-TRUE	RAS_Macro.h	5;"	d
 UPP_GNAME	RAS_Alarm.h	5;"	d
 USR_INFO_TBL	RAS_DB.h	9;"	d
-VALID_RANGE	RAS_Macro.h	31;"	d
+VALID_RANGE	RAS_Macro.h	53;"	d
 _RAS_ALARM_H_	RAS_Alarm.h	3;"	d
 _RAS_CONFIG_H	RAS_Config.h	3;"	d
 _RAS_DB_H_	RAS_DB.h	3;"	d
@@ -292,7 +300,7 @@ _RAS_REGI_H	RAS_Regi.h	3;"	d
 _RAS_SOCKET_H_	RAS_Socket.h	3;"	d
 _RAS_STAT_H_	RAS_Stat.h	4;"	d
 _RAS_THREAD_H	RAS_Thread.h	3;"	d
-__ITEM_END__	RAS_Stat.h	/^    __ITEM_END__$/;"	e	enum:__anon2
+__ITEM_END__	RAS_Stat.h	/^    __ITEM_END__$/;"	e	enum:__anon3
 atArgId	RAS_Mmchdl_Info.c	/^static oammmc_arg_info_t atArgId[] =$/;"	v	file:
 atArgInfo	RAS_Mmchdl_Info.c	/^static oammmc_arg_info_t atArgInfo[] =$/;"	v	file:
 atArgIp	RAS_Mmchdl_Ip.c	/^static oammmc_arg_info_t atArgIp[] =$/;"	v	file:
@@ -303,7 +311,7 @@ atCmd	RAS_Mmchdl_Info.c	/^static oammmc_cmd_t atCmd[] =$/;"	v	file:
 atCmd	RAS_Mmchdl_Ip.c	/^static oammmc_cmd_t atCmd[] =$/;"	v	file:
 atCmd	RAS_Mmchdl_Trc.c	/^static oammmc_cmd_t atCmd[] =$/;"	v	file:
 atGenderEnum	RAS_Mmchdl_Info.c	/^static mpenumx_t atGenderEnum[] =$/;"	v	file:
-en_item_index_t	RAS_Stat.h	/^}en_item_index_t;$/;"	t	typeref:enum:__anon2
+en_item_index_t	RAS_Stat.h	/^}en_item_index_t;$/;"	t	typeref:enum:__anon3
 g_nAlarmStatus	RAS_Main.c	/^int g_nAlarmStatus = 0; \/\/Thread$/;"	v
 g_nSvcFlag	RAS_Main.c	/^int g_nSvcFlag = START_SVC;$/;"	v
 g_nThreadIndex	RAS_Main.c	/^int g_nThreadIndex = 0; $/;"	v

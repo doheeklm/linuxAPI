@@ -55,7 +55,7 @@ int MMCHDL_IP_Add( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 	char *pszDesc = NULL;
 	oammmc_arg_t *ptArg = NULL;
 
-	for ( nIndex = 0; nIndex < nArgNum; ++nIndex )
+	for ( nIndex = 0; nIndex < nArgNum; nIndex++ )
 	{
 		ptArg = &patArgList[ nIndex ];
 		
@@ -78,18 +78,18 @@ int MMCHDL_IP_Add( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 	//TODO CLIENT IP 중복
 
 	//CLEAR DB SET/GET/EXEC 실패하면 mmc print out
-	DB_SET_STRING_BY_KEY( g_tDBIpc.patPstmt[PSTMT_INSERT_CLI_IP], ATTR_IP, pszIp, nRC );
+	DB_SET_STRING_BY_KEY( g_tDBIpc.patPstmt[PSTMT_INSERT_IP], ATTR_IP, pszIp, nRC );
 	
 	if ( NULL != pszDesc )
 	{
-		DB_SET_STRING_BY_KEY( g_tDBIpc.patPstmt[PSTMT_INSERT_CLI_IP], ATTR_DESC, pszDesc, nRC );
+		DB_SET_STRING_BY_KEY( g_tDBIpc.patPstmt[PSTMT_INSERT_IP], ATTR_DESC, pszDesc, nRC );
 	}	
 	else
 	{
-		DB_SET_STRING_BY_KEY( g_tDBIpc.patPstmt[PSTMT_INSERT_CLI_IP], ATTR_DESC, EMPTY_STRING, nRC );
+		DB_SET_STRING_BY_KEY( g_tDBIpc.patPstmt[PSTMT_INSERT_IP], ATTR_DESC, EMPTY_STRING, nRC );
 	}
 
-	DB_PREPARED_EXEC_UPDATE( g_tDBIpc, g_tDBIpc.patPstmt[PSTMT_INSERT_CLI_IP], nRC );
+	DB_PREPARED_EXEC_UPDATE( g_tDBIpc, g_tDBIpc.patPstmt[PSTMT_INSERT_IP], nRC );
 	
 	PRT_IP_ONE( ptOammmc, ARG_DESC_IP, pszIp, ARG_DESC_DESC, pszDesc );
 	//CLEAR IPC Handler에서 Init
@@ -119,7 +119,7 @@ int MMCHDL_IP_Dis( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 	DAL_RESULT_SET *ptRes = NULL;
 	DAL_ENTRY *ptEntry = NULL;
 	
-	for ( nIndex = 0; nIndex < nArgNum; ++nIndex )
+	for ( nIndex = 0; nIndex < nArgNum; nIndex++ )
 	{
 		ptArg = &patArgList[ nIndex ];
 		
@@ -136,7 +136,7 @@ int MMCHDL_IP_Dis( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 
 	if ( NULL == pszIp )
 	{
-		DB_PREPARED_EXEC( g_tDBIpc, g_tDBIpc.patPstmt[PSTMT_SELECT_CLI_IP_ALL], &ptRes, nRC );	
+		DB_PREPARED_EXEC( g_tDBIpc, g_tDBIpc.patPstmt[PSTMT_SELECT_IP_ALL], &ptRes, nRC );	
 
 		PRT_IP_ALL_HEADER( ptOammmc, ARG_DESC_IP, ARG_DESC_DESC );
 
@@ -148,14 +148,15 @@ int MMCHDL_IP_Dis( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 			PRT_IP_ALL_BODY( ptOammmc, pszIp, pszDesc );
 			nCntTuple++;
 		}
-		
-		PRT_IP_ALL_CNT( ptOammmc, nCntTuple );
+	
+		PRT_LINE( ptOammmc );	
+		PRT_CNT( ptOammmc, nCntTuple );
 	}
 	else
 	{
-		DB_SET_STRING_BY_KEY( g_tDBIpc.patPstmt[PSTMT_SELECT_CLI_IP_BY_IP], ATTR_IP, pszIp, nRC );
+		DB_SET_STRING_BY_KEY( g_tDBIpc.patPstmt[PSTMT_SELECT_IP_BY_IP], ATTR_IP, pszIp, nRC );
 	
-		DB_PREPARED_EXEC( g_tDBIpc, g_tDBIpc.patPstmt[PSTMT_SELECT_CLI_IP_BY_IP], &ptRes, nRC );
+		DB_PREPARED_EXEC( g_tDBIpc, g_tDBIpc.patPstmt[PSTMT_SELECT_IP_BY_IP], &ptRes, nRC );
 
 		ptEntry = dalFetchFirst( ptRes );
 		if ( NULL != ptEntry )
@@ -193,7 +194,7 @@ int MMCHDL_IP_Del( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 	DAL_RESULT_SET *ptRes = NULL;
 	DAL_ENTRY *ptEntry = NULL;
 
-	for ( nIndex = 0; nIndex < nArgNum; ++nIndex )
+	for ( nIndex = 0; nIndex < nArgNum; nIndex++ )
 	{
 		ptArg = &patArgList[ nIndex ];
 		
@@ -208,8 +209,8 @@ int MMCHDL_IP_Del( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 		}	
 	}
 
-	DB_SET_STRING_BY_KEY( g_tDBIpc.patPstmt[PSTMT_SELECT_CLI_IP_BY_IP], ATTR_IP, pszIp, nRC );
-	DB_PREPARED_EXEC( g_tDBIpc, g_tDBIpc.patPstmt[PSTMT_SELECT_CLI_IP_BY_IP], &ptRes, nRC );
+	DB_SET_STRING_BY_KEY( g_tDBIpc.patPstmt[PSTMT_SELECT_IP_BY_IP], ATTR_IP, pszIp, nRC );
+	DB_PREPARED_EXEC( g_tDBIpc, g_tDBIpc.patPstmt[PSTMT_SELECT_IP_BY_IP], &ptRes, nRC );
 	
 	ptEntry = dalFetchFirst( ptRes );
 	if ( NULL != ptEntry )
@@ -217,8 +218,8 @@ int MMCHDL_IP_Del( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 		DB_GET_STRING_BY_KEY( ptEntry, ATTR_DESC, &pszDesc, nRC );
 	}
 
-	DB_SET_STRING_BY_KEY( g_tDBIpc.patPstmt[PSTMT_DELETE_CLI_IP], ATTR_IP, pszIp, nRC );
-	DB_PREPARED_EXEC_UPDATE( g_tDBIpc, g_tDBIpc.patPstmt[PSTMT_DELETE_CLI_IP], nRC );
+	DB_SET_STRING_BY_KEY( g_tDBIpc.patPstmt[PSTMT_DELETE_IP], ATTR_IP, pszIp, nRC );
+	DB_PREPARED_EXEC_UPDATE( g_tDBIpc, g_tDBIpc.patPstmt[PSTMT_DELETE_IP], nRC );
 	
 	PRT_IP_ONE( ptOammmc, ARG_DESC_IP, pszIp, ARG_DESC_DESC, pszDesc );
 

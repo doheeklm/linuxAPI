@@ -81,11 +81,6 @@ typedef struct THREAD_s
 } THREAD_t;
 
 #if 0
-#define SIZE_IP_DESC			32
-#define SIZE_NAME				32
-#define SIZE_BIRTH				6
-#define SIZE_ADDRESS			256
-
 #define STATUS_200				"OK"
 #define STATUS_201				"Created"
 #define STATUS_400				"Bad Request"
@@ -106,11 +101,6 @@ typedef struct THREAD_s
 								"\"%s\": \"%s\",\n    " \
 								"\"%s\": \"%s\",\n    " \
 								"\"%s\": \"%s\"\n}"
-
-#define REGI_KEY_DIR			"/CLI_IP_TRC"
-#define REGI_MAN_SYS_ID			1
-#define REGI_VALUE_SIZE			1024
-#define REGI_KEY_DELIM			":"
 #endif
 
 #endif /* _RAS_INC_H_ */

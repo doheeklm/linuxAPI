@@ -2,6 +2,7 @@
 #ifndef _RAS_ERR_H_
 #define _RAS_ERR_H_
 
+#define MMC_FAIL_REASON_SYSTEM_FAIL		"SYSTEM FAIL"
 #define MMC_FAIL_REASON_INVALID_PARAM	"INVALID PARAMETER"
 #define MMC_FAIL_REASON_DB_FAIL			"DB FAIL"
 #define MMC_FAIL_REASON_DB_NOT_FOUND	"DB NOT FOUND"
@@ -16,6 +17,7 @@ typedef enum
 	RAS_rErrGetValue,
 	RAS_rErrGetConfValue,
 	RAS_rErrSetValue, 
+	RAS_rErrOverflow,//
 	RAS_rErrOutOfRange,
 	RAS_rErrConfInit,
 	RAS_rErrLogInit,

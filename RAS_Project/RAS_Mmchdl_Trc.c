@@ -57,7 +57,7 @@ int MMCHDL_TRC_Add( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 	memset( szTime, 0x00, sizeof(szTime) );
 	oammmc_arg_t *ptArg = NULL;
 
-	for ( nIndex = 0; nIndex < nArgNum; ++nIndex )
+	for ( nIndex = 0; nIndex < nArgNum; nIndex++ )
 	{
 		ptArg = &patArgList[ nIndex ];
 		
@@ -114,7 +114,7 @@ int MMCHDL_TRC_Dis( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 	memset( szKey, 0x00, sizeof(szKey) );
 	oammmc_arg_t *ptArg = NULL;
 
-	for ( nIndex = 0; nIndex < nArgNum; ++nIndex )
+	for ( nIndex = 0; nIndex < nArgNum; nIndex++ )
 	{
 		ptArg = &patArgList[ nIndex ];
 		
@@ -173,7 +173,7 @@ int MMCHDL_TRC_Del( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 	memset( szTime, 0x00, sizeof(szTime) );
 	oammmc_arg_t *ptArg = NULL;
 	
-	for ( nIndex = 0; nIndex < nArgNum; ++nIndex )
+	for ( nIndex = 0; nIndex < nArgNum; nIndex++ )
 	{
 		ptArg = &patArgList[ nIndex ];
 		
