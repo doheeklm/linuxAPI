@@ -1,6 +1,8 @@
 /* RAS_Mmchdl_Trc.c */
 #include "RAS_Inc.h"
 
+extern TRC_t g_tTrc[MAX_TRC_CNT];
+
 static oammmc_arg_info_t atArgIp[] =
 {
 	{ ARG_NUM_IP, ARG_DESC_IP, NULL, OAMMMC_STR, ARG_ID_IP, 7, 15, NULL, NULL },
@@ -131,12 +133,26 @@ int MMCHDL_TRC_Dis( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 
 	if ( NULL == pszIp )
 	{
-		char szKeyList[256];
-		memset( szKeyList, 0x00, sizeof(szKeyList) );
+		nRC = REGI_GetAll();
+		if ( RAS_rOK != nRC )
+		{
+			goto end_of_function;
+		}
+		
+		PRT_IP_ALL_HEADER( ptOammmc, ARG_DESC_IP, ARG_DESC_TIME );
 
-		//NOTE Value 없는 Key는 Keylist 버퍼에 포함되지 않아서 Period Time 받지 않으면 공백 넣었음
-		REGI_GET_KEY_AND_VALUE( REGI_DIR, strlen(REGI_DIR), szKeyList, sizeof(szKeyList), nRC );
-		oammmc_out( ptOammmc, "%s\n", szKeyList );
+		for ( nIndex = 0; nIndex < MAX_TRC_CNT; nIndex++ )
+		{
+			if ( 0 == strlen(g_tTrc[nIndex].szClientIp) &&  0 == strlen(g_tTrc[nIndex].szPeriodTm) )
+			{
+				break;
+			}
+
+			PRT_IP_ALL_BODY( ptOammmc, g_tTrc[nIndex].szClientIp, g_tTrc[nIndex].szPeriodTm );	
+		}
+
+		PRT_LINE( ptOammmc );
+		PRT_CNT( ptOammmc, nIndex );
 	}
 	else
 	{

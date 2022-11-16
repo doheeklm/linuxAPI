@@ -4,9 +4,11 @@
 
 #define REGI_DIR		"/CLI_IP_TRC"
 #define REGI_SYS_ID		2
-#define REGI_DELIM		":"
+#define REGI_DELIM_KEY	":"REGI_DIR"/"
+#define REGI_DELIM_VAL	"|"
 #define REGI_KEY_MAX	63
 
 int REGI_Init();
+int REGI_GetAll();
 
 #endif /* _RAS_REGI_H_ */

@@ -3,6 +3,9 @@
 #ifndef _RAS_STAT_H_
 #define _RAS_STAT_H_
 
+#define HTTP_REQUEST	1
+#define HTTP_RESPONSE	2
+
 typedef enum {
     HTTP_TOTAL_REQUEST,
     HTTP_REQUEST_POST,

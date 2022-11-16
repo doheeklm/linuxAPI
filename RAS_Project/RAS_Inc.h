@@ -54,53 +54,53 @@
 #include "RAS_Mmchdl_Info.h"
 #include "RAS_Alarm.h"
 #include "RAS_Stat.h"
-#include "RAS_Thread.h"
+#include "RAS_Worker.h"
 #include "RAS_Socket.h"
 #include "RAS_Event.h"
-//#include "RAS_Http.h"
-//#include "RAS_Json.h"
+#include "RAS_Http.h"
 //#include "RAS_Trace.h"
 
 #define PROCESS_NAME			"MIPCSVR"
 
 #define STOP_SVC				0
 #define START_SVC				1
-#define STOP_CREATE				0
-#define START_CREATE			1
 
-#define THREAD_CNT				3
-#define SIZE_IP					15
+#define CREATE_OFF				0
+#define CREATE_ON				1
+
+#define MAX_WORKER_CNT			3
+#define MAX_TRC_CNT				1000
 
 #define EMPTY_STRING			""
 
-typedef struct THREAD_s
+#define SIZE_IP					15
+#define SIZE_TM					5
+#define SIZE_NAME				32
+#define SIZE_GENDER				6
+#define SIZE_BIRTH				6
+#define SIZE_ADDRESS			256
+
+typedef struct WORKER_s
 {
 	pthread_t	nThreadId;
 	int			nEpollFd;
 	char		szClientIp[SIZE_IP + 1];
-} THREAD_t;
+} WORKER_t;
 
-#if 0
-#define STATUS_200				"OK"
-#define STATUS_201				"Created"
-#define STATUS_400				"Bad Request"
-#define STATUS_404				"Not Found"
-#define STATUS_405				"Method Not Allowed"
-#define STATUS_500				"Internal Server Error"
+typedef struct TRC_s
+{
+	char szClientIp[SIZE_IP + 1];
+	char szPeriodTm[SIZE_TM + 1];;
+	int nCnt;
+} TRC_t;
 
-#define HTTP_RESPONSE_MSG		"HTTP/1.1 %d %s\r\n" \
-								"Content-Length:%d\r\n\r\n" \
-								"%s"
-#define HTTP_RESPONSE_MSG_GET	"HTTP/1.1 %d %s\r\n" \
-								"Content-Type: application/json\r\n" \
-								"Content-Length: %d\r\n\r\n" \
-								"%s"
-#define BODY_IN_JSON			"{\n    " \
-								"\"%s\": %d,\n    " \
-								"\"%s\": \"%s\",\n    " \
-								"\"%s\": \"%s\",\n    " \
-								"\"%s\": \"%s\",\n    " \
-								"\"%s\": \"%s\"\n}"
-#endif
+typedef struct USER_s
+{
+	int nId;
+	char szName[SIZE_NAME + 1];
+	char szGender[SIZE_GENDER + 1];
+	char szBirth[SIZE_BIRTH + 1];
+	char szAddress[SIZE_ADDRESS + 1];
+} USER_t;
 
 #endif /* _RAS_INC_H_ */

@@ -1,7 +1,7 @@
 /* RAS_Err.c */
 #include "RAS_Inc.h"
 
-char *ERR_GetDesc( int nErrCode )
+char* ERR_GetDesc( int nErrCode )
 {
 	switch( nErrCode )
 	{
@@ -17,7 +17,7 @@ char *ERR_GetDesc( int nErrCode )
 		STR_CASE( RAS_rErrRegiCreate, MMC_FAIL_REASON_REGI_FAIL );
 		STR_CASE( RAS_rErrRegiSetValue, MMC_FAIL_REASON_REGI_FAIL );
 		STR_CASE( RAS_rErrRegiGetValue, MMC_FAIL_REASON_REGI_FAIL );
-		STR_CASE( RAS_rErrRegiGetKeyAndValue, MMC_FAIL_REASON_REGI_FAIL );
+		STR_CASE( RAS_rErrRegiGetEnumKeyValue, MMC_FAIL_REASON_REGI_FAIL );
 		STR_CASE( RAS_rErrRegiDelete, MMC_FAIL_REASON_REGI_FAIL );
 		STR_CASE( RAS_rErrRegiKeyExist, MMC_FAIL_REASON_REGI_KEY_EXIST );
 		STR_CASE( RAS_rErrRegiNotFound, MMC_FAIL_REASON_REGI_NOT_FOUND );	

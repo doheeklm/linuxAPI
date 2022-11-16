@@ -19,9 +19,10 @@ SRCS= RAS_Main.c			\
 	  RAS_Regi.c			\
 	  RAS_Alarm.c			\
 	  RAS_Stat.c			\
-	  RAS_Thread.c			\
+	  RAS_Worker.c			\
 	  RAS_Socket.c			\
-	  RAS_Event.c
+	  RAS_Event.c			\
+	  RAS_Http.c
 
 MDEFS=-D_USE_STAT -D_LOCAL_DB -D_HANGUP_ALARM
 MINCLUDES=-I$(TELCOBASE_HOME)/include

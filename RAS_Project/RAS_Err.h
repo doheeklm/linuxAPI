@@ -13,6 +13,7 @@
 typedef enum
 {
 	RAS_rOK = 1000,
+	RAS_rStop,
 	RAS_rErrFail,
 	RAS_rErrGetValue,
 	RAS_rErrGetConfValue,
@@ -26,13 +27,15 @@ typedef enum
 	RAS_rErrIpcInit,
 	RAS_rErrAlarmInit,
 	RAS_rErrStatInit,
-	RAS_rErrThreadInit,
+	RAS_rErrWorkerInit,
 	RAS_rErrSocketInit,
-	RAS_rErrEpollInit,
-	RAS_rErrEventRecreateNo,
-	RAS_rErrEventRecreateYes,	
+	RAS_rErrEventInit,
 	RAS_rErrIpcGetKey,
 	RAS_rErrInvalidParam,//
+
+	RAS_rErrEpollFdListenFd,
+	RAS_rErrEpollFd,
+	RAS_rErrListenFd,
 
 	RAS_rErrIpcRecv,
 	RAS_rErrIpcSend,
@@ -55,16 +58,24 @@ typedef enum
 	RAS_rErrDBSelect,
 	RAS_rErrDBDelete,
 	
-	RAS_rErrThreadCreate,
 	RAS_rErrStatOpen,
 
 	RAS_rErrRegiCreate,//
 	RAS_rErrRegiKeyExist,//
 	RAS_rErrRegiSetValue,//
-	RAS_rErrRegiGetKeyAndValue,//
+	RAS_rErrRegiGetEnumKeyValue,//
 	RAS_rErrRegiGetValue,//
 	RAS_rErrRegiDelete,//
 	RAS_rErrRegiNotFound,//
+
+	RAS_rErrHttpRead,
+	RAS_rErrHttpWrite,
+	RAS_rErrHttpBadRequest,
+	RAS_rErrHttpMethodNotAllowed,
+	RAS_rHttpCreated,
+	RAS_rHttpOK,
+	RAS_rHttpNotFound,
+	RAS_rHttpInternalFail,
 
 	RAS_rErrJsonCheckSize,
 	RAS_rErrJsonGetArr,
@@ -76,6 +87,6 @@ typedef enum
 	RAS_rSuccessMmchdl = 0
 } ReturnCode_e;
 
-char *ERR_GetDesc( int nErrCode );
+char* ERR_GetDesc( int nErrCode );
 
 #endif /* _RAS_ERR_H_ */

@@ -27,6 +27,7 @@ int DB_InitPreparedStatement( DB_t *ptDB )
 	DB_INIT_PSTMT( ptDB, PSTMT_DELETE_IP, SQL_DELETE_IP );
 
 	DB_INIT_PSTMT( ptDB, PSTMT_INSERT_INFO, SQL_INSERT_INFO );
+	DB_INIT_PSTMT( ptDB, PSTMT_SELECT_INFO_ALL, SQL_SELECT_INFO_ALL );
 	DB_INIT_PSTMT( ptDB, PSTMT_SELECT_INFO_BY_ID, SQL_SELECT_INFO_BY_ID );
 	DB_INIT_PSTMT( ptDB, PSTMT_DELETE_INFO, SQL_DELETE_INFO );
 
@@ -55,14 +56,14 @@ void DB_Close( DB_t *ptDB )
 
 	DB_ClosePreparedStatement( ptDB );
 
-	LOG_SVC_F( "DB_ClosePreparedStatement success" );
+	LOG_DBG_F( "DB_ClosePreparedStatement success" );
 
 	if ( NULL != ptDB->ptDBConn )
 	{
 		dalDisconnect( ptDB->ptDBConn );
 		ptDB->ptDBConn = NULL;
 		
-		LOG_SVC_F( "dalDisconnect succes" );
+		LOG_DBG_F( "dalDisconnect succes" );
 	}
 
 	return;

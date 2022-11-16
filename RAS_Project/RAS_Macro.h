@@ -26,7 +26,8 @@
 		} \
 	} while (0)
 
-#define CHECK_PARAM_RC( _expr_t ) CHECK_PARAM( (_expr_t), return RAS_rErrInvalidParam )
+#define CHECK_PARAM_RC( _expr_t ) \
+	CHECK_PARAM( (_expr_t), return RAS_rErrInvalidParam )
 
 #define STRLCAT_CHECK_OVERFLOW( _dst, _src, _dstsize, _rc ) \
 	do { \
@@ -50,6 +51,15 @@
 		_buf[ strlen(_buf) ] = '\0'; \
 	} while (0)
 
+#define IF_EQUAL_STRLCPY( _token_even, _token_odd, _attr, _buf, _bufsize ) \
+   do { \
+	   if ( 0 == strcmp( _token_even, _attr ) ) \
+	   { \
+		   strlcpy( _buf, _token_odd, _bufsize ); \
+		   LOG_DBG_F( "\"%s\":\"%s\"", _token_even, _token_odd ); \
+	   } \
+   } while (0)	   
+
 #define VALID_RANGE( _val, _min, _max ) \
 	( ((int)(_val) >= (int)(_min)) && \
 	  ((int)(_val) <= (int)(_max)) \
@@ -72,25 +82,28 @@
 		oammmc_out( (p_mmc), "Total Count = %d", _cnt ); \
 	} while (0)
 
-#define PRT_IP_ALL_HEADER( p_mmc, _arg_ip, _arg_optional ) \
+#define PRT_IP_ALL_HEADER( p_mmc, _arg_ip, _arg_opt ) \
 	do { \
 		PRT_LINE( p_mmc ); \
-		oammmc_out( (p_mmc), "%-16s %-33s\n", _arg_ip, _arg_optional ); \
+		oammmc_out( (p_mmc), "%-16s %-10s\n", _arg_ip, _arg_opt ); \
 		PRT_LINE( p_mmc ); \
 	} while (0)
 
-#define PRT_IP_ALL_BODY( p_mmc, _ip, _optional ) \
+/*
+ *	For _opt,
+ *	IP  - DESC char(32)
+ *	TRC - PERIOD_TM char(5)
+ */
+#define PRT_IP_ALL_BODY( p_mmc, _ip, _opt ) \
 	do { \
-		oammmc_out( (p_mmc), "%-16s %-33s\n", _ip, _optional ); \
+		oammmc_out( (p_mmc), "%-16s %-33s\n", _ip, _opt ); \
 	} while (0)
 
-//for _arg_optional,
-//ip-ARG_DESC_DESC, trc-ARG_DESC_TIME
-#define PRT_IP_ONE( p_mmc, _arg_ip, _ip, _arg_optional, _optional ) \
+#define PRT_IP_ONE( p_mmc, _arg_ip, _ip, _arg_opt, _opt ) \
 	do { \
 		PRT_LINE( p_mmc ); \
 		oammmc_out( (p_mmc), "%-12s = %s\n", _arg_ip, _ip ); \
-		oammmc_out( (p_mmc), "%-12s = %s\n", _arg_optional, _optional ); \
+		oammmc_out( (p_mmc), "%-12s = %s\n", _arg_opt, _opt ); \
 		PRT_LINE( p_mmc ); \
 	} while (0)
 
@@ -134,6 +147,9 @@
 		} \
 	} while (0)
 
+/*
+ *	DB
+ */
 #define DB_INIT_PSTMT( p_db, _index, _sql ) \
 	do { \
 		(p_db)->patPstmt[(_index)] = dalPreparedStatement( (p_db)->ptDBConn, (_sql) ); \
@@ -266,6 +282,9 @@
 		} \
 	} while (0)
 
+/*
+ *	REGI
+ */
 #define REGI_STR_KEY( _buf, _bufsize, _key ); \
 	do { \
 		snprintf( _buf, _bufsize, "%s/%s", REGI_DIR, _key ); \
@@ -334,14 +353,14 @@
 		} \
 	} while (0)
 
-#define REGI_GET_KEY_AND_VALUE( _key, _keylen, _buf, _bufsize, _rc ); \
+#define REGI_GET_ENUM_KEY_VALUE( _key, _keylen, _buf, _bufsize, _rc ); \
 	do { \
 		_rc = TAP_Registry_udp_enum_key_value( _key, _keylen, _buf, _bufsize, REGI_SYS_ID ); \
 		if ( 0 > _rc ) \
 		{ \
 			LOG_ERR_F( "TAP_Registry_udp_enum_key_value (%s) <%d:%s>", \
 					_key, _rc, TAP_REG_GET_ERROR_CONTENT(_rc) ); \
-			_rc = RAS_rErrRegiGetKeyAndValue; \
+			_rc = RAS_rErrRegiGetEnumKeyValue; \
 			goto end_of_function; \
 		} \
 	} while (0)
@@ -355,6 +374,66 @@
 					_key, _rc, TAP_REG_GET_ERROR_CONTENT(_rc) ); \
 			_rc = RAS_rErrRegiDelete; \
 			goto end_of_function; \
+		} \
+	} while (0)
+
+/*
+ *	FD
+ */
+#define FD_DELETE( _epoll_fd, _fd ); \
+	do { \
+		if ( -1 == epoll_ctl( _epoll_fd, EPOLL_CTL_DEL, _fd, NULL ) ) \
+		{ \
+			LOG_ERR_F( "epoll_ctl (DELETE Fd %d from EpollFd %d) fail", \
+						_fd, _epoll_fd ); \
+		} \
+	} while (0)
+
+#define FD_CLOSE( _fd ); \
+	do { \
+		if ( -1 == close( _fd ) ) \
+		{ \
+			LOG_ERR_F( "close (%d) fail", _fd ); \
+		} \
+	} while (0)
+
+/*
+ *	HTTP
+ */
+#define HTTP_SET_RESPONSE_MSG( _buf, _bufsize, _status_code, _status_msg, _body_size, _body ) \
+	do { \
+		snprintf( _buf, _bufsize, \
+				"HTTP/1.1 %d %s\r\n" \
+				"Content-Type: application/json\r\n" \
+				"Content-Length: %d\r\n\r\n" \
+				"%s", \
+				_status_code, _status_msg, _body_size, _body ); \
+		_buf[ strlen(_buf) ] = '\0'; \
+	} while (0)
+
+#define HTTP_CONVERT_INFO_INTO_JSON( _buf, _bufsize, _attr_id, _id, _attr_name, _name, \
+		_attr_gender, _gender, _attr_birth, _birth, _attr_address, _address ) \
+	do { \
+		snprintf( _buf, _bufsize, \
+				"{\n    " \
+				"\"%s\": %d,\n    " \
+				"\"%s\": \"%s\",\n    " \
+				"\"%s\": \"%s\",\n    " \
+				"\"%s\": \"%s\",\n    " \
+				"\"%s\": \"%s\"\n}", \
+				_attr_id, _id, _attr_name, _name, _attr_gender, _gender, \
+				_attr_birth, _birth, _attr_address, _address ); \
+		_buf[ strlen(_buf) ] = '\0'; \
+	} while (0)
+
+/*
+ *	WORKER
+ */
+#define THREAD_CANCEL( _thread_id ) \
+	do { \
+		if ( -1 == pthread_cancel( _thread_id ) ) \
+		{ \
+			LOG_ERR_F( "pthread_cancel fail" ); \
 		} \
 	} while (0)
 

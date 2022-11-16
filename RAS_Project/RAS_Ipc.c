@@ -16,7 +16,7 @@ int IPC_Init()
 		LOG_ERR_F( "mpipc_init fail" );
 		return RAS_rErrFail; 
 	}
-	LOG_SVC_F( "mpipc_init" );
+	LOG_DBG_F( "mpipc_init" );
 
 	nRC = mpipc_regi_hdlr( g_ptMpipc, IPC_Handler, NULL );
 	if ( 0 > nRC )
@@ -24,7 +24,7 @@ int IPC_Init()
 		LOG_ERR_F( "mpipc_regi_hdlr fail <%d>", nRC );
 		return RAS_rErrFail;
 	}
-	LOG_SVC_F( "mpipc_regi_hdlr" );
+	LOG_DBG_F( "mpipc_regi_hdlr" );
 	
 	nRC = mpipc_start( g_ptMpipc );
 	if ( 0 > nRC )
@@ -32,7 +32,7 @@ int IPC_Init()
 		LOG_ERR_F( "mpipc_start fail <%d>", nRC );
 		return RAS_rErrFail;
 	}
-	LOG_SVC_F( "mpipc_start" );
+	LOG_DBG_F( "mpipc_start" );
 
 	return RAS_rOK;
 }
@@ -108,9 +108,9 @@ void IPC_Destroy()
 		{
 			LOG_ERR_F( "mpipc_stop fail <%d>", nRC );
 		}
-		LOG_SVC_F( "mpipc_stop" );
+		LOG_DBG_F( "mpipc_stop" );
 		mpipc_destroy( g_ptMpipc );
-		LOG_SVC_F( "mpipc_destroy" );
+		LOG_DBG_F( "mpipc_destroy" );
 	}
 	
 	return;

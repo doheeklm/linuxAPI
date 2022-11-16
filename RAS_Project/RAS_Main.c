@@ -2,17 +2,16 @@
 #include "RAS_Inc.h"
 
 int g_nSvcFlag = START_SVC;
-int g_nThreadIndex = 0; 
+int g_nWorkerIndex = 0; 
 int g_nAlarmStatus = 0; //Thread
 
 Env_t g_tEnv;
 mpipc_t *g_ptMpipc = NULL;
 oammmc_t *g_ptOammmc = NULL;
-THREAD_t g_tThread[THREAD_CNT];
+WORKER_t g_tWorker[MAX_WORKER_CNT];
+TRC_t g_tTrc[MAX_TRC_CNT];
 
 static void SignalHandler( int nSigno );
-
-//TODO Mandatory Param Check
 
 int main( void )
 {
@@ -28,9 +27,9 @@ int main( void )
 	int nIndex = 0;
 	int nListenFd = 0;
 	int nEpollFd = 0;
-	int nCreateFlag = START_CREATE;
-
-	//CLEAR DB 개별생성(main thread)
+	int nCreateListenFd = CREATE_ON;
+	int nCreateEpollFd = CREATE_ON;
+	
 	DB_t tDBMain;
 	memset( &tDBMain, 0x00, sizeof(tDBMain) );
 
@@ -48,120 +47,151 @@ int main( void )
 		return 0;
 	}
 	
+	//TODO DBIpc
 	nRC = IPC_Init();
 	if ( RAS_rOK != nRC )
 	{
-		LOG_ERR_F( "IPC_Init fail <%d>", nRC );
 		goto _exit_main;	
 	}
 	
 	nRC = REGI_Init();
 	if ( RAS_rOK != nRC )
 	{
-		LOG_ERR_F( "REGI_Init fail <%d>", nRC );
 		goto _exit_main;
 	}
 
 	nRC = MMC_Init();
 	if ( RAS_rOK != nRC )
 	{
-		LOG_ERR_F( "MMC_Init fail <%d>", nRC );
 		goto _exit_main;
 	}
 
-	//CLEAR DB Init
 	nRC = DB_Init( &(tDBMain.ptDBConn) );
 	if ( RAS_rOK != nRC )
 	{
-		LOG_ERR_F( "DB_Init fail <%d>", nRC );
 		goto _exit_main;
 	}	
 	
 	nRC = DB_InitPreparedStatement( &tDBMain );
 	if ( RAS_rOK != nRC )
 	{
-		LOG_ERR_F( "DB_InitPreparedStatement fail <%d>", nRC );
 		goto _exit_main;
 	}	
 
 	nRC = ALARM_Init();
 	if ( RAS_rOK != nRC )
 	{
-		LOG_ERR_F( "ALARM_Init fail <%d>", nRC );
 		goto _exit_main;
 	}
 
 	nRC = STAT_Init();
 	if ( RAS_rOK != nRC )
 	{
-		LOG_ERR_F( "STAT_Init fail <%d>", nRC );
 		goto _exit_main;
 	}
 
-	nRC = THREAD_Init();
+	nRC = WORKER_Init();
 	if ( RAS_rOK != nRC )
 	{
-		LOG_ERR_F( "THREAD_Init fail <%d>", nRC );
 		goto _exit_main;
 	}
 
 	while ( g_nSvcFlag )
 	{
-		if ( START_CREATE == nCreateFlag )
+		if ( CREATE_ON == nCreateListenFd )
 		{
 			nRC = SOCKET_Init( &nListenFd );
 			if ( RAS_rOK != nRC )
 			{
-				LOG_ERR_F( "SOCKET_Init fail <%d>", nRC );
-				goto _exit_main;
+				goto _continue_with_error;
 			}
+			nCreateListenFd = CREATE_OFF;
+		};
 
-			LOG_SVC_F( "SOCKET_Init nListenFd=%d", nListenFd );
-
-			nRC = EVENT_Init( &nEpollFd, nListenFd );
+		if ( CREATE_ON == nCreateEpollFd )	
+		{
+			nRC = EVENT_Init( &nEpollFd );
 			if ( RAS_rOK != nRC )
 			{
-				LOG_ERR_F( "EVENT_Init fail <%d>", nRC );
-				goto _exit_main;
+				goto _continue_with_error;
 			}
-
-			LOG_SVC_F( "EVENT_Init nEpollFd=%d", nEpollFd );
+			nCreateEpollFd = CREATE_OFF;
 		}
 
-		nRC = EVENT_WaitAndAccept( nEpollFd, nListenFd, tDBMain );
-		if ( RAS_rErrEventRecreateYes == nRC )
+		//TODO 둘다 close epoll listen fd strerr _
+		nRC = EVENT_AddToList( nListenFd, nEpollFd );
+		if ( RAS_rOK != nRC )
 		{
-			nCreateFlag = START_CREATE;
+			goto _continue_with_error;
 		}
-		else
-		{
-			nCreateFlag = STOP_CREATE;
-		}
-	}
 
+		nRC = EVENT_Wait( nListenFd, nEpollFd, tDBMain );
+		if ( RAS_rOK != nRC )
+		{
+			goto _continue_with_error;
+		}
+
+		nCreateListenFd = CREATE_OFF;
+		nCreateEpollFd = CREATE_OFF;
+
+_continue_with_error:
+		switch ( nRC )
+		{
+			case RAS_rErrSocketInit:
+			{
+				nCreateListenFd = CREATE_ON;
+			}
+				break;
+			case RAS_rErrEventInit:
+			{
+				nCreateEpollFd = CREATE_ON;
+			}
+				break;
+			case RAS_rErrListenFd:
+			{
+				FD_DELETE( nEpollFd, nListenFd );
+				FD_CLOSE( nListenFd );
+				nCreateListenFd = CREATE_ON;
+				nCreateEpollFd = CREATE_OFF;
+			}
+				break;
+			case RAS_rErrEpollFd:
+			{
+				FD_CLOSE( nEpollFd );
+				nCreateListenFd = CREATE_OFF;
+				nCreateEpollFd = CREATE_ON;
+			}
+			case RAS_rErrEpollFdListenFd:
+			{
+				FD_CLOSE( nEpollFd );
+				FD_CLOSE( nListenFd );
+				nCreateListenFd = CREATE_ON;
+				nCreateEpollFd = CREATE_ON;
+			}
+				break;
+			default:
+				break;
+		}
+	} 
+
+_exit_main:
 	printf( "end while loop\n" );
 
-	for ( nIndex = 0; nIndex < THREAD_CNT; nIndex++ )
+	for ( nIndex = 0; nIndex < MAX_WORKER_CNT; nIndex++ )
 	{
-		nRC = pthread_join( g_tThread[nIndex].nThreadId, NULL );
+		nRC = pthread_join( g_tWorker[nIndex].nThreadId, NULL );
 		if ( nRC != 0 )
 		{
 			LOG_ERR_F( "pthread_join fail <%d>", nRC );
 		}
-		LOG_SVC_F( "pthread_join <%d>", nRC );
+		LOG_DBG_F( "pthread_join <%d>", nRC );
 	}
 
-_exit_main:
-	//epoll
-	//socket
-	//thread
+	FD_CLOSE( nEpollFd );
+	FD_CLOSE( nListenFd );
 	stgen_close();
-	//alarm
-	//regi
-	
-	//CLEAR Init과 같은 레벨에서 Close
+	//oam_uda_del_alarm( iipc_ds_t *, upp_gname, low_gname, item_name, OAM_SFM_UDA_NOTI_ON );
 	DB_Close( &tDBMain );
-	
 	MMC_Destroy();
 	IPC_Destroy();
 	MPGLOG_DESTROY();
@@ -171,7 +201,7 @@ _exit_main:
 
 static void SignalHandler( int nSigno )
 {
-	MPGLOG_DBG( "Signal<%d>", nSigno );
+	MPGLOG_DBG( "Signal <%d>", nSigno );
 	
 	g_nSvcFlag = STOP_SVC;
 	

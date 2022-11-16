@@ -2,10 +2,11 @@
 #ifndef _RAS_EVENT_H_
 #define _RAS_EVENT_H_
 
-#define MAX_CLIENT_CONNECT	5
-#define TIME_OUT			-1
+#define MAX_CONNECT		5
+#define TIME_OUT		-1
 
-int EVENT_Init( int *pnEpollFd, int nListenFd );
-int EVENT_WaitAndAccept( int nEpollFd, int nListenFd, DB_t tDB );
+int EVENT_Init( int *pnEpollFd );
+int EVENT_AddToList( int nListenFd, int nEpollFd );
+int EVENT_Wait( int nListenFd, int nEpollFd, DB_t tDBMain );
 
 #endif /* _RAS_EVENT_H_ */

@@ -105,9 +105,9 @@ void MMC_Destroy()
 		{
 			LOG_ERR_F( "oammmc_stop fail <%d>", nRC );
 		}
-		LOG_SVC_F( "oammmc_stop success" );
+		LOG_DBG_F( "oammmc_stop success" );
 		oammmc_destroy( g_ptOammmc );
-		LOG_SVC_F( "oammmc_destroy success" );
+		LOG_DBG_F( "oammmc_destroy success" );
 	}
 
 	return;

@@ -147,8 +147,6 @@ int MMCHDL_INFO_Dis( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 		nCntTuple++;
 	}
 
-	//TODO cnt 하나일때 prt 다르게?
-	
 	PRT_LINEx3( ptOammmc );
 	PRT_CNT( ptOammmc, nCntTuple );
 

@@ -2,6 +2,7 @@
 #include "RAS_Inc.h"
 
 extern Env_t g_tEnv;
+extern TRC_t g_tTrc[MAX_TRC_CNT];
 
 int REGI_Init()
 {
@@ -22,4 +23,52 @@ int REGI_Init()
 	}
 
 	return RAS_rOK;
+}
+
+int REGI_GetAll()
+{
+	int nRC = 0;
+	int nIndex = 0;
+	char szKeyList[1024];
+	memset( szKeyList, 0x00, sizeof(szKeyList) );
+	char *pszTokenKey = NULL;
+	char *pszDefaultTokenKey = NULL;
+	char *pszTokenVal = NULL;
+	char *pszDefaultTokenVal = NULL;
+
+	memset( g_tTrc, 0x00, sizeof(g_tTrc) );
+
+	REGI_GET_ENUM_KEY_VALUE( REGI_DIR, strlen(REGI_DIR), szKeyList, sizeof(szKeyList), nRC );
+
+	pszTokenKey = strtok_r( szKeyList, REGI_DELIM_KEY, &pszDefaultTokenKey );
+
+	while ( NULL != pszTokenKey )
+	{
+		pszTokenVal = strtok_r( pszTokenKey, REGI_DELIM_VAL, &pszDefaultTokenVal );
+	
+		LOG_DBG_F( "Key: %s", pszTokenVal );
+		strlcpy( g_tTrc[nIndex].szClientIp, pszTokenVal, sizeof(g_tTrc[nIndex].szClientIp) );
+
+		if ( NULL != pszTokenVal )
+		{
+			pszTokenVal = strtok_r( NULL, REGI_DELIM_VAL, &pszDefaultTokenVal );
+
+			LOG_DBG_F( "Val: %s", pszTokenVal );
+			strlcpy( g_tTrc[nIndex].szPeriodTm, pszTokenVal, sizeof(g_tTrc[nIndex].szPeriodTm) );
+		}
+
+		pszTokenKey = strtok_r( NULL, REGI_DELIM_KEY, &pszDefaultTokenKey );
+	
+		if ( nIndex > MAX_TRC_CNT )
+		{
+			break;
+		}
+		
+		nIndex++;
+	}
+
+	return RAS_rOK;
+
+end_of_function:
+	return nRC;
 }

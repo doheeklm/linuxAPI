@@ -9,7 +9,6 @@ int SOCKET_Init( int *pnListenFd )
 
 	int nRC = 0;
 	const int nFlag = 1;
-
 	struct sockaddr_in tSockAddr;
 	memset( &tSockAddr, 0x00, sizeof(tSockAddr) );
 
@@ -17,7 +16,7 @@ int SOCKET_Init( int *pnListenFd )
 	if ( -1 == *pnListenFd )
 	{
 		LOG_ERR_F( "socket fail <%d>", *pnListenFd );
-		return RAS_rErrSocketInit; 
+		return RAS_rErrSocketInit;
 	}
 
 	tSockAddr.sin_family = AF_INET;
@@ -33,21 +32,21 @@ int SOCKET_Init( int *pnListenFd )
 	nRC = setsockopt( *pnListenFd, SOL_SOCKET, SO_REUSEADDR, &nFlag, sizeof(int) );
 	if ( -1 == nRC )
 	{
-		LOG_ERR_F( "setsockopt fail <%d>", nRC );
+		LOG_ERR_F( "setsockopt (ListenFd %d) fail <%d>", *pnListenFd, nRC );
 		goto _exit_failure;
 	}
 
 	nRC = bind( *pnListenFd, &tSockAddr, sizeof(tSockAddr) );
 	if ( -1 == nRC )
 	{
-		LOG_ERR_F( "bind fail <%d>", nRC );
+		LOG_ERR_F( "bind (ListenFd %d) fail <%d>", *pnListenFd, nRC );
 		goto _exit_failure;
 	}
 
 	nRC = listen( *pnListenFd, BACK_LOG );
 	if ( -1 == nRC )
 	{
-		LOG_ERR_F( "listen fail <%d>", nRC );
+		LOG_ERR_F( "listen (ListenFd %d) fail <%d>", *pnListenFd, nRC );
 		goto _exit_failure;
 	}
 
@@ -57,7 +56,7 @@ _exit_failure:
 	nRC = close( *pnListenFd );
 	if ( -1 == nRC )
 	{
-		LOG_ERR_F( "close <%d>", nRC );
+		LOG_ERR_F( "close (ListenFd %d) fail <%d>", *pnListenFd, nRC );
 	}
 
 	return RAS_rErrSocketInit;
