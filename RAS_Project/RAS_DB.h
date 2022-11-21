@@ -55,6 +55,5 @@ int DB_Init( DAL_CONN **pptDBConn );
 int DB_InitPreparedStatement( DB_t *ptDB );
 void DB_ClosePreparedStatement( DB_t *ptDB );
 void DB_Close( DB_t *ptDB );
-int DB_CheckClientIp( struct DB_s tDB, char *pszIp );
 
 #endif /* _RAS_DB_H_ */

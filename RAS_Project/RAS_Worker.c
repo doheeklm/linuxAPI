@@ -7,7 +7,7 @@ int WORKER_Init()
 {
 	int nRC = 0;
 	int nIndex = 0;
-	int nIndexForExit = 0;
+	int nCancel = 0;
 
 	for ( nIndex = 0; nIndex < MAX_WORKER_CNT; nIndex++ )
 	{
@@ -16,14 +16,13 @@ int WORKER_Init()
 		{
 			LOG_ERR_F( "pthread_create fail <%d>", nRC );
 			
-			for ( nIndexForExit = 0; nIndexForExit < nIndex; nIndexForExit++ )
+			for ( nCancel = 0; nCancel < nIndex; nCancel++ )
 			{
-				THREAD_CANCEL( g_tWorker[nIndexForExit].nThreadId );
+				THREAD_CANCEL( g_tWorker[nCancel].nThreadId );
 			}
 		
 			return RAS_rErrWorkerInit;
 		}
-
 		LOG_DBG_F( "pthread_create (Tid %lu) success", g_tWorker[nIndex].nThreadId );
 	}
 
@@ -39,26 +38,20 @@ void *WORKER_Run( void *pvArg )
 	int nRC = 0;
 	int nIndex = 0;
 	int nCntFd = 0;
-
-	DB_t tDBWorker;
-	memset( &tDBWorker, 0x00, sizeof(tDBWorker) );
-	USER_t tUser;
-	memset( &tUser, 0x00, sizeof(tUser) );
+	int nClientFd = 0;
 
 	struct epoll_event atEvents[MAX_CONNECT];
 	memset( atEvents, 0x00, sizeof(atEvents) );	
 	
-	char szRequestHeader[1024];
-	char szRequestMethod[16];
-	char szRequestPath[128];
-	char szRequestBody[1024];
-	int nContentLength = 0;
+	DB_t tDBWorker;
+	memset( &tDBWorker, 0x00, sizeof(tDBWorker) );
 
-	int nStatusCode = 0;
-	char szStatusMsg[32];
-	char szResponseBody[1024];
-	char szResponseMsg[1024];
+	HTTP_REQUEST_t tRequest;
+	memset( &tRequest, 0x00, sizeof(tRequest) );
 
+	HTTP_RESPONSE_t tResponse;
+	memset( &tResponse, 0x00, sizeof(tResponse) );
+	
 	nRC = DB_Init( &(tDBWorker.ptDBConn) );
 	if ( RAS_rOK != nRC )
 	{
@@ -79,22 +72,25 @@ void *WORKER_Run( void *pvArg )
 
 	while ( 1 )
 	{
+		printf( "worker thread epoll_wait..\n" );
+
 		nCntFd = epoll_wait( ptWorker->nEpollFd, atEvents, MAX_CONNECT, TIME_OUT );
 		if ( -1 == nCntFd )
 		{
-			LOG_ERR_F( "epoll_wait (EpollFd %d) fail <%d>", ptWorker->nEpollFd, errno );
+			LOG_ERR_F( "epoll_wait fail <%d:%s>", errno, strerror(errno) );
 			if ( EINTR == errno )
 			{
-				LOG_DBG_F( "EINTR 실행재개" );
+				LOG_DBG_F( "Worker EINTR" );
 				continue;
 			}
 			else
 			{
 				FD_CLOSE( ptWorker->nEpollFd );
-				//NOTE Thread Epoll 재생성?
 				goto _exit_worker;
 			}
 		}
+
+		LOG_DBG_F( "nCntFd <%d>", nCntFd );
 
 		for ( nIndex = 0; nIndex < nCntFd; nIndex++ )
 		{
@@ -102,114 +98,103 @@ void *WORKER_Run( void *pvArg )
 				 (EPOLLHUP & atEvents[nIndex].events) ||
 				 (EPOLLRDHUP & atEvents[nIndex].events) )
 			{
-				LOG_ERR_F( "data.fd = %d | events = %u", atEvents[nIndex].data.fd, atEvents[nIndex].events );
-				FD_DELETE( ptWorker->nEpollFd, atEvents[nIndex].data.fd );	
-				FD_CLOSE( atEvents[nIndex].data.fd );	
+				nClientFd = atEvents[nIndex].data.fd;
+				LOG_ERR_F( "fd(%d) events(%u)", nClientFd, atEvents[nIndex].events );
+				FD_DELETE_AND_CLOSE( nClientFd, ptWorker->nEpollFd );	
 				continue;
 			}
 			else if ( EPOLLIN & atEvents[nIndex].events )
 			{
-				memset( szRequestHeader, 0x00, sizeof(szRequestHeader) );
-				memset( szRequestMethod, 0x00, sizeof(szRequestMethod) );
-				memset( szRequestPath, 0x00, sizeof(szRequestPath) );
-				memset( szRequestBody, 0x00, sizeof(szRequestBody) );
-				memset( szStatusMsg, 0x00, sizeof(szStatusMsg) );
-				memset( szResponseMsg, 0x00, sizeof(szResponseMsg) );	
-				memset( szResponseBody, 0x00, sizeof(szResponseBody) );	
+				nClientFd = atEvents[nIndex].data.fd;
+				LOG_DBG_F( "fd(%d) events(%u)", nClientFd, atEvents[nIndex].events );
+
+				memset( &tRequest, 0x00, sizeof(tRequest) );
+				memset( &tResponse, 0x00, sizeof(tResponse) );
+
+				nRC = HTTP_ReadHeader( nClientFd, &tRequest );
+				if ( RAS_rOK != nRC )
+				{
+					FD_DELETE_AND_CLOSE( nClientFd, ptWorker->nEpollFd );
+					continue;
+				}
 		
-				nRC = HTTP_ReadHeader( atEvents[nIndex].data.fd, szRequestHeader, sizeof(szRequestHeader) );
+				nRC = HTTP_GetMethodAndPath( &tRequest );
 				if ( RAS_rOK != nRC )
 				{
-					LOG_ERR_F( "HTTP_ReadHeader fail <%d>", nRC );
-					goto _close_continue;
+					FD_DELETE_AND_CLOSE( nClientFd, ptWorker->nEpollFd );
+					continue;
 				}
 				
-				nRC = HTTP_GetMethodAndPath( szRequestHeader, szRequestMethod, sizeof(szRequestMethod), szRequestPath, sizeof(szRequestPath) );
+				nRC = HTTP_GetContentLength( &tRequest );
 				if ( RAS_rOK != nRC )
 				{
-					LOG_ERR_F( "HTTP_GetMethodAndPath fail <%d>", nRC );
-					goto _close_continue;
-				}
-
-				nRC = HTTP_GetContentLength( szRequestHeader, &nContentLength );
-				if ( RAS_rOK != nRC )
-				{
-					LOG_ERR_F( "HTTP_GetContentLength fail <%d>", nRC );
-					goto _close_continue;
+					FD_DELETE_AND_CLOSE( nClientFd, ptWorker->nEpollFd );
+					continue;
 				}
 				
-				nRC = HTTP_ReadBody( atEvents[nIndex].data.fd, szRequestHeader, nContentLength, szRequestBody, sizeof(szRequestBody) );
+				nRC = HTTP_ReadBody( nClientFd, &tRequest );
 				if ( RAS_rOK != nRC )
 				{
-					LOG_ERR_F( "HTTP_ReadBody fail <%d>", nRC );
-					goto _close_continue;
-				}
-
-				/*
-				 * TODO Stat
-				 * STGEN_DTLITEM_1COUNT( HTTP_TOTAL_REQUEST, ptWorker->szClientIp );
-				 * STGEN_DTLITEM_1COUNT( HTTP_REQUEST_POST, IP );
-				 * STGEN_DTLITEM_1COUNT( HTTP_REQUEST_GET, IP );
-				 * STGEN_DTLITEM_1COUNT( HTTP_REQUEST_DELETE, IP );
-				 * STGEN_DTLITEM_1COUNT( HTTP_REQUEST_UNKNOWN, IP );
-				 * TODO Trace (Request)
-				 */
-			
-				nRC = HTTP_ProcessRequestMsg( szRequestMethod, szRequestPath, szRequestBody, tDBWorker, szResponseBody, sizeof(szResponseBody) );
-				//TODO 
-				if ( RAS_rErrDBSetValue == nRC || RAS_rErrDBExecute == nRC )
-				{
-					nStatusCode = STATUS_CODE_500;
-				}
-				else if ( RAS_rOK == nRC )
-				{
-					nStatusCode = STATUS_CODE_200;
-				}
-				else if ( RAS_rErrHttpBadRequest == nRC )
-				{
-					nStatusCode = STATUS_CODE_400;
-				}
-				else if ( RAS_rErrHttpMethodNotAllowed == nRC )
-				{
-					nStatusCode = STATUS_CODE_405;
-				}
-				
-				strlcpy( szStatusMsg, HTTP_GetStatusMsg(nStatusCode), sizeof(szStatusMsg) );
-
-				HTTP_SET_RESPONSE_MSG( szResponseMsg, sizeof(szResponseMsg),
-						nStatusCode, szStatusMsg, (int)strlen(szResponseBody), szResponseBody );
-
-				nRC = HTTP_SendResponseMsg( atEvents[nIndex].data.fd, szResponseMsg, strlen(szResponseMsg) );
-				if ( RAS_rOK != nRC )
-				{
-					LOG_ERR_F( "HTTP_SendResponseMsr (Fd %d) fail <%d>", atEvents[nIndex].data.fd, nRC );
-					FD_DELETE( ptWorker->nEpollFd, atEvents[nIndex].data.fd );
-					FD_CLOSE( atEvents[nIndex].data.fd );
+					FD_DELETE_AND_CLOSE( nClientFd, ptWorker->nEpollFd );
 					continue;
 				}
 
+				STGEN_DTLITEM_1COUNT( HTTP_TOTAL_REQUEST, ptWorker->szClientIp );
+				
+				if ( 0 == strcmp( HTTP_METHOD_POST, tRequest.szMethod ) )
+				{
+					STGEN_DTLITEM_1COUNT( HTTP_REQUEST_POST, ptWorker->szClientIp );
+
+					nRC = METHOD_Post( tDBWorker, &tRequest, ptWorker->szClientIp );
+				} 
+				else if ( 0 == strcmp( HTTP_METHOD_GET, tRequest.szMethod ) )
+				{
+					STGEN_DTLITEM_1COUNT( HTTP_REQUEST_GET, ptWorker->szClientIp );
+
+					nRC = METHOD_Get( tDBWorker, &tRequest, &tResponse, ptWorker->szClientIp );
+				}
+				else if ( 0 == strcmp( HTTP_METHOD_DELETE, tRequest.szMethod ) )
+				{
+					STGEN_DTLITEM_1COUNT( HTTP_REQUEST_DELETE, ptWorker->szClientIp );
+				
+					//nRC = METHOD_Delete( tDBWorker, &tRequest, ptWorker->szClientIp );
+				}
+				else
+				{
+					STGEN_DTLITEM_1COUNT( HTTP_REQUEST_UNKNOWN, ptWorker->szClientIp );
+				}	
+		
+				tResponse.nStatusCode = HTTP_GetStatusCode( nRC );
+				HTTP_SET_RESPONSE( tResponse );
+
+				LOG_DBG_F( "Response Msg\n%s", tResponse.szMsg );
+				
+				nRC = HTTP_SendResponse( nClientFd, tResponse.szMsg, sizeof(tResponse.szMsg) );
+				if ( RAS_rOK != nRC )
+				{
+					LOG_ERR_F( "HTTP_SendResponse (fd %d) fail <%d>", nClientFd, nRC );
+					FD_DELETE_AND_CLOSE( nClientFd, ptWorker->nEpollFd );
+					continue;
+				}
+
+				//NOTE <Postman> Parse Error: Server returned a malformed response
+
 				/*
+				 * TODO Trace (Response)
 				 * TODO Stat
 				 * STGEN_DTLITEM_1COUNT( HTTP_TOTAL_RESPONSE, ptWorker->szClientIp );
 				 * STGEN_DTLITEM_1COUNT( HTTP_RESPONSE_POSTxxx, IP );
 				 * POST 201 400 500
 				 * GET 200 400 404 500
 				 * DELETE 200 400 404 500
-				 * TODO Trace (Response)
 				 * TODO Alarm
 				 */
 			
-			}//else if EPOLLIN
+			}//else if(events & EPOLLIN)
+		}//for(nFdCnt)
+	}//while(1)
 
-_close_continue:
-			//NOTE POSTMAN
-			FD_DELETE( ptWorker->nEpollFd, atEvents[nIndex].data.fd );
-			FD_CLOSE( atEvents[nIndex].data.fd );
-
-		}//for
-
-	}//while
-	
+	printf( "end worker thread\n" );
 	FD_CLOSE( ptWorker->nEpollFd );
 
 _exit_worker:

@@ -10,12 +10,12 @@
 #define LOG_DBG_F( format, ... )	LOG_DBG( F_FORMAT(format), ##__VA_ARGS__ );
 #define LOG_SVC_F( format, ... )	LOG_SVC( F_FORMAT(format), ##__VA_ARGS__ );
 
-#define STR_ARG(_v_)				#_v_
-#define STR_ENUM_CASE(_v_)			case (_v_): return #_v_
-#define STR_ENUM_DFLT				default: return #_v_
 #define STR_CASE( _v_, _s_)			case (_v_): return _s_
 #define STR_CASE_NONE( _v_)			case (_v_): return "NONE"
 #define STR_CASE_DFLT_UKN			default: return "UNKNOWN"
+
+#define RC_TO_CODE( _code, _rc)		case (_rc): return _code
+#define RC_TO_CODE_DFLT				default: return STATUS_CODE_500
 
 #define CHECK_PARAM( _expr_t, _error ) \
 	do { \
@@ -29,16 +29,6 @@
 #define CHECK_PARAM_RC( _expr_t ) \
 	CHECK_PARAM( (_expr_t), return RAS_rErrInvalidParam )
 
-#define STRLCAT_CHECK_OVERFLOW( _dst, _src, _dstsize, _rc ) \
-	do { \
-		if ( strlcat( _dst, _src, _dstsize ) >= _dstsize ) \
-		{ \
-			LOG_ERR_F( "strlcat overflow error" ); \
-			_rc = RAS_rErrOverflow; \
-			goto end_of_function; \
-		} \
-	} while (0)
-
 #define SNPRINTF_QUERY_INT( _buf, _bufsize, _attr, _val ) \
 	do { \
 		snprintf( _buf, _bufsize, "%s = %d", _attr, _val ); \
@@ -51,14 +41,14 @@
 		_buf[ strlen(_buf) ] = '\0'; \
 	} while (0)
 
-#define IF_EQUAL_STRLCPY( _token_even, _token_odd, _attr, _buf, _bufsize ) \
-   do { \
-	   if ( 0 == strcmp( _token_even, _attr ) ) \
-	   { \
-		   strlcpy( _buf, _token_odd, _bufsize ); \
-		   LOG_DBG_F( "\"%s\":\"%s\"", _token_even, _token_odd ); \
-	   } \
-   } while (0)	   
+#define STRCMP_ATTR( _token, _attr, _rc ) \
+	do { \
+		if ( 0 != strcmp( _token, _attr ) ) \
+		{ \
+			_rc = RAS_rErrHttpBadRequest; \
+			goto end_of_function; \
+		} \
+	} while (0)
 
 #define VALID_RANGE( _val, _min, _max ) \
 	( ((int)(_val) >= (int)(_min)) && \
@@ -380,38 +370,35 @@
 /*
  *	FD
  */
-#define FD_DELETE( _epoll_fd, _fd ); \
-	do { \
-		if ( -1 == epoll_ctl( _epoll_fd, EPOLL_CTL_DEL, _fd, NULL ) ) \
-		{ \
-			LOG_ERR_F( "epoll_ctl (DELETE Fd %d from EpollFd %d) fail", \
-						_fd, _epoll_fd ); \
-		} \
-	} while (0)
-
 #define FD_CLOSE( _fd ); \
 	do { \
 		if ( -1 == close( _fd ) ) \
 		{ \
-			LOG_ERR_F( "close (%d) fail", _fd ); \
+			LOG_ERR_F( "close (fd %d) fail <%d:%s>", _fd, errno, strerror(errno) ); \
 		} \
+	} while (0)
+
+#define FD_DELETE_AND_CLOSE( _fd, _epoll ); \
+	do { \
+		if ( -1 == epoll_ctl( _epoll, EPOLL_CTL_DEL, _fd, NULL ) ) \
+		{ \
+			LOG_ERR_F( "epoll_ctl (delete fd %d from epoll %d) fail <%d:%s>", _fd, _epoll, errno, strerror(errno) ); \
+		} \
+		FD_CLOSE( _fd ); \
 	} while (0)
 
 /*
  *	HTTP
  */
-#define HTTP_SET_RESPONSE_MSG( _buf, _bufsize, _status_code, _status_msg, _body_size, _body ) \
+#define HTTP_SET_RESPONSE( _response ) \
 	do { \
-		snprintf( _buf, _bufsize, \
-				"HTTP/1.1 %d %s\r\n" \
-				"Content-Type: application/json\r\n" \
-				"Content-Length: %d\r\n\r\n" \
-				"%s", \
-				_status_code, _status_msg, _body_size, _body ); \
-		_buf[ strlen(_buf) ] = '\0'; \
+		snprintf( _response.szMsg, sizeof(_response.szMsg), \
+				"HTTP/1.1 %d %s\r\nContent-Type: application/json\r\nContent-Length: %d\r\n\r\n%s", \
+				_response.nStatusCode, HTTP_GetStatusMsg(_response.nStatusCode ), \
+				_response.nContentLength, _response.szBody ); \
 	} while (0)
 
-#define HTTP_CONVERT_INFO_INTO_JSON( _buf, _bufsize, _attr_id, _id, _attr_name, _name, \
+#define HTTP_INFO_IN_JSON( _buf, _bufsize, _attr_id, _id, _attr_name, _name, \
 		_attr_gender, _gender, _attr_birth, _birth, _attr_address, _address ) \
 	do { \
 		snprintf( _buf, _bufsize, \
@@ -431,7 +418,7 @@
  */
 #define THREAD_CANCEL( _thread_id ) \
 	do { \
-		if ( -1 == pthread_cancel( _thread_id ) ) \
+		if ( 0 != pthread_cancel( _thread_id ) ) \
 		{ \
 			LOG_ERR_F( "pthread_cancel fail" ); \
 		} \

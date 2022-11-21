@@ -9,9 +9,10 @@ include $(MAKECONFIG)
 SRCS= RAS_Main.c			\
 	  RAS_Err.c				\
 	  RAS_Config.c			\
+	  RAS_DB.c				\
+	  RAS_Util.c			\
 	  RAS_Log.c				\
 	  RAS_Ipc.c				\
-	  RAS_DB.c				\
 	  RAS_Mmc.c				\
 	  RAS_Mmchdl_Ip.c		\
 	  RAS_Mmchdl_Trc.c		\
@@ -22,7 +23,9 @@ SRCS= RAS_Main.c			\
 	  RAS_Worker.c			\
 	  RAS_Socket.c			\
 	  RAS_Event.c			\
-	  RAS_Http.c
+	  RAS_Http.c			\
+	  RAS_Method.c			\
+	  RAS_Trace.c
 
 MDEFS=-D_USE_STAT -D_LOCAL_DB -D_HANGUP_ALARM
 MINCLUDES=-I$(TELCOBASE_HOME)/include

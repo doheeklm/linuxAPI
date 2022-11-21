@@ -45,25 +45,19 @@ int REGI_GetAll()
 	while ( NULL != pszTokenKey )
 	{
 		pszTokenVal = strtok_r( pszTokenKey, REGI_DELIM_VAL, &pszDefaultTokenVal );
-	
-		LOG_DBG_F( "Key: %s", pszTokenVal );
+		//LOG_DBG_F( "Key: %s", pszTokenVal );
 		strlcpy( g_tTrc[nIndex].szClientIp, pszTokenVal, sizeof(g_tTrc[nIndex].szClientIp) );
 
-		if ( NULL != pszTokenVal )
-		{
-			pszTokenVal = strtok_r( NULL, REGI_DELIM_VAL, &pszDefaultTokenVal );
-
-			LOG_DBG_F( "Val: %s", pszTokenVal );
-			strlcpy( g_tTrc[nIndex].szPeriodTm, pszTokenVal, sizeof(g_tTrc[nIndex].szPeriodTm) );
-		}
+		pszTokenVal = strtok_r( NULL, REGI_DELIM_VAL, &pszDefaultTokenVal );
+		//LOG_DBG_F( "Value: %s", pszTokenVal );
+		strlcpy( g_tTrc[nIndex].szPeriodTm, pszTokenVal, sizeof(g_tTrc[nIndex].szPeriodTm) );
 
 		pszTokenKey = strtok_r( NULL, REGI_DELIM_KEY, &pszDefaultTokenKey );
-	
+		
 		if ( nIndex > MAX_TRC_CNT )
 		{
 			break;
 		}
-		
 		nIndex++;
 	}
 
@@ -71,4 +65,30 @@ int REGI_GetAll()
 
 end_of_function:
 	return nRC;
+}
+
+int REGI_CheckKeyExist( const char *pszIp )
+{
+	CHECK_PARAM_RC( pszIp );
+
+	int nRC = 0;
+	int nIndex = 0;	
+
+	nRC = REGI_GetAll();
+	if ( RAS_rOK != nRC )
+	{
+		return nRC;
+	}
+
+	for ( nIndex = 0; nIndex < MAX_TRC_CNT; nIndex++ )
+	{
+		if ( 0 == strcmp(pszIp, g_tTrc[nIndex].szClientIp) )
+		{
+			LOG_DBG_F( "found key (%s)", pszIp );
+			return RAS_rOK;
+		}
+	}
+	
+	LOG_DBG_F( "not found key (%s)", pszIp );
+	return RAS_rErrRegiNotFound; 
 }

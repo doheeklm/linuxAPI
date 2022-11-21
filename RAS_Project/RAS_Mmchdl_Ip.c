@@ -3,25 +3,24 @@
 
 extern DB_t g_tDBIpc;
 
-//CLEAR define arg number
 static oammmc_arg_info_t atArgIp[] =
 {
-	{ ARG_NUM_IP, ARG_DESC_IP, NULL, OAMMMC_STR, ARG_ID_IP, 7, 15, NULL, NULL },
+	{ ARG_NUM_IP, ARG_STR_IP, NULL, OAMMMC_STR, ARG_ID_IP, 7, 15, NULL, NULL },
 	{ 0, NULL, NULL, 0, 0, 0, 0, NULL, NULL }
 };
 
 static oammmc_arg_info_t atArgIpAndDesc[] =
 {
-	{ ARG_NUM_IP, ARG_DESC_IP, NULL, OAMMMC_STR, ARG_ID_IP, 7, 15, NULL, NULL },
-	{ ARG_NUM_DESC,	ARG_DESC_DESC, NULL, OAMMMC_STR, ARG_ID_DESC, 1, 32, NULL, NULL },
+	{ ARG_NUM_IP, ARG_STR_IP, NULL, OAMMMC_STR, ARG_ID_IP, 7, 15, NULL, NULL },
+	{ ARG_NUM_DESC,	ARG_STR_DESC, NULL, OAMMMC_STR, ARG_ID_DESC, 1, 32, NULL, NULL },
 	{ 0, NULL, NULL, 0, 0, 0, 0, NULL, NULL }
 };
 
 static oammmc_cmd_t atCmd[] =
 {
-	{ CMD_NUM_ADD_IP, CMD_DESC_ADD_IP, MSG_ID_ADD_CLI_IP, MMCHDL_IP_Add, 1, 2, atArgIpAndDesc, "ADD CLIENT IP" },
-	{ CMD_NUM_DIS_IP, CMD_DESC_DIS_IP, MSG_ID_DIS_CLI_IP, MMCHDL_IP_Dis, 0, 1, atArgIp, "DISPLAY CLIENT IP" },
-	{ CMD_NUM_DEL_IP, CMD_DESC_DEL_IP, MSG_ID_DEL_CLI_IP, MMCHDL_IP_Del, 1, 1, atArgIp, "DELETE CLIENT IP" },
+	{ CMD_NUM_ADD_IP, CMD_STR_ADD_IP, MSG_ID_ADD_CLI_IP, MMCHDL_IP_Add, 1, 2, atArgIpAndDesc, "ADD CLIENT IP" },
+	{ CMD_NUM_DIS_IP, CMD_STR_DIS_IP, MSG_ID_DIS_CLI_IP, MMCHDL_IP_Dis, 0, 1, atArgIp, "DISPLAY CLIENT IP" },
+	{ CMD_NUM_DEL_IP, CMD_STR_DEL_IP, MSG_ID_DEL_CLI_IP, MMCHDL_IP_Del, 1, 1, atArgIp, "DELETE CLIENT IP" },
 	{ 0, NULL, 0, 0, 0, 0, NULL, NULL }
 };
 
@@ -77,28 +76,26 @@ int MMCHDL_IP_Add( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 
 	//TODO CLIENT IP 중복
 
-	//CLEAR DB SET/GET/EXEC 실패하면 mmc print out
 	DB_SET_STRING_BY_KEY( g_tDBIpc.patPstmt[PSTMT_INSERT_IP], ATTR_IP, pszIp, nRC );
-	
+
 	if ( NULL != pszDesc )
 	{
 		DB_SET_STRING_BY_KEY( g_tDBIpc.patPstmt[PSTMT_INSERT_IP], ATTR_DESC, pszDesc, nRC );
+		DB_PREPARED_EXEC_UPDATE( g_tDBIpc, g_tDBIpc.patPstmt[PSTMT_INSERT_IP], nRC );
+		PRT_IP_ONE( ptOammmc, ARG_STR_IP, pszIp, ARG_STR_DESC, pszDesc );
 	}	
 	else
 	{
 		DB_SET_STRING_BY_KEY( g_tDBIpc.patPstmt[PSTMT_INSERT_IP], ATTR_DESC, EMPTY_STRING, nRC );
+		DB_PREPARED_EXEC_UPDATE( g_tDBIpc, g_tDBIpc.patPstmt[PSTMT_INSERT_IP], nRC );
+		//CLEAR (null) print
+		PRT_IP_ONE( ptOammmc, ARG_STR_IP, pszIp, ARG_STR_DESC, EMPTY_STRING );
 	}
-
-	DB_PREPARED_EXEC_UPDATE( g_tDBIpc, g_tDBIpc.patPstmt[PSTMT_INSERT_IP], nRC );
 	
-	PRT_IP_ONE( ptOammmc, ARG_DESC_IP, pszIp, ARG_DESC_DESC, pszDesc );
-	//CLEAR IPC Handler에서 Init
-	DB_Close( &g_tDBIpc );
 	return RAS_rSuccessMmchdl;
 
 end_of_function:
 	PRT_FAIL( ptOammmc, "%s\n", ERR_GetDesc(nRC) );
-	DB_Close( &g_tDBIpc );		
 	return nRC;
 }
 
@@ -138,7 +135,7 @@ int MMCHDL_IP_Dis( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 	{
 		DB_PREPARED_EXEC( g_tDBIpc, g_tDBIpc.patPstmt[PSTMT_SELECT_IP_ALL], &ptRes, nRC );	
 
-		PRT_IP_ALL_HEADER( ptOammmc, ARG_DESC_IP, ARG_DESC_DESC );
+		PRT_IP_ALL_HEADER( ptOammmc, ARG_STR_IP, ARG_STR_DESC );
 
 		for ( ptEntry = dalFetchFirst( ptRes ); ptEntry != NULL; ptEntry = dalFetchNext( ptRes ) )
 		{
@@ -164,17 +161,15 @@ int MMCHDL_IP_Dis( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 			DB_GET_STRING_BY_KEY( ptEntry, ATTR_DESC, &pszDesc, nRC );
 		}
 		
-		PRT_IP_ONE( ptOammmc, ARG_DESC_IP, pszIp, ARG_DESC_DESC, pszDesc );
+		PRT_IP_ONE( ptOammmc, ARG_STR_IP, pszIp, ARG_STR_DESC, pszDesc );
 	}
 
 	DB_FREE( ptRes );
-	DB_Close( &g_tDBIpc );
 	return RAS_rSuccessMmchdl;
 
 end_of_function:
 	PRT_FAIL( ptOammmc, "%s\n", ERR_GetDesc(nRC) );
 	DB_FREE( ptRes );
-	DB_Close( &g_tDBIpc );
 	return nRC;
 }
 
@@ -221,15 +216,13 @@ int MMCHDL_IP_Del( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 	DB_SET_STRING_BY_KEY( g_tDBIpc.patPstmt[PSTMT_DELETE_IP], ATTR_IP, pszIp, nRC );
 	DB_PREPARED_EXEC_UPDATE( g_tDBIpc, g_tDBIpc.patPstmt[PSTMT_DELETE_IP], nRC );
 	
-	PRT_IP_ONE( ptOammmc, ARG_DESC_IP, pszIp, ARG_DESC_DESC, pszDesc );
+	PRT_IP_ONE( ptOammmc, ARG_STR_IP, pszIp, ARG_STR_DESC, pszDesc );
 
 	DB_FREE( ptRes );
-	DB_Close( &g_tDBIpc );
 	return RAS_rSuccessMmchdl;
 
 end_of_function:
 	PRT_FAIL( ptOammmc, "%s\n", ERR_GetDesc(nRC) );
 	DB_FREE( ptRes );
-	DB_Close( &g_tDBIpc );
 	return nRC;
 }

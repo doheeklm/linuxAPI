@@ -2,7 +2,10 @@
 #ifndef _RAS_HTTP_H
 #define _RAS_HTTP_H
 
-#define USERS_DIR					"users"
+#define HTTP_TYPE_REQUEST			0
+#define HTTP_TYPE_RESPONSE			1
+
+#define USER_DIR					"user"
 #define ODD_NUMBER					1
 #define MAX_INDEX					8
 
@@ -32,19 +35,13 @@
 #define STATUS_MSG_405				"Method Not Allowed"
 #define STATUS_MSG_500				"Internal Server Error"
 
-int HTTP_ReadHeader( int nFd, char *pszRequestHeader, int nHeaderSize );
+int HTTP_ReadHeader( int nFd, struct HTTP_REQUEST_s *ptRequest );
+int HTTP_GetMethodAndPath( struct HTTP_REQUEST_s *ptRequest );
+int HTTP_GetContentLength( struct HTTP_REQUEST_s *ptRequest );
+int HTTP_ReadBody( int nFd, struct HTTP_REQUEST_s *ptRequest );
 
-int HTTP_GetMethodAndPath( const char *pszRequestHeader, char *pszRequestMethod, int nMethodSize,
-		char *pszRequestPath, int nPathSize );
-
-int HTTP_GetContentLength( const char *pszRequestHeader, int *pnContentLength );
-
-int HTTP_ReadBody( int nFd, char *pszRequestHeader, int nContentLength, char *pszRequestBody, int nBodySize );
-
-int HTTP_ProcessRequestMsg( const char *pszRequestMethod, char *pszRequestPath, char *pszRequestBody, DB_t tDBWorker, char *pszResponseBody, int nResponseBodySize );
-
-char* HTTP_GetStatusMsg( int nStatusCode );
-
-int HTTP_SendResponseMsg( int nFd, char *pszBuf, int nBufSize );
+int HTTP_GetStatusCode( int nRC );
+char* HTTP_GetStatusMsg( int nCode );
+int HTTP_SendResponse( int nFd, void *pvBuf, int nBufSize );
 
 #endif /* _RAS_HTTP_H_ */

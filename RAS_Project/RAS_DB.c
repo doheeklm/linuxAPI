@@ -68,23 +68,3 @@ void DB_Close( DB_t *ptDB )
 
 	return;
 }
-
-int DB_CheckClientIp( DB_t tDB, char *pszIp )
-{
-	CHECK_PARAM_RC( tDB.ptDBConn );
-	CHECK_PARAM_RC( tDB.patPstmt );
-	CHECK_PARAM_RC( pszIp );
-
-	int nRC = 0;
-
-	DAL_RESULT_SET *ptRes = NULL;
-
-	DB_PREPARED_EXEC( tDB, tDB.patPstmt[PSTMT_SELECT_IP_BY_IP], &ptRes, nRC );
-
-	DB_FREE( ptRes );
-	return RAS_rOK;
-
-end_of_function:
-	DB_FREE( ptRes );
-	return nRC;
-}

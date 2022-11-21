@@ -1,15 +1,20 @@
 /* RAS_Main.c */
 #include "RAS_Inc.h"
 
-int g_nSvcFlag = START_SVC;
-int g_nWorkerIndex = 0; 
-int g_nAlarmStatus = 0; //Thread
+//CLEAR DB unique index
 
-Env_t g_tEnv;
-mpipc_t *g_ptMpipc = NULL;
-oammmc_t *g_ptOammmc = NULL;
-WORKER_t g_tWorker[MAX_WORKER_CNT];
-TRC_t g_tTrc[MAX_TRC_CNT];
+int			g_nSvcFlag = START_SVC;
+int			g_nWorkerIndex = 0; 
+int			g_nAlarmStatus = 0; //Thread
+
+Env_t		g_tEnv;
+DB_t		g_tDBMain;
+DB_t		g_tDBIpc;
+WORKER_t	g_tWorker[MAX_WORKER_CNT];
+TRC_t		g_tTrc[MAX_TRC_CNT];
+
+mpipc_t		*g_ptMpipc = NULL;
+oammmc_t	*g_ptOammmc = NULL;
 
 static void SignalHandler( int nSigno );
 
@@ -27,11 +32,12 @@ int main( void )
 	int nIndex = 0;
 	int nListenFd = 0;
 	int nEpollFd = 0;
-	int nCreateListenFd = CREATE_ON;
-	int nCreateEpollFd = CREATE_ON;
-	
-	DB_t tDBMain;
-	memset( &tDBMain, 0x00, sizeof(tDBMain) );
+	int bCreateListenFd = ON;
+	int bCreateEpollFd = ON;
+	int bAddFdToEpoll = ON; 
+
+	memset( &g_tDBMain, 0x00, sizeof(g_tDBMain) );
+	memset( &g_tDBIpc, 0x00, sizeof(g_tDBIpc) );
 
 	nRC = CONFIG_Init();
 	if ( RAS_rOK != nRC )
@@ -47,7 +53,6 @@ int main( void )
 		return 0;
 	}
 	
-	//TODO DBIpc
 	nRC = IPC_Init();
 	if ( RAS_rOK != nRC )
 	{
@@ -66,13 +71,25 @@ int main( void )
 		goto _exit_main;
 	}
 
-	nRC = DB_Init( &(tDBMain.ptDBConn) );
+	nRC = DB_Init( &(g_tDBMain.ptDBConn) );
+	if ( RAS_rOK != nRC )
+	{
+		goto _exit_main;
+	}	
+
+	nRC = DB_Init( &(g_tDBIpc.ptDBConn) );
 	if ( RAS_rOK != nRC )
 	{
 		goto _exit_main;
 	}	
 	
-	nRC = DB_InitPreparedStatement( &tDBMain );
+	nRC = DB_InitPreparedStatement( &g_tDBMain );
+	if ( RAS_rOK != nRC )
+	{
+		goto _exit_main;
+	}	
+	
+	nRC = DB_InitPreparedStatement( &g_tDBIpc );
 	if ( RAS_rOK != nRC )
 	{
 		goto _exit_main;
@@ -98,84 +115,59 @@ int main( void )
 
 	while ( g_nSvcFlag )
 	{
-		if ( CREATE_ON == nCreateListenFd )
+		printf( "main thread run\n" );	
+
+		if ( ON == bCreateListenFd )
 		{
 			nRC = SOCKET_Init( &nListenFd );
 			if ( RAS_rOK != nRC )
 			{
-				goto _continue_with_error;
+				continue;
 			}
-			nCreateListenFd = CREATE_OFF;
+			bCreateListenFd = OFF;
 		};
 
-		if ( CREATE_ON == nCreateEpollFd )	
+		if ( ON == bCreateEpollFd )	
 		{
 			nRC = EVENT_Init( &nEpollFd );
 			if ( RAS_rOK != nRC )
 			{
-				goto _continue_with_error;
+				continue;
 			}
-			nCreateEpollFd = CREATE_OFF;
+			bCreateEpollFd = OFF;
 		}
 
-		//TODO 둘다 close epoll listen fd strerr _
-		nRC = EVENT_AddToList( nListenFd, nEpollFd );
-		if ( RAS_rOK != nRC )
+		if ( ON == bAddFdToEpoll )
 		{
-			goto _continue_with_error;
-		}
-
-		nRC = EVENT_Wait( nListenFd, nEpollFd, tDBMain );
-		if ( RAS_rOK != nRC )
-		{
-			goto _continue_with_error;
-		}
-
-		nCreateListenFd = CREATE_OFF;
-		nCreateEpollFd = CREATE_OFF;
-
-_continue_with_error:
-		switch ( nRC )
-		{
-			case RAS_rErrSocketInit:
-			{
-				nCreateListenFd = CREATE_ON;
-			}
-				break;
-			case RAS_rErrEventInit:
-			{
-				nCreateEpollFd = CREATE_ON;
-			}
-				break;
-			case RAS_rErrListenFd:
-			{
-				FD_DELETE( nEpollFd, nListenFd );
-				FD_CLOSE( nListenFd );
-				nCreateListenFd = CREATE_ON;
-				nCreateEpollFd = CREATE_OFF;
-			}
-				break;
-			case RAS_rErrEpollFd:
-			{
-				FD_CLOSE( nEpollFd );
-				nCreateListenFd = CREATE_OFF;
-				nCreateEpollFd = CREATE_ON;
-			}
-			case RAS_rErrEpollFdListenFd:
+			nRC = EVENT_Add( nListenFd, nEpollFd );
+			if ( RAS_rOK != nRC )
 			{
 				FD_CLOSE( nEpollFd );
 				FD_CLOSE( nListenFd );
-				nCreateListenFd = CREATE_ON;
-				nCreateEpollFd = CREATE_ON;
+				bCreateListenFd = ON;
+				bCreateEpollFd = ON;
+				continue;
 			}
-				break;
-			default:
-				break;
+			bAddFdToEpoll = OFF;
+		}
+
+		nRC = EVENT_Wait( nListenFd, nEpollFd );
+		if ( RAS_rErrEpollFd == nRC )
+		{
+			FD_CLOSE( nEpollFd );
+			bCreateEpollFd = ON;
+			bAddFdToEpoll = ON;
+		}
+		else if ( RAS_rErrListenFd == nRC )
+		{
+			FD_DELETE_AND_CLOSE( nListenFd, nEpollFd );
+			bCreateListenFd = ON;
+			bAddFdToEpoll = ON;
 		}
 	} 
 
 _exit_main:
-	printf( "end while loop\n" );
+	printf( "end main thread, wait for thread exit\n" );
 
 	for ( nIndex = 0; nIndex < MAX_WORKER_CNT; nIndex++ )
 	{
@@ -187,11 +179,14 @@ _exit_main:
 		LOG_DBG_F( "pthread_join <%d>", nRC );
 	}
 
+	printf( "thread exit\n" );
+
 	FD_CLOSE( nEpollFd );
 	FD_CLOSE( nListenFd );
 	stgen_close();
 	//oam_uda_del_alarm( iipc_ds_t *, upp_gname, low_gname, item_name, OAM_SFM_UDA_NOTI_ON );
-	DB_Close( &tDBMain );
+	DB_Close( &g_tDBIpc );
+	DB_Close( &g_tDBMain );
 	MMC_Destroy();
 	IPC_Destroy();
 	MPGLOG_DESTROY();

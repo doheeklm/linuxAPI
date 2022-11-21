@@ -5,22 +5,22 @@ extern TRC_t g_tTrc[MAX_TRC_CNT];
 
 static oammmc_arg_info_t atArgIp[] =
 {
-	{ ARG_NUM_IP, ARG_DESC_IP, NULL, OAMMMC_STR, ARG_ID_IP, 7, 15, NULL, NULL },
+	{ ARG_NUM_IP, ARG_STR_IP, NULL, OAMMMC_STR, ARG_ID_IP, 7, 15, NULL, NULL },
 	{ 0, NULL, NULL, 0, 0, 0, 0, NULL, NULL }
 };
 
 static oammmc_arg_info_t atArgIpAndTime[] =
 {
-	{ ARG_NUM_IP, ARG_DESC_IP, NULL, OAMMMC_STR, ARG_ID_IP, 7, 15, NULL, NULL },
-	{ ARG_NUM_TIME, ARG_DESC_TIME, NULL, OAMMMC_INT, ARG_ID_TIME, 1, 10800, NULL, NULL },
+	{ ARG_NUM_IP, ARG_STR_IP, NULL, OAMMMC_STR, ARG_ID_IP, 7, 15, NULL, NULL },
+	{ ARG_NUM_TIME, ARG_STR_TIME, NULL, OAMMMC_INT, ARG_ID_TIME, 1, 10800, NULL, NULL },
 	{ 0, NULL, NULL, 0, 0, 0, 0, NULL, NULL }
 };
 
 static oammmc_cmd_t atCmd[] =
 {
-	{ CMD_NUM_ADD_TRC, CMD_DESC_ADD_TRC, MSG_ID_ADD_CLI_IP_TRC, MMCHDL_TRC_Add, 1, 2, atArgIpAndTime, "ADD CLIENT IP TRACE" },
-	{ CMD_NUM_DIS_TRC, CMD_DESC_DIS_TRC, MSG_ID_DIS_CLI_IP_TRC, MMCHDL_TRC_Dis, 0, 1, atArgIp, "DISPLAY CLIENT IP TRACE" },
-	{ CMD_NUM_DEL_TRC, CMD_DESC_DEL_TRC, MSG_ID_DEL_CLI_IP_TRC, MMCHDL_TRC_Del, 1, 1, atArgIp, "DELETE CLIENT IP TRACE" },
+	{ CMD_NUM_ADD_TRC, CMD_STR_ADD_TRC, MSG_ID_ADD_CLI_IP_TRC, MMCHDL_TRC_Add, 1, 2, atArgIpAndTime, "ADD CLIENT IP TRACE" },
+	{ CMD_NUM_DIS_TRC, CMD_STR_DIS_TRC, MSG_ID_DIS_CLI_IP_TRC, MMCHDL_TRC_Dis, 0, 1, atArgIp, "DISPLAY CLIENT IP TRACE" },
+	{ CMD_NUM_DEL_TRC, CMD_STR_DEL_TRC, MSG_ID_DEL_CLI_IP_TRC, MMCHDL_TRC_Del, 1, 1, atArgIp, "DELETE CLIENT IP TRACE" },
 	{ 0, NULL, 0, 0, 0, 0, NULL, NULL }
 };
 
@@ -47,7 +47,6 @@ int MMCHDL_TRC_Add( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 	CHECK_PARAM_RC( ptCmd );
 	CHECK_PARAM_RC( patArgList );
 	ptUarg = ptUarg;
-	nArgNum = nArgNum;
 
 	int nRC = 0;	
 	int nIndex = 0;
@@ -67,7 +66,7 @@ int MMCHDL_TRC_Add( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 		{
 			case ARG_NUM_IP:
 			{
-				//TOOD Mandatory Arg Check
+				//TODO Mandatory Arg Check
 				pszIp = OAMMMC_VAL_STR( ptArg );
 			}
 				break;
@@ -82,17 +81,16 @@ int MMCHDL_TRC_Add( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 	REGI_STR_KEY( szKey, sizeof(szKey), pszIp );
 	REGI_CREATE( szKey, strlen(szKey), nRC );	
 
-	if ( 0 != nTime )
+	if ( 0 == nTime )
 	{
-		REGI_STR_VALUE( szTime, sizeof(szTime), nTime );
-		REGI_SET_VALUE( szKey, strlen(szKey), szTime, strlen(szTime), nRC );
+		//CLEAR Default 60
+		nTime = DFLT_TIME;
 	}
-	else
-	{
-		REGI_SET_VALUE( szKey, strlen(szKey), " ", 1, nRC );
-	}
+	
+	REGI_STR_VALUE( szTime, sizeof(szTime), nTime );
+	REGI_SET_VALUE( szKey, strlen(szKey), szTime, strlen(szTime), nRC );
 
-	PRT_IP_ONE( ptOammmc, ARG_DESC_IP, pszIp, ARG_DESC_TIME, szTime ); 
+	PRT_IP_ONE( ptOammmc, ARG_STR_IP, pszIp, ARG_STR_TIME, szTime ); 
 	return RAS_rSuccessMmchdl;
 
 end_of_function:
@@ -107,7 +105,6 @@ int MMCHDL_TRC_Dis( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 	CHECK_PARAM_RC( ptCmd );
 	CHECK_PARAM_RC( patArgList );
 	ptUarg = ptUarg;
-	nArgNum = nArgNum;
 
 	int nRC = 0;
 	int nIndex = 0;
@@ -139,7 +136,7 @@ int MMCHDL_TRC_Dis( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 			goto end_of_function;
 		}
 		
-		PRT_IP_ALL_HEADER( ptOammmc, ARG_DESC_IP, ARG_DESC_TIME );
+		PRT_IP_ALL_HEADER( ptOammmc, ARG_STR_IP, ARG_STR_TIME );
 
 		for ( nIndex = 0; nIndex < MAX_TRC_CNT; nIndex++ )
 		{
@@ -161,7 +158,7 @@ int MMCHDL_TRC_Dis( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 
 		REGI_STR_KEY( szKey, sizeof(szKey), pszIp );
 		REGI_GET_VALUE( szKey, strlen(szKey), szTime, sizeof(szTime), nRC );
-		PRT_IP_ONE( ptOammmc, ARG_DESC_IP, pszIp, ARG_DESC_TIME, szTime );
+		PRT_IP_ONE( ptOammmc, ARG_STR_IP, pszIp, ARG_STR_TIME, szTime );
 	}
 
 	return RAS_rSuccessMmchdl;
@@ -207,7 +204,7 @@ int MMCHDL_TRC_Del( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 	REGI_STR_KEY( szKey, sizeof(szKey), pszIp );
 	REGI_GET_VALUE( szKey, strlen(szKey), szTime, sizeof(szTime), nRC );
 	REGI_DELETE( szKey, strlen(szKey), nRC );
-	PRT_IP_ONE( ptOammmc, ARG_DESC_IP, pszIp, ARG_DESC_TIME, szTime );
+	PRT_IP_ONE( ptOammmc, ARG_STR_IP, pszIp, ARG_STR_TIME, szTime );
 	return RAS_rSuccessMmchdl;
 
 end_of_function:

@@ -5,30 +5,30 @@ extern DB_t g_tDBIpc;
 
 static mpenumx_t atGenderEnum[] =
 {
-	{ ARG_DESC_M, ARG_ID_M, MSG_ID_DIS_USR_INFO },
-	{ ARG_DESC_F, ARG_ID_F, MSG_ID_DIS_USR_INFO },
+	{ ARG_STR_MALE, ARG_ID_MALE, MSG_ID_DIS_USR_INFO },
+	{ ARG_STR_FEMALE, ARG_ID_FEMALE, MSG_ID_DIS_USR_INFO },
 	{ NULL, 0, 0 }
 };
 
 static oammmc_arg_info_t atArgInfo[] =
 {
-	{ ARG_NUM_ID, ARG_DESC_ID, NULL, OAMMMC_INT, ARG_ID_ID, 1, INT_MAX, NULL, NULL },
-	{ ARG_NUM_NAME, ARG_DESC_NAME, NULL, OAMMMC_STR, ARG_ID_NAME, 1, 32, NULL, NULL },
-	{ ARG_NUM_GENDER, ARG_DESC_GENDER, NULL, OAMMMC_ENUM, ARG_ID_GENDER, 0, 0, atGenderEnum, NULL },
-	{ ARG_NUM_BIRTH, ARG_DESC_BIRTH, NULL, OAMMMC_STR, ARG_ID_BIRTH, 1, 6, NULL, NULL },
+	{ ARG_NUM_ID, ARG_STR_ID, NULL, OAMMMC_INT, ARG_ID_ID, 1, INT_MAX, NULL, NULL },
+	{ ARG_NUM_NAME, ARG_STR_NAME, NULL, OAMMMC_STR, ARG_ID_NAME, 1, 32, NULL, NULL },
+	{ ARG_NUM_GENDER, ARG_STR_GENDER, NULL, OAMMMC_ENUM, ARG_ID_GENDER, 0, 0, atGenderEnum, NULL },
+	{ ARG_NUM_BIRTH, ARG_STR_BIRTH, NULL, OAMMMC_STR, ARG_ID_BIRTH, 1, 6, NULL, NULL },
 	{ 0, NULL, NULL, 0, 0, 0, 0, NULL, NULL }
 };
 
 static oammmc_arg_info_t atArgId[] =
 {
-	{ ARG_NUM_ID, ARG_DESC_ID, NULL, OAMMMC_INT, ARG_ID_ID, 1, INT_MAX, NULL, NULL },
+	{ ARG_NUM_ID, ARG_STR_ID, NULL, OAMMMC_INT, ARG_ID_ID, 1, INT_MAX, NULL, NULL },
 	{ 0, NULL, NULL, 0, 0, 0, 0, NULL, NULL }
 };
 
 static oammmc_cmd_t atCmd[] =
 {
-	{ CMD_NUM_DIS_INFO, CMD_DESC_DIS_INFO, MSG_ID_DIS_USR_INFO, MMCHDL_INFO_Dis, 0, 4, atArgInfo, "DISPLAY INFO" },
-	{ CMD_NUM_DEL_INFO, CMD_DESC_DEL_INFO, MSG_ID_DEL_USR_INFO, MMCHDL_INFO_Del, 1, 1, atArgId, "DELETE INFO" },
+	{ CMD_NUM_DIS_INFO, CMD_STR_DIS_INFO, MSG_ID_DIS_USR_INFO, MMCHDL_INFO_Dis, 0, 4, atArgInfo, "DISPLAY INFO" },
+	{ CMD_NUM_DEL_INFO, CMD_STR_DEL_INFO, MSG_ID_DEL_USR_INFO, MMCHDL_INFO_Del, 1, 1, atArgId, "DELETE INFO" },
 	{ 0, NULL, 0, 0, 0, 0, NULL, NULL }
 };
 
@@ -55,7 +55,6 @@ int MMCHDL_INFO_Dis( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 	CHECK_PARAM_RC( ptCmd );
 	CHECK_PARAM_RC( patArgList );
 	ptUarg = ptUarg;
-	nArgNum = nArgNum;
 
 	int nRC = 0;
 	int nAddFlag = RAS_FALSE;
@@ -79,7 +78,7 @@ int MMCHDL_INFO_Dis( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 
 	if ( 0 < nArgNum )
 	{
-		STRLCAT_CHECK_OVERFLOW( szQuery, " where ", sizeof(szQuery), nRC );
+		strlcat( szQuery, " where ", sizeof(szQuery) );
 	}
 
 	for ( nIndex = 0; nIndex < nArgNum; nIndex++ )
@@ -88,7 +87,7 @@ int MMCHDL_INFO_Dis( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 	
 		if ( RAS_TRUE == nAddFlag )
 		{
-			STRLCAT_CHECK_OVERFLOW( szQuery, " and ", sizeof(szQuery), nRC );
+			strlcat( szQuery, " and ", sizeof(szQuery) );
 			memset( szTemp, 0x00, sizeof(szTemp) );
 		}
 
@@ -98,38 +97,34 @@ int MMCHDL_INFO_Dis( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 			{
 				nId = OAMMMC_VAL_INT( ptArg );
 				SNPRINTF_QUERY_INT( szTemp, sizeof(szTemp), ATTR_ID, nId );
-				STRLCAT_CHECK_OVERFLOW( szQuery, szTemp, sizeof(szQuery), nRC );
-				nAddFlag = RAS_TRUE;
 			}
 				break;
 			case ARG_NUM_NAME:
 			{
 				pszName = OAMMMC_VAL_STR( ptArg );
 				SNPRINTF_QUERY_STR( szTemp, sizeof(szTemp), ATTR_NAME, pszName );				
-				STRLCAT_CHECK_OVERFLOW( szQuery, szTemp, sizeof(szQuery), nRC );
-				nAddFlag = RAS_TRUE;
 			}
 				break;
 			case ARG_NUM_GENDER:
 			{
 				pszGender = OAMMMC_VAL_STR( ptArg );
 				SNPRINTF_QUERY_STR( szTemp, sizeof(szTemp), ATTR_GENDER, pszGender );
-				STRLCAT_CHECK_OVERFLOW( szQuery, szTemp, sizeof(szQuery), nRC );
-				nAddFlag = RAS_TRUE;
 			}
 				break;
 			case ARG_NUM_BIRTH:
 			{
 				pszBirth = OAMMMC_VAL_STR( ptArg );
 				SNPRINTF_QUERY_STR( szTemp, sizeof(szTemp), ATTR_BIRTH, pszBirth );
-				STRLCAT_CHECK_OVERFLOW( szQuery, szTemp, sizeof(szQuery), nRC );
-				nAddFlag = RAS_FALSE;
 			}
 				break;
-		}	
+		}
+
+		strlcat( szQuery, szTemp, sizeof(szQuery) );
+		nAddFlag = RAS_TRUE;
 	}
 
-	STRLCAT_CHECK_OVERFLOW( szQuery, ";", sizeof(szQuery), nRC );
+	nAddFlag = RAS_FALSE;
+	strlcat( szQuery, ";", sizeof(szQuery) );
 
 	DB_EXECUTE( g_tDBIpc, szQuery, &ptRes, nRC );
 
@@ -151,13 +146,11 @@ int MMCHDL_INFO_Dis( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 	PRT_CNT( ptOammmc, nCntTuple );
 
 	DB_FREE( ptRes );
-	DB_Close( &g_tDBIpc );	
 	return RAS_rSuccessMmchdl;
 
 end_of_function:
 	PRT_FAIL( ptOammmc, "%s\n", ERR_GetDesc(nRC) );
 	DB_FREE( ptRes );
-	DB_Close( &g_tDBIpc );
 	return nRC;
 }
 
@@ -168,7 +161,6 @@ int MMCHDL_INFO_Del( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 	CHECK_PARAM_RC( ptCmd );
 	CHECK_PARAM_RC( patArgList );
 	ptUarg = ptUarg;
-	nArgNum = nArgNum;
 
 	int nRC = 0;
 	int nIndex = 0;
@@ -214,12 +206,10 @@ int MMCHDL_INFO_Del( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 			ATTR_GENDER, pszGender, ATTR_BIRTH, pszBirth, ATTR_ADDRESS, pszAddress );
 
 	DB_FREE( ptRes );
-	DB_Close( &g_tDBIpc );
 	return RAS_rSuccessMmchdl;
 
 end_of_function:
 	PRT_FAIL( ptOammmc, "%s\n", ERR_GetDesc(nRC) );
 	DB_FREE( ptRes );
-	DB_Close( &g_tDBIpc );
 	return nRC;
 }

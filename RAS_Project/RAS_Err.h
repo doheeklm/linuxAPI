@@ -13,7 +13,7 @@
 typedef enum
 {
 	RAS_rOK = 1000,
-	RAS_rStop,
+	RAS_rSig,
 	RAS_rErrFail,
 	RAS_rErrGetValue,
 	RAS_rErrGetConfValue,
@@ -38,7 +38,7 @@ typedef enum
 	RAS_rErrListenFd,
 
 	RAS_rErrIpcRecv,
-	RAS_rErrIpcSend,
+	RAS_rErrIpcSend,//
 	RAS_rErrInvalidData,
 	RAS_rErrInvalidValue,
 
@@ -72,6 +72,7 @@ typedef enum
 	RAS_rErrHttpWrite,
 	RAS_rErrHttpBadRequest,
 	RAS_rErrHttpMethodNotAllowed,
+	
 	RAS_rHttpCreated,
 	RAS_rHttpOK,
 	RAS_rHttpNotFound,
