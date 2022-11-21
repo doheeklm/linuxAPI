@@ -7,7 +7,8 @@
 
 #define USER_DIR					"user"
 #define ODD_NUMBER					1
-#define MAX_INDEX					8
+#define MAX_TOKEN					8
+#define CNT_ALL_TOKEN				4
 
 #define HTTP_DELIM_CRLF				"\r\n"
 #define HTTP_DELIM_CRLFCRLF			"\r\n\r\n"
@@ -16,9 +17,12 @@
 #define HTTP_DELIM_SLASH			"/"
 #define HTTP_DELIM_QUOTATION		"\""
 
-#define HTTP_METHOD_POST			"POST"
-#define HTTP_METHOD_GET				"GET"
-#define HTTP_METHOD_DELETE			"DELETE"
+#define HTTP_METHOD_POST_STR		"POST"
+#define HTTP_METHOD_GET_STR			"GET"
+#define HTTP_METHOD_DEL_STR			"DELETE"
+#define HTTP_METHOD_POST_NUM		70
+#define HTTP_METHOD_GET_NUM			71
+#define HTTP_METHOD_DEL_NUM			72
 
 #define STATUS_CODE_200				200
 #define STATUS_CODE_201				201
@@ -35,10 +39,10 @@
 #define STATUS_MSG_405				"Method Not Allowed"
 #define STATUS_MSG_500				"Internal Server Error"
 
-int HTTP_ReadHeader( int nFd, struct HTTP_REQUEST_s *ptRequest );
-int HTTP_GetMethodAndPath( struct HTTP_REQUEST_s *ptRequest );
-int HTTP_GetContentLength( struct HTTP_REQUEST_s *ptRequest );
-int HTTP_ReadBody( int nFd, struct HTTP_REQUEST_s *ptRequest );
+int HTTP_ReadHeader( int nFd, struct REQUEST_s *ptRequest );
+int HTTP_GetMethodAndPath( struct REQUEST_s *ptRequest );
+int HTTP_GetContentLength( struct REQUEST_s *ptRequest );
+int HTTP_ReadBody( int nFd, struct REQUEST_s *ptRequest );
 
 int HTTP_GetStatusCode( int nRC );
 char* HTTP_GetStatusMsg( int nCode );

@@ -3,20 +3,19 @@
 
 extern mpipc_t *g_ptMpipc;
 
-int TRACE_MakeTrace( int nHttpType, const char *pszIp, void *pvBuf )
+int TRACE_MakeTrace( int nHttpType, const char *pszIp,
+		struct REQUEST_s *ptRequest, struct RESPONSE_s *ptResponse )
 {
 	CHECK_PARAM_RC( pszIp );
-	CHECK_PARAM_RC( pvBuf );
-
-	//TODO pvBuf 처리 
+	CHECK_PARAM_RC( ptRequest );
+	CHECK_PARAM_RC( ptResponse );
+	
 	int nRC = 0;
 	int nSizeMXCOMM = 0;
 	iipc_key_t tKeyMXCOMM = IPC_NOPROC;
 	iipc_msg_t tMsg;
 	xcomm_ipc_t *ptXcomm = NULL;
 	ptXcomm = (xcomm_ipc_t *)&tMsg.buf;
-	char szDesc[256];
-	memset( szDesc, 0x00, sizeof(szDesc) );
 	
 	tKeyMXCOMM = TAP_ipc_getkey( mpipc_tap_ipc(g_ptMpipc), MXCOMM );
 	if ( IPC_NOPROC == tKeyMXCOMM )
@@ -40,24 +39,27 @@ int TRACE_MakeTrace( int nHttpType, const char *pszIp, void *pvBuf )
 	/* body */
 	if ( HTTP_TYPE_REQUEST == nHttpType )
 	{
-		snprintf( szDesc, sizeof(szDesc), "SERVER RECV HTTP REQUEST MSG FROM CLIENT(%s)", pszIp );
-		szDesc[ strlen(szDesc) ] = '\0';
+		snprintf( ptXcomm->body, sizeof(ptXcomm->body),
+				"%s%s\nMethod = %s\nPath = %s\nContent-Length = %d\n%s",
+				pszIp, REQUEST_DESC,
+				ptRequest->szMethod, ptRequest->szPath,
+				ptRequest->nContentLength, ptRequest->szBody );
+		ptXcomm->body[ strlen(ptXcomm->body) ] = '\0';
 	}
 	else if ( HTTP_TYPE_RESPONSE == nHttpType )
 	{
-		snprintf( szDesc, sizeof(szDesc), "SERVER SEND HTTP RESPONSE MSG TO CLIENT(%s)", pszIp );
-		szDesc[ strlen(szDesc) ] = '\0';
+		snprintf( ptXcomm->body, sizeof(ptXcomm->body),
+				"%s%s\nStatus Code = %d\nStatus Msg = %s\nContent-Length = %d\n%s",
+				pszIp, RESPONSE_DESC,
+				ptResponse->nStatusCode, HTTP_GetStatusMsg(ptResponse->nStatusCode),
+				ptResponse->nContentLength, ptResponse->szBody );
+		ptXcomm->body[ strlen(ptXcomm->body) ] = '\0';
 	}
 	else
 	{
+		return RAS_rErrFail;
 	}
 	
-	snprintf( ptXcomm->body, sizeof(ptXcomm->body),
-			"%s%s\nStatus Code = %d\nStatus Msg = %s\nContent-Length = %d\n%s",
-			pszIp, szDesc, pvBuf.nStatusCode, HTTP_GetStatusMsg(pvBuf->nStatusCode),
-			pvBuf->nContentLength, pvBuf->szBody );
-	ptXcomm->body[ strlen(ptXcomm->body) ] = '\0';
-
 	LOG_DBG_F( "ptXcomm->body (%s)", ptXcomm->body );
 	/* header.src_sys */
 	ptXcomm->header.src_sys = oam_get_system_id(NULL);

@@ -42,3 +42,96 @@ int STAT_Init()
 
 	return RAS_rOK;
 }
+
+void STAT_Count( int nHttpType, int nMethod, int nCode, const char *pszIp )
+{
+	switch ( nHttpType )
+	{
+		case HTTP_TYPE_REQUEST:
+		{
+			STGEN_DTLITEM_1COUNT( HTTP_TOTAL_REQUEST, pszIp );
+			switch ( nMethod )
+			{
+				case HTTP_METHOD_POST_NUM:
+					STGEN_DTLITEM_1COUNT( HTTP_REQUEST_POST, pszIp );
+					break;
+				case HTTP_METHOD_GET_NUM:
+					STGEN_DTLITEM_1COUNT( HTTP_REQUEST_GET, pszIp );
+					break;
+				case HTTP_METHOD_DEL_NUM:
+					STGEN_DTLITEM_1COUNT( HTTP_REQUEST_DELETE, pszIp );
+					break;
+				default:
+					STGEN_DTLITEM_1COUNT( HTTP_REQUEST_UNKNOWN, pszIp );
+			}
+		}
+			break;
+		case HTTP_TYPE_RESPONSE:
+		{
+			STGEN_DTLITEM_1COUNT( HTTP_TOTAL_RESPONSE, pszIp );
+			switch ( nMethod )
+			{
+				case HTTP_METHOD_POST_NUM:
+				{
+					switch ( nCode )
+					{
+						case STATUS_CODE_201:
+							STGEN_DTLITEM_1COUNT( HTTP_RESPONSE_POST201, pszIp );
+							break;
+						case STATUS_CODE_400:
+							STGEN_DTLITEM_1COUNT( HTTP_RESPONSE_POST400, pszIp );
+							break;
+						case STATUS_CODE_500:
+							STGEN_DTLITEM_1COUNT( HTTP_RESPONSE_POST500, pszIp );
+							break;
+					}
+				}
+					break;
+				case HTTP_METHOD_GET_NUM:
+				{
+					switch ( nCode )
+					{
+						case STATUS_CODE_200:
+							STGEN_DTLITEM_1COUNT( HTTP_RESPONSE_GET200, pszIp );
+							break;
+						case STATUS_CODE_400:
+							STGEN_DTLITEM_1COUNT( HTTP_RESPONSE_GET400, pszIp );
+							break;
+						case STATUS_CODE_404:
+							STGEN_DTLITEM_1COUNT( HTTP_RESPONSE_GET404, pszIp );
+							break;
+						case STATUS_CODE_500:
+							STGEN_DTLITEM_1COUNT( HTTP_RESPONSE_GET500, pszIp );
+							break;
+					}
+				}
+					break;
+				case HTTP_METHOD_DEL_NUM:
+				{
+					switch ( nCode )
+					{
+						case STATUS_CODE_200:
+							STGEN_DTLITEM_1COUNT( HTTP_RESPONSE_DEL200, pszIp );
+							break;
+						case STATUS_CODE_400:
+							STGEN_DTLITEM_1COUNT( HTTP_RESPONSE_DEL400, pszIp );
+							break;
+						case STATUS_CODE_404:
+							STGEN_DTLITEM_1COUNT( HTTP_RESPONSE_DEL404, pszIp );
+							break;
+						case STATUS_CODE_500:
+							STGEN_DTLITEM_1COUNT( HTTP_RESPONSE_DEL500, pszIp );
+							break;
+					}
+				}
+					break;
+				default:	
+				{
+					STGEN_DTLITEM_1COUNT( HTTP_RESPONSE_UNKNOWN405, pszIp );
+				}
+					break;
+			}//switch(nMethod)
+		}//case(HTTP_TYPE_RESPONSE)
+			break;
+	}//switch(nHttpType)
+}

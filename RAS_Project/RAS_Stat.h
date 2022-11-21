@@ -3,8 +3,8 @@
 #ifndef _RAS_STAT_H_
 #define _RAS_STAT_H_
 
-#define HTTP_REQUEST	1
-#define HTTP_RESPONSE	2
+//#define HTTP_REQUEST	1
+//#define HTTP_RESPONSE	2
 
 typedef enum {
     HTTP_TOTAL_REQUEST,
@@ -32,5 +32,6 @@ extern stctl_item_desc_t stctl_item_list[];
 extern stctl_dtl_type_desc_t stctl_dtl_type_list[];
 
 int STAT_Init();
+void STAT_Count( int nHttpType, int nMethod, int nCode, const char *pszIp );
 
 #endif /* _RAS_STAT_H_ */

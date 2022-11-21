@@ -74,8 +74,6 @@ int MMCHDL_IP_Add( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 		}	
 	}
 
-	//TODO CLIENT IP 중복
-
 	DB_SET_STRING_BY_KEY( g_tDBIpc.patPstmt[PSTMT_INSERT_IP], ATTR_IP, pszIp, nRC );
 
 	if ( NULL != pszDesc )
@@ -88,7 +86,6 @@ int MMCHDL_IP_Add( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 	{
 		DB_SET_STRING_BY_KEY( g_tDBIpc.patPstmt[PSTMT_INSERT_IP], ATTR_DESC, EMPTY_STRING, nRC );
 		DB_PREPARED_EXEC_UPDATE( g_tDBIpc, g_tDBIpc.patPstmt[PSTMT_INSERT_IP], nRC );
-		//CLEAR (null) print
 		PRT_IP_ONE( ptOammmc, ARG_STR_IP, pszIp, ARG_STR_DESC, EMPTY_STRING );
 	}
 	
@@ -139,7 +136,6 @@ int MMCHDL_IP_Dis( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 
 		for ( ptEntry = dalFetchFirst( ptRes ); ptEntry != NULL; ptEntry = dalFetchNext( ptRes ) )
 		{
-			//CLEAR 여기서 GET 실패 시 mmc clear
 			DB_GET_STRING_BY_KEY( ptEntry, ATTR_IP, &pszIp, nRC );
 			DB_GET_STRING_BY_KEY( ptEntry, ATTR_DESC, &pszDesc, nRC );
 			PRT_IP_ALL_BODY( ptOammmc, pszIp, pszDesc );

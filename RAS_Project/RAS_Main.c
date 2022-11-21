@@ -1,8 +1,6 @@
 /* RAS_Main.c */
 #include "RAS_Inc.h"
 
-//CLEAR DB unique index
-
 int			g_nSvcFlag = START_SVC;
 int			g_nWorkerIndex = 0; 
 int			g_nAlarmStatus = 0; //Thread
@@ -167,7 +165,7 @@ int main( void )
 	} 
 
 _exit_main:
-	printf( "end main thread, wait for thread exit\n" );
+	printf( "exit main thread, wait for thread to exit\n" );
 
 	for ( nIndex = 0; nIndex < MAX_WORKER_CNT; nIndex++ )
 	{

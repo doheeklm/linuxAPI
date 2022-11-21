@@ -31,7 +31,7 @@ int WORKER_Init()
 
 void *WORKER_Run( void *pvArg )
 {
-	//CHECK_PARAM_RC( pvArg );
+	CHECK_PARAM( pvArg, pthread_exit( NULL ) );
 	
 	WORKER_t *ptWorker = (WORKER_t *)pvArg;
 
@@ -39,6 +39,7 @@ void *WORKER_Run( void *pvArg )
 	int nIndex = 0;
 	int nCntFd = 0;
 	int nClientFd = 0;
+	int nMethod = 0;
 
 	struct epoll_event atEvents[MAX_CONNECT];
 	memset( atEvents, 0x00, sizeof(atEvents) );	
@@ -46,10 +47,10 @@ void *WORKER_Run( void *pvArg )
 	DB_t tDBWorker;
 	memset( &tDBWorker, 0x00, sizeof(tDBWorker) );
 
-	HTTP_REQUEST_t tRequest;
+	REQUEST_t tRequest;
 	memset( &tRequest, 0x00, sizeof(tRequest) );
 
-	HTTP_RESPONSE_t tResponse;
+	RESPONSE_t tResponse;
 	memset( &tResponse, 0x00, sizeof(tResponse) );
 	
 	nRC = DB_Init( &(tDBWorker.ptDBConn) );
@@ -108,9 +109,13 @@ void *WORKER_Run( void *pvArg )
 				nClientFd = atEvents[nIndex].data.fd;
 				LOG_DBG_F( "fd(%d) events(%u)", nClientFd, atEvents[nIndex].events );
 
+				nMethod = 0;
 				memset( &tRequest, 0x00, sizeof(tRequest) );
 				memset( &tResponse, 0x00, sizeof(tResponse) );
 
+				/*
+				 *	Read Header
+				 */
 				nRC = HTTP_ReadHeader( nClientFd, &tRequest );
 				if ( RAS_rOK != nRC )
 				{
@@ -131,44 +136,61 @@ void *WORKER_Run( void *pvArg )
 					FD_DELETE_AND_CLOSE( nClientFd, ptWorker->nEpollFd );
 					continue;
 				}
-				
+			
+				/*
+				 *	Read Body
+				 */	
 				nRC = HTTP_ReadBody( nClientFd, &tRequest );
 				if ( RAS_rOK != nRC )
 				{
 					FD_DELETE_AND_CLOSE( nClientFd, ptWorker->nEpollFd );
 					continue;
 				}
-
-				STGEN_DTLITEM_1COUNT( HTTP_TOTAL_REQUEST, ptWorker->szClientIp );
-				
-				if ( 0 == strcmp( HTTP_METHOD_POST, tRequest.szMethod ) )
-				{
-					STGEN_DTLITEM_1COUNT( HTTP_REQUEST_POST, ptWorker->szClientIp );
-
-					nRC = METHOD_Post( tDBWorker, &tRequest, ptWorker->szClientIp );
-				} 
-				else if ( 0 == strcmp( HTTP_METHOD_GET, tRequest.szMethod ) )
-				{
-					STGEN_DTLITEM_1COUNT( HTTP_REQUEST_GET, ptWorker->szClientIp );
-
-					nRC = METHOD_Get( tDBWorker, &tRequest, &tResponse, ptWorker->szClientIp );
-				}
-				else if ( 0 == strcmp( HTTP_METHOD_DELETE, tRequest.szMethod ) )
-				{
-					STGEN_DTLITEM_1COUNT( HTTP_REQUEST_DELETE, ptWorker->szClientIp );
-				
-					//nRC = METHOD_Delete( tDBWorker, &tRequest, ptWorker->szClientIp );
-				}
-				else
-				{
-					STGEN_DTLITEM_1COUNT( HTTP_REQUEST_UNKNOWN, ptWorker->szClientIp );
-				}	
 		
-				tResponse.nStatusCode = HTTP_GetStatusCode( nRC );
-				HTTP_SET_RESPONSE( tResponse );
+				HTTP_STR_TO_NUM_METHOD( tRequest.szMethod, nMethod );
 
-				LOG_DBG_F( "Response Msg\n%s", tResponse.szMsg );
+				/*
+				 *	Stat
+				 */
+				STAT_Count( HTTP_TYPE_REQUEST, nMethod, 0, ptWorker->szClientIp );
+
+				/*
+				 *	Trace
+				 */
+				nRC = REGI_CheckKeyExist( ptWorker->szClientIp );
+				if ( RAS_rOK == nRC )
+				{
+					nRC = TRACE_MakeTrace( HTTP_TYPE_REQUEST, ptWorker->szClientIp,	&tRequest, &tResponse );
+				}
+
+				/*
+				 *	Method
+				 */
+				switch ( nMethod )
+				{
+					case HTTP_METHOD_POST_NUM:
+						nRC = METHOD_Post( tDBWorker, ptWorker->szClientIp, &tRequest, &tResponse );
+						break;
+					case HTTP_METHOD_GET_NUM:
+						nRC = METHOD_Get( tDBWorker, ptWorker->szClientIp, &tRequest, &tResponse );
+						break;
+					case HTTP_METHOD_DEL_NUM:
+						nRC = METHOD_Delete( tDBWorker, ptWorker->szClientIp, &tRequest, &tResponse );
+						break;
+					default:
+						nRC = RAS_rErrHttpMethodNotAllowed;
+						break;
+				}
+
+				tResponse.nStatusCode = HTTP_GetStatusCode( nRC );
+			
+				HTTP_SET_RESPONSE( tResponse );
 				
+				LOG_DBG_F( "\n%s", tResponse.szMsg );
+			
+				/*
+				 *	Send Response
+				 */	
 				nRC = HTTP_SendResponse( nClientFd, tResponse.szMsg, sizeof(tResponse.szMsg) );
 				if ( RAS_rOK != nRC )
 				{
@@ -176,22 +198,28 @@ void *WORKER_Run( void *pvArg )
 					FD_DELETE_AND_CLOSE( nClientFd, ptWorker->nEpollFd );
 					continue;
 				}
-
+				
 				//NOTE <Postman> Parse Error: Server returned a malformed response
 
-				/*
-				 * TODO Trace (Response)
-				 * TODO Stat
-				 * STGEN_DTLITEM_1COUNT( HTTP_TOTAL_RESPONSE, ptWorker->szClientIp );
-				 * STGEN_DTLITEM_1COUNT( HTTP_RESPONSE_POSTxxx, IP );
-				 * POST 201 400 500
-				 * GET 200 400 404 500
-				 * DELETE 200 400 404 500
-				 * TODO Alarm
-				 */
+				STAT_Count( HTTP_TYPE_RESPONSE, nMethod, tResponse.nStatusCode, ptWorker->szClientIp );
+
+				nRC = REGI_CheckKeyExist( ptWorker->szClientIp );
+				if ( RAS_rOK == nRC )
+				{
+					nRC = TRACE_MakeTrace( HTTP_TYPE_RESPONSE, ptWorker->szClientIp, &tRequest, &tResponse );
+					if ( RAS_rOK != nRC )
+					{
+						FD_DELETE_AND_CLOSE( nClientFd, ptWorker->nEpollFd );
+						continue;
+					}
+				}
+
+				//TODO Alarm
 			
 			}//else if(events & EPOLLIN)
+
 		}//for(nFdCnt)
+
 	}//while(1)
 
 	printf( "end worker thread\n" );

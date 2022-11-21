@@ -49,6 +49,7 @@
 #define MAX_WORKER_CNT			3
 #define MAX_TRC_CNT				1000
 #define EMPTY_STRING			""
+
 #define SIZE_HEADER				1024
 #define SIZE_METHOD				16
 #define SIZE_PATH				128
@@ -68,22 +69,22 @@ typedef struct WORKER_s
 	char		szClientIp	[SIZE_IP + 1];
 } WORKER_t;
 
-typedef struct HTTP_REQUEST_s
+typedef struct REQUEST_s
 {
 	char		szHeader	[SIZE_HEADER + 1];
 	char		szMethod	[SIZE_METHOD + 1];
 	char		szPath		[SIZE_PATH + 1];
 	int			nContentLength;
 	char		szBody		[SIZE_BODY + 1];
-} HTTP_REQUEST_t;
+} REQUEST_t;
 
-typedef struct HTTP_RESPONSE_s
+typedef struct RESPONSE_s
 {
 	int			nStatusCode;
 	int			nContentLength;
 	char		szBody		[SIZE_BODY + 1];
 	char		szMsg		[SIZE_MSG + 1];
-} HTTP_RESPONSE_t;
+} RESPONSE_t;
 
 typedef struct TRC_s
 {
@@ -92,6 +93,7 @@ typedef struct TRC_s
 	int			nCnt;
 } TRC_t;
 
+#if 0
 typedef struct USER_s
 {
 	int			nId;
@@ -100,6 +102,7 @@ typedef struct USER_s
 	char		szBirth		[SIZE_BIRTH + 1];
 	char		szAddress	[SIZE_ADDRESS + 1];
 } USER_t;
+#endif 
 
 #include "RAS_Err.h"
 #include "RAS_Macro.h"

@@ -1,7 +1,7 @@
 /* RAS_Http.c */
 #include "RAS_Inc.h"
 
-int HTTP_ReadHeader( int nFd, struct HTTP_REQUEST_s *ptRequest )
+int HTTP_ReadHeader( int nFd, struct REQUEST_s *ptRequest )
 {
 	CHECK_PARAM_RC( ptRequest );
 
@@ -47,7 +47,7 @@ int HTTP_ReadHeader( int nFd, struct HTTP_REQUEST_s *ptRequest )
 	return RAS_rOK;
 }
 
-int HTTP_GetMethodAndPath( struct HTTP_REQUEST_s *ptRequest )
+int HTTP_GetMethodAndPath( struct REQUEST_s *ptRequest )
 {
 	CHECK_PARAM_RC( ptRequest );
 
@@ -58,10 +58,6 @@ int HTTP_GetMethodAndPath( struct HTTP_REQUEST_s *ptRequest )
 
 	strlcpy( szCopyBuf, ptRequest->szHeader, sizeof(szCopyBuf) ); 
 
-	//POST /user
-	//GET /user/7
-	//GET /user
-	//DELETE user/5
 	pszToken = strtok_r( szCopyBuf, HTTP_DELIM_SPACE, &pszDefaultToken );
 	if ( NULL == pszToken )
 	{
@@ -81,7 +77,7 @@ int HTTP_GetMethodAndPath( struct HTTP_REQUEST_s *ptRequest )
 	return RAS_rOK;
 }
 
-int HTTP_GetContentLength( struct HTTP_REQUEST_s *ptRequest )
+int HTTP_GetContentLength( struct REQUEST_s *ptRequest )
 {
 	CHECK_PARAM_RC( ptRequest );
 
@@ -124,7 +120,7 @@ int HTTP_GetContentLength( struct HTTP_REQUEST_s *ptRequest )
 	return RAS_rOK;
 }
 
-int HTTP_ReadBody( int nFd, struct HTTP_REQUEST_s *ptRequest )
+int HTTP_ReadBody( int nFd, struct REQUEST_s *ptRequest )
 {
 	CHECK_PARAM_RC( ptRequest );
 
@@ -185,18 +181,19 @@ int HTTP_GetStatusCode( int nRC )
 {
 	switch( nRC )
 	{
-		RC_TO_CODE( STATUS_CODE_200, RAS_rOK );
-		RC_TO_CODE( STATUS_CODE_201, RAS_rHttpCreated );
-		RC_TO_CODE( STATUS_CODE_400, RAS_rErrHttpBadRequest );
-		RC_TO_CODE( STATUS_CODE_404, RAS_rErrDBNotFound);
-		RC_TO_CODE( STATUS_CODE_500, RAS_rErrDBSetValue );
-		RC_TO_CODE( STATUS_CODE_500, RAS_rErrDBExecUpdate );
-		RC_TO_CODE( STATUS_CODE_500, RAS_rErrRegiGetEnumKeyValue );
-		RC_TO_CODE( STATUS_CODE_500, RAS_rErrRegiNotFound );
-		RC_TO_CODE( STATUS_CODE_500, RAS_rErrFail );
-		RC_TO_CODE( STATUS_CODE_500, RAS_rErrOverflow );
-		RC_TO_CODE( STATUS_CODE_500, RAS_rErrIpcSend );
-		RC_TO_CODE_DFLT;
+		CASE_RETURN( RAS_rOK,						STATUS_CODE_200 );
+		CASE_RETURN( RAS_rHttpCreated,				STATUS_CODE_201 );
+		CASE_RETURN( RAS_rErrHttpBadRequest,		STATUS_CODE_400 );
+		CASE_RETURN( RAS_rErrDBNotFound,			STATUS_CODE_404 );
+		CASE_RETURN( RAS_rErrHttpMethodNotAllowed,	STATUS_CODE_405 );
+		CASE_RETURN( RAS_rErrDBSetValue,			STATUS_CODE_500 );
+		CASE_RETURN( RAS_rErrDBExecUpdate,			STATUS_CODE_500 );
+		CASE_RETURN( RAS_rErrRegiGetEnumKeyValue,	STATUS_CODE_500 );
+		CASE_RETURN( RAS_rErrRegiNotFound,			STATUS_CODE_500 );
+		CASE_RETURN( RAS_rErrFail,					STATUS_CODE_500 );
+		CASE_RETURN( RAS_rErrOverflow,				STATUS_CODE_500 );
+		CASE_RETURN( RAS_rErrIpcSend,				STATUS_CODE_500 );
+		CASE_DEFAULT_500;
 	}
 }
 
@@ -204,13 +201,13 @@ char* HTTP_GetStatusMsg( int nCode )
 {
 	switch( nCode )
 	{
-		STR_CASE( STATUS_CODE_200, STATUS_MSG_200 );
-		STR_CASE( STATUS_CODE_201, STATUS_MSG_201 );
-		STR_CASE( STATUS_CODE_400, STATUS_MSG_400 );
-		STR_CASE( STATUS_CODE_404, STATUS_MSG_404 );
-		STR_CASE( STATUS_CODE_405, STATUS_MSG_405 );
-		STR_CASE( STATUS_CODE_500, STATUS_MSG_500 );
-		STR_CASE_DFLT_UKN;
+		CASE_RETURN( STATUS_CODE_200, STATUS_MSG_200 );
+		CASE_RETURN( STATUS_CODE_201, STATUS_MSG_201 );
+		CASE_RETURN( STATUS_CODE_400, STATUS_MSG_400 );
+		CASE_RETURN( STATUS_CODE_404, STATUS_MSG_404 );
+		CASE_RETURN( STATUS_CODE_405, STATUS_MSG_405 );
+		CASE_RETURN( STATUS_CODE_500, STATUS_MSG_500 );
+		CASE_DEFAULT_UNKNOWN;
 	}
 }
 

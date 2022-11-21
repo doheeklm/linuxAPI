@@ -83,7 +83,6 @@ int MMCHDL_TRC_Add( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 
 	if ( 0 == nTime )
 	{
-		//CLEAR Default 60
 		nTime = DFLT_TIME;
 	}
 	

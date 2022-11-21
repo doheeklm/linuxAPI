@@ -70,13 +70,12 @@ typedef enum
 
 	RAS_rErrHttpRead,
 	RAS_rErrHttpWrite,
-	RAS_rErrHttpBadRequest,
-	RAS_rErrHttpMethodNotAllowed,
-	
-	RAS_rHttpCreated,
-	RAS_rHttpOK,
-	RAS_rHttpNotFound,
-	RAS_rHttpInternalFail,
+	RAS_rHttpOK,//200
+	RAS_rHttpCreated,//201
+	RAS_rErrHttpBadRequest,//400
+	RAS_rHttpNotFound,//404
+	RAS_rErrHttpMethodNotAllowed,//405
+	RAS_rHttpInternalFail,//500
 
 	RAS_rErrJsonCheckSize,
 	RAS_rErrJsonGetArr,

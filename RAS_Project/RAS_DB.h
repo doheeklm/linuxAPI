@@ -13,21 +13,21 @@
 #define ATTR_BIRTH				"birth"
 #define ATTR_ADDRESS			"address"
 
+#define NUMTUPLE				"NUMTUPLES"
+
 #define SQL_INSERT_IP			"insert into "CLI_IP_TBL" "\
 								"("ATTR_IP", "ATTR_DESC") values "\
 								"(?"ATTR_IP", ?"ATTR_DESC");"
 #define SQL_SELECT_IP_ALL		"select * from "CLI_IP_TBL";"
 #define SQL_SELECT_IP_BY_IP		"select * from "CLI_IP_TBL" where "ATTR_IP"=?"ATTR_IP";"
 #define SQL_DELETE_IP			"delete from "CLI_IP_TBL" where "ATTR_IP"=?"ATTR_IP";"
-
 #define SQL_INSERT_INFO			"insert into "USR_INFO_TBL" "\
 								"("ATTR_NAME", "ATTR_GENDER", "ATTR_BIRTH", "ATTR_ADDRESS") values "\
 								"(?"ATTR_NAME", ?"ATTR_GENDER", ?"ATTR_BIRTH", ?"ATTR_ADDRESS");"
 #define SQL_SELECT_INFO_ALL		"select * from "USR_INFO_TBL";"
 #define SQL_SELECT_INFO_BY_ID	"select * from "USR_INFO_TBL" where "ATTR_ID"=?"ATTR_ID";"
 #define SQL_DELETE_INFO			"delete from "USR_INFO_TBL" where "ATTR_ID"=?"ATTR_ID";"
-
-#define SQL_ALARM_CNT_USR		"select NUMTUPLES from __SYS__TABLES__ where TABLE_NAME="USR_INFO_TBL";"
+#define SQL_NUMTUPLE_INFO		"select "NUMTUPLE" from __SYS__TABLES__ where TABLE_NAME="USR_INFO_TBL";"
 
 typedef enum
 {
@@ -41,7 +41,7 @@ typedef enum
 	PSTMT_SELECT_INFO_BY_ID,
 	PSTMT_DELETE_INFO,
 
-	PSTMT_ALARM_CNT_USR,
+	PSTMT_NUMTUPLE_INFO,
 	PSTMT_MAX
 } Pstmt_e;
 

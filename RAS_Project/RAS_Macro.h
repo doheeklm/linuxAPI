@@ -5,17 +5,16 @@
 #define RAS_TRUE					0
 #define RAS_FALSE					1
 
+#define POST
+
 #define F_FORMAT( format )			"%s:: "format"\n", __func__
 #define LOG_ERR_F( format, ... )	LOG_ERR( F_FORMAT(format), ##__VA_ARGS__ );
 #define LOG_DBG_F( format, ... )	LOG_DBG( F_FORMAT(format), ##__VA_ARGS__ );
 #define LOG_SVC_F( format, ... )	LOG_SVC( F_FORMAT(format), ##__VA_ARGS__ );
 
-#define STR_CASE( _v_, _s_)			case (_v_): return _s_
-#define STR_CASE_NONE( _v_)			case (_v_): return "NONE"
-#define STR_CASE_DFLT_UKN			default: return "UNKNOWN"
-
-#define RC_TO_CODE( _code, _rc)		case (_rc): return _code
-#define RC_TO_CODE_DFLT				default: return STATUS_CODE_500
+#define CASE_RETURN( _c, _ret )		case ( _c ): return _ret
+#define CASE_DEFAULT_UNKNOWN		default: return "UNKNOWN" 
+#define CASE_DEFAULT_500			default: return STATUS_CODE_500
 
 #define CHECK_PARAM( _expr_t, _error ) \
 	do { \
@@ -29,6 +28,16 @@
 #define CHECK_PARAM_RC( _expr_t ) \
 	CHECK_PARAM( (_expr_t), return RAS_rErrInvalidParam )
 
+#define STRLCAT_OVERFLOW_CHECK( _dst, _src, _dstsize, _rc ) \
+	do { \
+		if ( strlcat( _dst, _src, _dstsize ) >= _dstsize ) \
+		{ \
+			LOG_ERR_F( "strlcat overflow fail" ); \
+			_rc = RAS_rErrOverflow; \
+			goto end_of_function; \
+		} \
+	} while (0)
+
 #define SNPRINTF_QUERY_INT( _buf, _bufsize, _attr, _val ) \
 	do { \
 		snprintf( _buf, _bufsize, "%s = %d", _attr, _val ); \
@@ -39,15 +48,6 @@
 	do { \
 		snprintf( _buf, _bufsize, "%s = '%s'", _attr, _val ); \
 		_buf[ strlen(_buf) ] = '\0'; \
-	} while (0)
-
-#define STRCMP_ATTR( _token, _attr, _rc ) \
-	do { \
-		if ( 0 != strcmp( _token, _attr ) ) \
-		{ \
-			_rc = RAS_rErrHttpBadRequest; \
-			goto end_of_function; \
-		} \
 	} while (0)
 
 #define VALID_RANGE( _val, _min, _max ) \
@@ -393,12 +393,19 @@
 #define HTTP_SET_RESPONSE( _response ) \
 	do { \
 		snprintf( _response.szMsg, sizeof(_response.szMsg), \
-				"HTTP/1.1 %d %s\r\nContent-Type: application/json\r\nContent-Length: %d\r\n\r\n%s", \
+				"HTTP/1.1 %d %s\r\n" \
+				"Content-Type: application/json\r\n" \
+				"Content-Length: %d\r\n\r\n%s", \
 				_response.nStatusCode, HTTP_GetStatusMsg(_response.nStatusCode ), \
 				_response.nContentLength, _response.szBody ); \
+		_response.szMsg[ strlen(_response.szMsg) ] = '\0'; \
 	} while (0)
 
-#define HTTP_INFO_IN_JSON( _buf, _bufsize, _attr_id, _id, _attr_name, _name, \
+#define HTTP_JSON_INFO_BEGIN	"[\n"
+#define HTTP_JSON_INFO_AND		",\n"
+#define HTTP_JSON_INFO_END		"\n]"
+
+#define HTTP_JSON_INFO( _buf, _bufsize, _attr_id, _id, _attr_name, _name, \
 		_attr_gender, _gender, _attr_birth, _birth, _attr_address, _address ) \
 	do { \
 		snprintf( _buf, _bufsize, \
@@ -411,6 +418,22 @@
 				_attr_id, _id, _attr_name, _name, _attr_gender, _gender, \
 				_attr_birth, _birth, _attr_address, _address ); \
 		_buf[ strlen(_buf) ] = '\0'; \
+	} while (0)
+
+#define HTTP_STR_TO_NUM_METHOD( _method, _num ) \
+	do { \
+		if ( 0 == strcmp( HTTP_METHOD_POST_STR, _method ) ) \
+		{ \
+			_num = HTTP_METHOD_POST_NUM; \
+		} \
+		else if ( 0 == strcmp( HTTP_METHOD_GET_STR, _method ) ) \
+		{ \
+			_num = HTTP_METHOD_GET_NUM; \
+		} \
+		else if ( 0 == strcmp( HTTP_METHOD_DEL_STR, _method ) ) \
+		{ \
+			_num = HTTP_METHOD_DEL_NUM; \
+		} \
 	} while (0)
 
 /*
