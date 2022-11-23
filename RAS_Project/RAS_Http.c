@@ -14,7 +14,7 @@ int HTTP_ReadHeader( int nFd, struct REQUEST_s *ptRequest )
 	{
 		memset( szBuf, 0x00, sizeof(szBuf) );
 
-		nRead = read( nFd, szBuf, sizeof(szBuf) - 1 ); //NULL 공간 포함 사이즈
+		nRead = read( nFd, szBuf, sizeof(szBuf) - 1 );
 		if ( -1 == nRead )
 		{
 			LOG_ERR_F( "read fail <%d:%s>", errno, strerror(errno) );
@@ -22,19 +22,12 @@ int HTTP_ReadHeader( int nFd, struct REQUEST_s *ptRequest )
 		}
 		else if ( 0 == nRead )
 		{
-			LOG_DBG_F( "read zero" );
+			LOG_DBG_F( "EOF에 도달하여 더 이상 읽을 자료가 없습니다." );
 			return RAS_rErrHttpRead;
 		}
 
-		//strlcat( dst, src, dstsize )
-		//dstsize: dst길이+src길이+NULL공간
-		nRC = strlcat( ptRequest->szHeader, szBuf, sizeof(ptRequest->szHeader) + 1 );
-		if ( (int)sizeof(ptRequest->szHeader) + 1 <= nRC )
-		{
-			LOG_ERR_F( "output string has been truncated" );
-			return RAS_rErrOverflow;
-		}
-
+		STRLCAT_OVERFLOW_CHECK( ptRequest->szHeader, szBuf, (sizeof(ptRequest->szHeader) + 1), nRC );
+		
 		pszSearch = strstr( ptRequest->szHeader, HTTP_DELIM_CRLFCRLF );
 		if ( NULL != pszSearch )
 		{
@@ -43,8 +36,11 @@ int HTTP_ReadHeader( int nFd, struct REQUEST_s *ptRequest )
 		}
 	}
 
-	LOG_DBG_F( "\n%s", ptRequest->szHeader );
+	LOG_DBG_F( "\n%s\n%s\n%s", LINE, ptRequest->szHeader, LINE );
 	return RAS_rOK;
+
+end_of_function:
+	return nRC;
 }
 
 int HTTP_GetMethodAndPath( struct REQUEST_s *ptRequest )
@@ -73,7 +69,7 @@ int HTTP_GetMethodAndPath( struct REQUEST_s *ptRequest )
 		break;
 	}
 	
-	LOG_DBG_F( "%s%s", ptRequest->szMethod, ptRequest->szPath );
+	LOG_DBG_F( "%s %s", ptRequest->szMethod, ptRequest->szPath );
 	return RAS_rOK;
 }
 
@@ -92,8 +88,8 @@ int HTTP_GetContentLength( struct REQUEST_s *ptRequest )
 	pszSearch = strstr( szCopyBuf, HTTP_DELIM_CONTENTLENGTH );
 	if ( NULL == pszSearch )
 	{
-		LOG_ERR_F( "not found <\"Content-Length:\">" );
-		return RAS_rErrFail;
+		ptRequest->nContentLength = 0;
+		goto end_of_function;
 	}
 	else
 	{
@@ -116,6 +112,7 @@ int HTTP_GetContentLength( struct REQUEST_s *ptRequest )
 		}
 	}
 
+end_of_function:
 	LOG_DBG_F( "%d", ptRequest->nContentLength );
 	return RAS_rOK;
 }
@@ -141,13 +138,19 @@ int HTTP_ReadBody( int nFd, struct REQUEST_s *ptRequest )
 	}
 
 	pszSearch += strlen(HTTP_DELIM_CRLFCRLF);
-
 	strlcpy( ptRequest->szBody, pszSearch, sizeof(ptRequest->szBody) );
+	//LOG_DBG_F( "\n%s\n%s\n%s", LINE, ptRequest->szBody, LINE );
 
 	while ( 1 )
 	{
 		memset( szBuf, 0x00, sizeof(szBuf) );
 		
+		if ( 0 == ptRequest->nContentLength || (int)strlen(ptRequest->szBody) == ptRequest->nContentLength )
+		{
+			LOG_DBG( "read all body message (%d)", ptRequest->nContentLength );
+			break;
+		}
+
 		nRead = read( nFd, szBuf, sizeof(szBuf) - 1 );
 		if ( -1 == nRead )
 		{
@@ -156,25 +159,20 @@ int HTTP_ReadBody( int nFd, struct REQUEST_s *ptRequest )
 		}
 		else if ( 0 == nRead )
 		{
-			LOG_DBG_F( "read zero" );
+			LOG_DBG_F( "EOF에 도달하여 더 이상 읽을 자료가 없습니다." );
 			return RAS_rErrHttpRead;
 		}
 
-		nRC = strlcat( ptRequest->szBody, szBuf, sizeof(ptRequest->szBody) + 1 );
-		if ( (int)sizeof(ptRequest->szBody) + 1 <= nRC )
-		{
-			LOG_ERR_F( "output string has been truncated" );
-			return RAS_rErrOverflow;
-		}
-		
-		if ( ptRequest->nContentLength == (int)strlen(ptRequest->szBody) )
-		{
-			break;
-		}
+		LOG_DBG_F( "read (%d)", nRead );
+
+		STRLCAT_OVERFLOW_CHECK( ptRequest->szBody, szBuf, (sizeof(ptRequest->szBody) + 1), nRC );
 	}
 
-	LOG_DBG_F( "\n%s", ptRequest->szBody );
+	LOG_DBG_F( "\n%s\n%s\n%s", LINE, ptRequest->szBody, LINE );
 	return RAS_rOK;
+
+end_of_function:
+	return nRC;
 }
 
 int HTTP_GetStatusCode( int nRC )
@@ -182,6 +180,7 @@ int HTTP_GetStatusCode( int nRC )
 	switch( nRC )
 	{
 		CASE_RETURN( RAS_rOK,						STATUS_CODE_200 );
+		CASE_RETURN( RAS_rHttpOK,					STATUS_CODE_200 );
 		CASE_RETURN( RAS_rHttpCreated,				STATUS_CODE_201 );
 		CASE_RETURN( RAS_rErrHttpBadRequest,		STATUS_CODE_400 );
 		CASE_RETURN( RAS_rErrDBNotFound,			STATUS_CODE_404 );
@@ -231,7 +230,7 @@ int HTTP_SendResponse( int nFd, void *pvBuf, int nBufSize )
 
 		if ( nBufSize == nTotalWrite )
 		{
-			printf( "nBufSize == nTotalWrite (%d)", nBufSize );
+			LOG_DBG_F( "nBufSize == nTotalWrite (%d)\n", nBufSize );
 			break;
 		}
 		else if ( 0 == nTotalWrite )

@@ -2,6 +2,7 @@
 #include "RAS_Inc.h"
 
 extern DB_t g_tDBIpc;
+extern int g_nUser;
 
 static mpenumx_t atGenderEnum[] =
 {
@@ -73,12 +74,12 @@ int MMCHDL_INFO_Dis( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 	DAL_RESULT_SET *ptRes = NULL;
 	DAL_ENTRY *ptEntry = NULL;
 
-	snprintf( szQuery, sizeof(szQuery), "select * from %s", USR_INFO_TBL );
+	snprintf( szQuery, sizeof(szQuery), "%s%s", SQL_SELECT_CUSTOM, USR_INFO_TBL );
 	szQuery[ strlen(szQuery) ] = '\0';
 
 	if ( 0 < nArgNum )
 	{
-		strlcat( szQuery, " where ", sizeof(szQuery) );
+		STRLCAT_OVERFLOW_CHECK( szQuery, SQL_WHERE, sizeof(szQuery), nRC );
 	}
 
 	for ( nIndex = 0; nIndex < nArgNum; nIndex++ )
@@ -87,7 +88,8 @@ int MMCHDL_INFO_Dis( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 	
 		if ( RAS_TRUE == nAddFlag )
 		{
-			strlcat( szQuery, " and ", sizeof(szQuery) );
+			STRLCAT_OVERFLOW_CHECK( szQuery, SQL_AND, sizeof(szQuery), nRC );
+			
 			memset( szTemp, 0x00, sizeof(szTemp) );
 		}
 
@@ -119,12 +121,14 @@ int MMCHDL_INFO_Dis( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 				break;
 		}
 
-		strlcat( szQuery, szTemp, sizeof(szQuery) );
+		STRLCAT_OVERFLOW_CHECK( szQuery, szTemp, sizeof(szQuery), nRC );
+		
 		nAddFlag = RAS_TRUE;
 	}
 
 	nAddFlag = RAS_FALSE;
-	strlcat( szQuery, ";", sizeof(szQuery) );
+
+	STRLCAT_OVERFLOW_CHECK( szQuery, SQL_SEMICOLON, sizeof(szQuery), nRC );
 
 	DB_EXECUTE( g_tDBIpc, szQuery, &ptRes, nRC );
 
@@ -204,6 +208,8 @@ int MMCHDL_INFO_Del( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 	DB_PREPARED_EXEC_UPDATE( g_tDBIpc, g_tDBIpc.patPstmt[PSTMT_DELETE_INFO], nRC );
 	PRT_INFO_ONE( ptOammmc, ATTR_ID, nId, ATTR_NAME, pszName,
 			ATTR_GENDER, pszGender, ATTR_BIRTH, pszBirth, ATTR_ADDRESS, pszAddress );
+
+	g_nUser--;
 
 	DB_FREE( ptRes );
 	return RAS_rSuccessMmchdl;

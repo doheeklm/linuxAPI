@@ -15,6 +15,7 @@ typedef enum
 	RAS_rOK = 1000,
 	RAS_rSig,
 	RAS_rErrFail,
+	RAS_rErrDuplicate,
 	RAS_rErrGetValue,
 	RAS_rErrGetConfValue,
 	RAS_rErrSetValue, 
@@ -43,7 +44,7 @@ typedef enum
 	RAS_rErrInvalidValue,
 
 	RAS_rErrDBConn,
-	RAS_rErrDBCommit,
+	RAS_rErrDBRollback,
 	RAS_rErrDBExecute,//
 	RAS_rErrDBExecUpdate,//
 	RAS_rErrDBNotFound,//

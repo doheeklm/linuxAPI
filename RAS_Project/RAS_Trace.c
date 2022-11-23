@@ -60,7 +60,7 @@ int TRACE_MakeTrace( int nHttpType, const char *pszIp,
 		return RAS_rErrFail;
 	}
 	
-	LOG_DBG_F( "ptXcomm->body (%s)", ptXcomm->body );
+	LOG_DBG_F( "\n%s\n%s\n%s", LINE, ptXcomm->body, LINE );
 	/* header.src_sys */
 	ptXcomm->header.src_sys = oam_get_system_id(NULL);
 	if ( 0 > ptXcomm->header.src_sys )
@@ -83,7 +83,7 @@ int TRACE_MakeTrace( int nHttpType, const char *pszIp,
 	ptXcomm->header.dst_proc[ strlen(ptXcomm->header.dst_proc) ] = '\0';
 	/* header.msg_len */
 	ptXcomm->header.msg_len = sizeof(ptXcomm->proto) + ptXcomm->keylen + strlen(ptXcomm->body) + 1;
-	LOG_DBG_F( "ptXcomm->header.msg_len (%d)", ptXcomm->header.msg_len );
+	//LOG_DBG_F( "ptXcomm->header.msg_len (%d)", ptXcomm->header.msg_len );
 	/* header.extra_id1 */
 	ptXcomm->header.extra_id1 = 1;
 	/* header.extra_id2 */
@@ -91,7 +91,7 @@ int TRACE_MakeTrace( int nHttpType, const char *pszIp,
 	/* ptXcomm->header.dummy =  */
 
 	nSizeMXCOMM = (int)sizeof(ptXcomm->msg_id) + (int)sizeof(ptXcomm->header) + ptXcomm->header.msg_len;
-	LOG_DBG_F( "nSizeMXCOMM (%d)", nSizeMXCOMM );
+	//LOG_DBG_F( "nSizeMXCOMM (%d)", nSizeMXCOMM );
 
 	nRC = TAP_ipc_msgsndm( mpipc_tap_ipc(g_ptMpipc), tKeyMXCOMM, ptXcomm, nSizeMXCOMM, IPC_NONBLOCK );
 	if ( 0 > nRC )
@@ -100,6 +100,6 @@ int TRACE_MakeTrace( int nHttpType, const char *pszIp,
 		return RAS_rErrIpcSend;
 	}
 
-	LOG_DBG_F( "Send Trace" );
+	//LOG_DBG_F( "Send Trace" );
 	return RAS_rOK;
 }

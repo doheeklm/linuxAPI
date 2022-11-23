@@ -3,7 +3,8 @@
 
 int			g_nSvcFlag = START_SVC;
 int			g_nWorkerIndex = 0; 
-int			g_nAlarmStatus = 0; //Thread
+int			g_nUser = 0;
+int			g_nAlarmStatus = 0;
 
 Env_t		g_tEnv;
 DB_t		g_tDBMain;
@@ -33,7 +34,6 @@ int main( void )
 	int bCreateListenFd = ON;
 	int bCreateEpollFd = ON;
 	int bAddFdToEpoll = ON; 
-
 	memset( &g_tDBMain, 0x00, sizeof(g_tDBMain) );
 	memset( &g_tDBIpc, 0x00, sizeof(g_tDBIpc) );
 
@@ -114,6 +114,11 @@ int main( void )
 	while ( g_nSvcFlag )
 	{
 		printf( "main thread run\n" );	
+
+		nRC = ALARM_Report();
+		if ( RAS_rOK != nRC )
+		{
+		}
 
 		if ( ON == bCreateListenFd )
 		{

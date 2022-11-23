@@ -6,9 +6,6 @@
 #define HTTP_TYPE_RESPONSE			1
 
 #define USER_DIR					"user"
-#define ODD_NUMBER					1
-#define MAX_TOKEN					8
-#define CNT_ALL_TOKEN				4
 
 #define HTTP_DELIM_CRLF				"\r\n"
 #define HTTP_DELIM_CRLFCRLF			"\r\n\r\n"

@@ -61,6 +61,7 @@ int UTIL_GetIdFromPath( char *pszPath, int *pnId )
 	CHECK_PARAM_RC( pszPath );
 	CHECK_PARAM_RC( pnId );
 
+	int nIndex = 0;
 	char *pszToken = NULL;
 	char *pszDefaultToken = NULL;
 	
@@ -82,14 +83,32 @@ int UTIL_GetIdFromPath( char *pszPath, int *pnId )
 		pszToken = strtok_r( NULL, HTTP_DELIM_SLASH, &pszDefaultToken );
 		if ( NULL != pszToken )
 		{
+			for ( nIndex = 0; pszToken[nIndex] != '\0'; nIndex++ )
+			{
+				if ( isdigit( pszToken[nIndex] ) )
+				{
+					LOG_DBG_F( "digit: %c", pszToken[nIndex] );
+				}
+				else
+				{
+					LOG_ERR_F( "not digit: %c", pszToken[nIndex] );
+					LOG_DBG_F( "/user/%s", pszToken );
+					return RAS_rErrHttpBadRequest;
+				}
+			}
+
 			*pnId = atoi( pszToken );
 			LOG_DBG_F( "/user/%d", *pnId );
 
 			if ( 0 >= *pnId || INT_MAX < *pnId )
 			{
-				LOG_ERR_F( "Id (%d) negative, or greater than INT_MAX", *pnId );
+				LOG_ERR_F( "id (%d) is negative or greater than INT_MAX", *pnId );
 				return RAS_rErrHttpBadRequest;
 			}
+		}
+		else
+		{
+			*pnId = 0;
 		}
 	
 		//*pnId still zero	
@@ -99,3 +118,4 @@ int UTIL_GetIdFromPath( char *pszPath, int *pnId )
 
 	return RAS_rOK;
 }
+

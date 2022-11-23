@@ -61,6 +61,7 @@
 #define SIZE_GENDER				6
 #define SIZE_BIRTH				6
 #define SIZE_ADDRESS			256
+#define SIZE_ALARM				1024
 
 typedef struct WORKER_s
 {

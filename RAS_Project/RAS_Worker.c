@@ -161,6 +161,10 @@ void *WORKER_Run( void *pvArg )
 				if ( RAS_rOK == nRC )
 				{
 					nRC = TRACE_MakeTrace( HTTP_TYPE_REQUEST, ptWorker->szClientIp,	&tRequest, &tResponse );
+					if ( RAS_rOK != nRC )
+					{
+						goto _send_response;
+					}
 				}
 
 				/*
@@ -182,11 +186,12 @@ void *WORKER_Run( void *pvArg )
 						break;
 				}
 
+_send_response:
 				tResponse.nStatusCode = HTTP_GetStatusCode( nRC );
 			
 				HTTP_SET_RESPONSE( tResponse );
 				
-				LOG_DBG_F( "\n%s", tResponse.szMsg );
+				LOG_DBG_F( "\n%s\n%s\n%s", LINE, tResponse.szMsg, LINE );
 			
 				/*
 				 *	Send Response

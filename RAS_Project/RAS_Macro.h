@@ -5,8 +5,6 @@
 #define RAS_TRUE					0
 #define RAS_FALSE					1
 
-#define POST
-
 #define F_FORMAT( format )			"%s:: "format"\n", __func__
 #define LOG_ERR_F( format, ... )	LOG_ERR( F_FORMAT(format), ##__VA_ARGS__ );
 #define LOG_DBG_F( format, ... )	LOG_DBG( F_FORMAT(format), ##__VA_ARGS__ );
@@ -15,6 +13,8 @@
 #define CASE_RETURN( _c, _ret )		case ( _c ): return _ret
 #define CASE_DEFAULT_UNKNOWN		default: return "UNKNOWN" 
 #define CASE_DEFAULT_500			default: return STATUS_CODE_500
+
+#define LINE						"=============================="
 
 #define CHECK_PARAM( _expr_t, _error ) \
 	do { \
@@ -272,6 +272,18 @@
 		} \
 	} while (0)
 
+#define DB_ROLLBACK( _db, _rc ) \
+	do { \
+		_rc = dalRollback( _db.ptDBConn ); \
+		if ( -1 == _rc ) \
+		{ \
+			LOG_ERR_F( "dalRollback fail <%d:%s>", \
+					dalErrno(), dalErrmsg(dalErrno()) ); \
+			_rc = RAS_rErrDBRollback; \
+			goto end_of_function; \
+		} \
+	} while (0)
+
 /*
  *	REGI
  */
@@ -444,6 +456,53 @@
 		if ( 0 != pthread_cancel( _thread_id ) ) \
 		{ \
 			LOG_ERR_F( "pthread_cancel fail" ); \
+		} \
+	} while (0)
+
+/*
+ *	Alarm
+ */
+#define ALARM_CREATE( p_ipc, _upp, _low, _item, _status, _buf, _rc ) \
+	do { \
+		_rc = oam_uda_crte_alarm( p_ipc, _upp, _low, _item, _status, OAM_SFM_UDA_NOTI_OFF, _buf ); \
+		if ( 0 > _rc ) \
+		{ \
+			LOG_ERR_F( "oam_uda_crte_alarm fail <%d>", _rc ); \
+			_rc = RAS_rErrFail; \
+			goto end_of_function; \
+		} \
+	} while (0)
+
+#define ALARM_CREATE_NOTI( p_ipc, _upp, _low, _rc ) \
+	do { \
+		_rc = oam_uda_crte_alarm_noti( p_ipc, _upp, _low ); \
+		if ( 0 > _rc ) \
+		{ \
+			LOG_ERR_F( "oam_uda_crte_alarm_noti fail <%d>", _rc ); \
+			_rc = RAS_rErrFail; \
+			goto end_of_function; \
+		} \
+	} while (0)
+
+#define ALARM_SET_MODULE_INFO( _buf, _bufsize, _upp, _low, _item, _status, _cnt ) \
+	do { \
+		snprintf( _buf, _bufsize, \
+				"UNIT NAME	: %s/%s\n" \
+				"ITEM NAME	: %s\n" \
+				"STATUS		: %d\n" \
+				"CNT USER	: %d", \
+				_upp, _low, _item, _status, _cnt ); \
+		_buf[ strlen(_buf) ] = '\0'; \
+	} while (0)
+
+#define ALARM_REPORT_STATUS( p_ipc, _upp, _low, _item, _status, _buf, _rc ) \
+	do { \
+		_rc = oam_uda_rpt_alarm_sts( p_ipc, _upp, _low, _item, _status, _buf ); \
+		if ( 0 > _rc ) \
+		{ \
+			LOG_ERR_F( "oam_uda_rpt_alarm_sts fail <%d>", _rc ); \
+			_rc = RAS_rErrFail; \
+			goto end_of_function; \
 		} \
 	} while (0)
 
