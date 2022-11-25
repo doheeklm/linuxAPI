@@ -62,13 +62,13 @@ int MMCHDL_IP_Add( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 		{	
 			case ARG_NUM_IP:
 			{
-				pszIp = OAMMMC_VAL_STR( ptArg );
+				pszIp = OAMMMC_VAL_STR( ptArg ); //M
 				CHECK_PARAM_GOTO( ptArg, nRC );
 			}
 				break;
 			case ARG_NUM_DESC:
 			{
-				pszDesc = OAMMMC_VAL_STR( ptArg );
+				pszDesc = OAMMMC_VAL_STR( ptArg ); //O
 			}
 				break;
 		}	
@@ -79,13 +79,17 @@ int MMCHDL_IP_Add( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 	if ( NULL != pszDesc )
 	{
 		DB_SET_STRING_BY_KEY( g_tDBIpc.patPstmt[PSTMT_INSERT_IP], ATTR_DESC, pszDesc, nRC );
+
 		DB_PREPARED_EXEC_UPDATE( g_tDBIpc, g_tDBIpc.patPstmt[PSTMT_INSERT_IP], nRC );
+
 		PRT_IP_ONE( ptOammmc, ARG_STR_IP, pszIp, ARG_STR_DESC, pszDesc );
 	}	
 	else
 	{
 		DB_SET_STRING_BY_KEY( g_tDBIpc.patPstmt[PSTMT_INSERT_IP], ATTR_DESC, EMPTY_STRING, nRC );
+
 		DB_PREPARED_EXEC_UPDATE( g_tDBIpc, g_tDBIpc.patPstmt[PSTMT_INSERT_IP], nRC );
+
 		PRT_IP_ONE( ptOammmc, ARG_STR_IP, pszIp, ARG_STR_DESC, EMPTY_STRING );
 	}
 	
@@ -121,8 +125,7 @@ int MMCHDL_IP_Dis( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 		{
 			case ARG_NUM_IP:
 			{
-				//NOTE Optional
-				pszIp = OAMMMC_VAL_STR( ptArg );
+				pszIp = OAMMMC_VAL_STR( ptArg ); //O
 			}
 				break;
 		}	
@@ -137,8 +140,11 @@ int MMCHDL_IP_Dis( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 		for ( ptEntry = dalFetchFirst( ptRes ); ptEntry != NULL; ptEntry = dalFetchNext( ptRes ) )
 		{
 			DB_GET_STRING_BY_KEY( ptEntry, ATTR_IP, &pszIp, nRC );
+
 			DB_GET_STRING_BY_KEY( ptEntry, ATTR_DESC, &pszDesc, nRC );
+
 			PRT_IP_ALL_BODY( ptOammmc, pszIp, pszDesc );
+
 			nTuple++;
 		}
 
@@ -206,6 +212,7 @@ int MMCHDL_IP_Del( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 	}
 
 	DB_SET_STRING_BY_KEY( g_tDBIpc.patPstmt[PSTMT_SELECT_IP_BY_IP], ATTR_IP, pszIp, nRC );
+
 	DB_PREPARED_EXEC( g_tDBIpc, g_tDBIpc.patPstmt[PSTMT_SELECT_IP_BY_IP], &ptRes, nRC );
 	
 	ptEntry = dalFetchFirst( ptRes );
@@ -220,6 +227,7 @@ int MMCHDL_IP_Del( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 	}
 
 	DB_SET_STRING_BY_KEY( g_tDBIpc.patPstmt[PSTMT_DELETE_IP], ATTR_IP, pszIp, nRC );
+
 	DB_PREPARED_EXEC_UPDATE( g_tDBIpc, g_tDBIpc.patPstmt[PSTMT_DELETE_IP], nRC );
 	
 	PRT_IP_ONE( ptOammmc, ARG_STR_IP, pszIp, ARG_STR_DESC, pszDesc );

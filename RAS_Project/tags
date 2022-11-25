@@ -4,16 +4,16 @@
 !_TAG_PROGRAM_NAME	Exuberant Ctags	//
 !_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
 !_TAG_PROGRAM_VERSION	5.8	//
-ALARM_CREATE	RAS_Macro.h	546;"	d
-ALARM_CREATE_NOTI	RAS_Macro.h	557;"	d
+ALARM_CREATE	RAS_Macro.h	559;"	d
+ALARM_CREATE_NOTI	RAS_Macro.h	570;"	d
 ALARM_CountUser	RAS_Alarm.c	/^int ALARM_CountUser()$/;"	f
 ALARM_Init	RAS_Alarm.c	/^int ALARM_Init()$/;"	f
 ALARM_MAJOR	RAS_Alarm.h	11;"	d
 ALARM_MINOR	RAS_Alarm.h	10;"	d
 ALARM_NORMAL	RAS_Alarm.h	9;"	d
-ALARM_REPORT_STATUS	RAS_Macro.h	580;"	d
+ALARM_REPORT_STATUS	RAS_Macro.h	593;"	d
 ALARM_Report	RAS_Alarm.c	/^int ALARM_Report()$/;"	f
-ALARM_SET_MODULE_INFO	RAS_Macro.h	568;"	d
+ALARM_SET_MODULE_INFO	RAS_Macro.h	581;"	d
 ALARM_SetStatus	RAS_Alarm.c	/^void ALARM_SetStatus()$/;"	f
 ARG_ID_BIRTH	RAS_Mmc.h	21;"	d
 ARG_ID_DESC	RAS_Mmc.h	17;"	d
@@ -118,10 +118,10 @@ HTTP_GetContentLength	RAS_Http.c	/^int HTTP_GetContentLength( struct REQUEST_s *
 HTTP_GetMethodAndPath	RAS_Http.c	/^int HTTP_GetMethodAndPath( struct REQUEST_s *ptRequest )$/;"	f
 HTTP_GetStatusCode	RAS_Http.c	/^int HTTP_GetStatusCode( int nRC )$/;"	f
 HTTP_GetStatusMsg	RAS_Http.c	/^char* HTTP_GetStatusMsg( int nCode )$/;"	f
-HTTP_JSON_INFO	RAS_Macro.h	492;"	d
-HTTP_JSON_INFO_AND	RAS_Macro.h	489;"	d
-HTTP_JSON_INFO_BEGIN	RAS_Macro.h	488;"	d
-HTTP_JSON_INFO_END	RAS_Macro.h	490;"	d
+HTTP_JSON_INFO	RAS_Macro.h	505;"	d
+HTTP_JSON_INFO_AND	RAS_Macro.h	502;"	d
+HTTP_JSON_INFO_BEGIN	RAS_Macro.h	501;"	d
+HTTP_JSON_INFO_END	RAS_Macro.h	503;"	d
 HTTP_METHOD_DEL_NUM	RAS_Http.h	23;"	d
 HTTP_METHOD_DEL_STR	RAS_Http.h	19;"	d
 HTTP_METHOD_GET_NUM	RAS_Http.h	22;"	d
@@ -147,7 +147,7 @@ HTTP_RESPONSE_UNKNOWN405	RAS_Stat.h	/^    HTTP_RESPONSE_UNKNOWN405,$/;"	e	enum:_
 HTTP_ReadBody	RAS_Http.c	/^int HTTP_ReadBody( int nFd, struct REQUEST_s *ptRequest )$/;"	f
 HTTP_ReadHeader	RAS_Http.c	/^int HTTP_ReadHeader( int nFd, struct REQUEST_s *ptRequest )$/;"	f
 HTTP_SET_RESPONSE	RAS_Macro.h	476;"	d
-HTTP_STR_TO_NUM_METHOD	RAS_Macro.h	508;"	d
+HTTP_STR_TO_NUM_METHOD	RAS_Macro.h	521;"	d
 HTTP_SendResponse	RAS_Http.c	/^int HTTP_SendResponse( int nFd, void *pvBuf )$/;"	f
 HTTP_TOTAL_REQUEST	RAS_Stat.h	/^    HTTP_TOTAL_REQUEST,$/;"	e	enum:__anon4
 HTTP_TOTAL_RESPONSE	RAS_Stat.h	/^    HTTP_TOTAL_RESPONSE,$/;"	e	enum:__anon4
@@ -318,12 +318,12 @@ REGI_DIR	RAS_Regi.h	11;"	d
 REGI_GET_ENUM_KEY_VALUE	RAS_Macro.h	411;"	d
 REGI_GET_VALUE	RAS_Macro.h	385;"	d
 REGI_GetAll	RAS_Regi.c	/^int REGI_GetAll( int *pnCnt )$/;"	f
+REGI_INT_TO_VALUE	RAS_Macro.h	349;"	d
 REGI_Init	RAS_Regi.c	/^int REGI_Init()$/;"	f
 REGI_KEY_MAX	RAS_Regi.h	9;"	d
 REGI_SECTION	RAS_Config.h	7;"	d
 REGI_SET_VALUE	RAS_Macro.h	373;"	d
-REGI_STR_KEY	RAS_Macro.h	343;"	d
-REGI_STR_VALUE	RAS_Macro.h	349;"	d
+REGI_STR_TO_KEY	RAS_Macro.h	343;"	d
 REGI_SYS_ID	RAS_Regi.h	8;"	d
 REGI_s	RAS_Regi.h	/^typedef struct REGI_s$/;"	s
 REGI_t	RAS_Regi.h	/^} REGI_t;$/;"	t	typeref:struct:REGI_s
@@ -349,19 +349,19 @@ SIZE_ZERO	RAS_Inc.h	72;"	d
 SNPRINTF_QUERY_INT	RAS_Macro.h	50;"	d
 SNPRINTF_QUERY_STR	RAS_Macro.h	56;"	d
 SOCKET_Init	RAS_Socket.c	/^int SOCKET_Init( int *pnListenFd )$/;"	f
-SQL_AND	RAS_Mmchdl_Info.h	7;"	d
+SQL_AND	RAS_DB.h	39;"	d
 SQL_DELETE_INFO	RAS_DB.h	34;"	d
 SQL_DELETE_IP	RAS_DB.h	28;"	d
 SQL_INSERT_INFO	RAS_DB.h	29;"	d
 SQL_INSERT_IP	RAS_DB.h	23;"	d
 SQL_NUMTUPLES_INFO	RAS_DB.h	35;"	d
-SQL_SELECT_CUSTOM	RAS_Mmchdl_Info.h	5;"	d
+SQL_SELECT_CUSTOM	RAS_DB.h	37;"	d
 SQL_SELECT_INFO_ALL	RAS_DB.h	32;"	d
 SQL_SELECT_INFO_BY_ID	RAS_DB.h	33;"	d
 SQL_SELECT_IP_ALL	RAS_DB.h	26;"	d
 SQL_SELECT_IP_BY_IP	RAS_DB.h	27;"	d
-SQL_SEMICOLON	RAS_Mmchdl_Info.h	8;"	d
-SQL_WHERE	RAS_Mmchdl_Info.h	6;"	d
+SQL_SEMICOLON	RAS_DB.h	40;"	d
+SQL_WHERE	RAS_DB.h	38;"	d
 SRCS	Makefile	/^SRCS= RAS_Main.c			\\$/;"	m
 START_SVC	RAS_Inc.h	68;"	d
 STATUS_CODE_200	RAS_Http.h	25;"	d
@@ -383,8 +383,8 @@ STOP_GRACE_TIME_MSEC	RAS_Ipc.h	6;"	d
 STOP_SVC	RAS_Inc.h	67;"	d
 STRLCAT_OVERFLOW_CHECK	RAS_Macro.h	40;"	d
 SignalHandler	RAS_Main.c	/^void SignalHandler( int nSigno )$/;"	f
-THREAD_CANCEL	RAS_Macro.h	527;"	d
-THREAD_JOIN	RAS_Macro.h	535;"	d
+THREAD_CANCEL	RAS_Macro.h	540;"	d
+THREAD_JOIN	RAS_Macro.h	548;"	d
 TIME_OUT	RAS_Event.h	6;"	d
 TOKEN_ADDRESS	RAS_Method.h	/^	TOKEN_ADDRESS,$/;"	e	enum:__anon1
 TOKEN_BIRTH	RAS_Method.h	/^	TOKEN_BIRTH,$/;"	e	enum:__anon1
@@ -398,8 +398,8 @@ UPP_GNAME	RAS_Alarm.h	5;"	d
 USER_DIR	RAS_Http.h	8;"	d
 USR_INFO_TBL	RAS_DB.h	9;"	d
 UTIL_CheckClientIp	RAS_Util.c	/^int UTIL_CheckClientIp( char *pszIp )$/;"	f
-UTIL_CheckPath	RAS_Util.c	/^int UTIL_CheckPath( char *pszPath )$/;"	f
-UTIL_GetIdFromPath	RAS_Util.c	/^int UTIL_GetIdFromPath( char *pszPath, int *pnId )$/;"	f
+UTIL_CheckPath	RAS_Util.c	/^int UTIL_CheckPath( char *pszPath ) \/\/only for POST$/;"	f
+UTIL_GetIdFromPath	RAS_Util.c	/^int UTIL_GetIdFromPath( char *pszPath, int *pnId ) \/\/for GET, DELETE$/;"	f
 VALID_RANGE	RAS_Macro.h	62;"	d
 WORKER_CleanUp	RAS_Worker.c	/^void WORKER_CleanUp( void *pvArg )$/;"	f
 WORKER_Init	RAS_Worker.c	/^int WORKER_Init()$/;"	f
@@ -442,7 +442,7 @@ en_item_index_t	RAS_Stat.h	/^}en_item_index_t;$/;"	t	typeref:enum:__anon4
 g_nAlarmStatus	RAS_Main.c	/^int				g_nAlarmStatus = 0;$/;"	v
 g_nSvcFlag	RAS_Main.c	/^int				g_nSvcFlag = START_SVC;$/;"	v
 g_nUser	RAS_Main.c	/^int				g_nUser = 0;$/;"	v
-g_nWorkerIndex	RAS_Event.c	/^int g_nWorkerIndex = 0; \/\/NOTE Main Thread에서 사용$/;"	v
+g_nWorkerIndex	RAS_Event.c	/^int g_nWorkerIndex = 0; \/\/Main Thread에서만 사용$/;"	v
 g_ptMpipc	RAS_Main.c	/^mpipc_t			*g_ptMpipc = NULL;$/;"	v
 g_ptOammmc	RAS_Main.c	/^oammmc_t		*g_ptOammmc = NULL;$/;"	v
 g_tDBIpc	RAS_Main.c	/^DB_t			g_tDBIpc;$/;"	v

@@ -80,16 +80,6 @@
 		} \
 	} while (0)	
 
-#define PRT_PID( _pid ) \
-	do { \
-		printf( "%s:: (ProcessId %d)\n", __func__, _pid ); \
-	} while (0)
-
-#define PRT_TID( _tid ) \
-	do { \
-		printf( "%s:: (ThreadId %lu)\n", __func__, _tid ); \
-	} while (0)
-
 #define PRT_CREATE_FD( _str, _fd ) \
 	do { \
 		printf( "%s:: create %s %d)\n", __func__, _str, _fd ); \
@@ -100,8 +90,6 @@
 		printf( "%s:: (ThreadId %lu) create (epoll %d)\n", \
 			  __func__, _tid, _fd ); \
 	} while (0)
-
-#define PRT_EXIT printf( "\n%s:: exit\n", __func__ );
 
 #define PRT_LINE( p_mmc ) \
 	do { \
@@ -340,13 +328,13 @@
 /*
  *	REGI
  */
-#define REGI_STR_KEY( _buf, _bufsize, _key ); \
+#define REGI_STR_TO_KEY( _buf, _bufsize, _key ); \
 	do { \
 		snprintf( _buf, _bufsize, "%s/%s", REGI_DIR, _key ); \
 		_buf[ strlen(_buf) ] = '\0'; \
 	} while (0)
 
-#define REGI_STR_VALUE( _buf, _bufsize, _val ); \
+#define REGI_INT_TO_VALUE( _buf, _bufsize, _val ); \
 	do { \
 		snprintf( _buf, _bufsize, "%d", _val ); \
 		_buf[ strlen(_buf) ] = '\0'; \

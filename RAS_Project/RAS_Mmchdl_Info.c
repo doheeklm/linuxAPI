@@ -126,7 +126,6 @@ int MMCHDL_INFO_Dis( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 		
 		nAddFlag = RAS_TRUE;
 	}
-
 	nAddFlag = RAS_FALSE;
 
 	STRLCAT_OVERFLOW_CHECK( szQuery, SQL_SEMICOLON, sizeof(szQuery), nRC );
@@ -144,6 +143,7 @@ int MMCHDL_INFO_Dis( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 		DB_GET_STRING_BY_KEY( ptEntry, ATTR_ADDRESS, &pszAddress, nRC );	
 
 		PRT_INFO_ALL_BODY( ptOammmc, nId, pszName, pszGender, pszBirth, pszAddress );	
+
 		nTuple++;
 	}
 
@@ -196,8 +196,10 @@ int MMCHDL_INFO_Del( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 				break;
 		}	
 	}
-	
+
+	//삭제할 유저의 정보를 mmc print하기 위해, delete 수행 전 select 함
 	DB_SET_INT_BY_KEY( g_tDBIpc.patPstmt[PSTMT_SELECT_INFO_BY_ID], ATTR_ID, nId, nRC );
+
 	DB_PREPARED_EXEC( g_tDBIpc, g_tDBIpc.patPstmt[PSTMT_SELECT_INFO_BY_ID], &ptRes, nRC );
 
 	ptEntry = dalFetchFirst( ptRes );
@@ -215,12 +217,14 @@ int MMCHDL_INFO_Del( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 	}
 
 	DB_SET_INT_BY_KEY( g_tDBIpc.patPstmt[PSTMT_DELETE_INFO], ATTR_ID, nId, nRC );
+
 	DB_PREPARED_EXEC_UPDATE( g_tDBIpc, g_tDBIpc.patPstmt[PSTMT_DELETE_INFO], nRC );
+
 	PRT_INFO_ONE( ptOammmc, ATTR_ID, nId, ATTR_NAME, pszName,
 			ATTR_GENDER, pszGender, ATTR_BIRTH, pszBirth, ATTR_ADDRESS, pszAddress );
 
 	pthread_mutex_lock( &g_tMutex );
-	g_nUser--;
+	g_nUser--; //Alarm
 	pthread_mutex_unlock( &g_tMutex );
 
 	DB_FREE( ptRes );

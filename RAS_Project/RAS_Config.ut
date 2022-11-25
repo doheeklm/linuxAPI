@@ -6,7 +6,7 @@ REGI_PORT=35570
 
 [LOG]
 log_level=3
-log_mode=125
+log_mode=1045
 
 [MMC]
 mmt_enable=1

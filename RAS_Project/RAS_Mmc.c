@@ -18,6 +18,9 @@ int MMC_Init()
 
 	/*
 	 *	Bind MMT Channel
+	 *	MMT: Main Machine Terminal
+	 *	GUI를 통하지 않고 MMC 수행 블록에 직접 연동하여 MMC 수행
+	 *	TCP로 통신하며, 포트 번호를 지정하지 않을 경우 UDS로 통신함
 	 */
 	if ( 1 == g_tEnv.nMmtEnable )
 	{
@@ -34,6 +37,9 @@ int MMC_Init()
 
 	/*
 	 *	Bind MML Channel
+	 *	MML: Man Machine Language
+	 *	기존 Legacy OAM에서 지원하던 타입
+	 *	MMC 수행 블록까지 구조체 형식으로 전송
 	 */	
 	if ( 1 == g_tEnv.nMmlEnable )
 	{
@@ -59,21 +65,18 @@ int MMC_Init()
 	nRC = MMCHDL_IP_Init( g_ptOammmc );
 	if ( RAS_rOK != nRC )
 	{
-		LOG_ERR_F( "MMCHDL_IP_Init fail <%d>", nRC );
 		return RAS_rErrMmcInit;
 	}
 	
 	nRC = MMCHDL_TRC_Init( g_ptOammmc );
 	if ( RAS_rOK != nRC )
 	{
-		LOG_ERR_F( "MMCHDL_TRC_Init fail <%d>", nRC );
 		return RAS_rErrMmcInit;
 	}
 
 	nRC = MMCHDL_INFO_Init( g_ptOammmc );
 	if ( RAS_rOK != nRC )
 	{
-		LOG_ERR_F( "MMCHDL_INFO_Init fail <%d>", nRC );
 		return RAS_rErrMmcInit;
 	}
 	

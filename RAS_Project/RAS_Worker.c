@@ -20,8 +20,7 @@ int WORKER_Init()
 
 	for ( nIndex = 0; nIndex < MAX_WORKER_CNT; nIndex++ )
 	{
-		nRC = pthread_create( &g_tWorker[nIndex].nThreadId, NULL,
-							  WORKER_Run, &(g_tWorker[nIndex]) );
+		nRC = pthread_create( &g_tWorker[nIndex].nThreadId, NULL, WORKER_Run, &(g_tWorker[nIndex]) );
 		if ( nRC != 0 )
 		{
 			LOG_ERR_F( "pthread_create fail <%d>", nRC );
@@ -44,8 +43,6 @@ void *WORKER_Run( void *pvArg )
 	
 	WORKER_t *ptWorker = (WORKER_t *)pvArg;
 	
-	PRT_TID( syscall(SYS_gettid) );
-	
 	int nRC = 0;
 	int nIndex = 0;
 	int nCntFd = 0;
@@ -57,10 +54,8 @@ void *WORKER_Run( void *pvArg )
 	struct epoll_event atEvents[MAX_CONNECT];
 	memset( atEvents, 0x00, sizeof(atEvents) );	
 	char *pszIp = NULL;
-
 	REQUEST_t tRequest;
 	memset( &tRequest, 0x00, sizeof(tRequest) );
-
 	RESPONSE_t tResponse;
 	memset( &tResponse, 0x00, sizeof(tResponse) );
 	
@@ -87,7 +82,8 @@ void *WORKER_Run( void *pvArg )
 	}
 	PRT_CREATE_EPOLL( syscall(SYS_gettid), ptWorker->nEpollFd );
 
-	while ( 1 )
+	//TODO main과 worker의 sync 순서 맞춰야함 (thr cond wait?)
+	while ( START_SVC == g_nSvcFlag )
 	{
 		nCntFd = epoll_wait( ptWorker->nEpollFd, atEvents, MAX_CONNECT, TIME_OUT );
 		if ( -1 == nCntFd )
@@ -99,11 +95,13 @@ void *WORKER_Run( void *pvArg )
 			}
 			else
 			{
-				//NOTE worker epoll에 등록된 client fd를 관리하지 않아서 epoll 재생성 하지 않고 close함
+				//worker epoll에 등록된 client fd를 관리하지 않아서 epoll 재생성 하지 않고 close함
 				FD_CLOSE( ptWorker->nEpollFd );
 				goto _exit_worker;
 			}
 		}
+	
+		//TODO Main에서 alarm report 말고 Worker에서 함
 
 		for ( nIndex = 0; nIndex < nCntFd; nIndex++ )
 		{
@@ -128,6 +126,8 @@ void *WORKER_Run( void *pvArg )
 
 				LOG_DBG_F( "(epoll %d) (fd %d) (events %u)",
 						ptWorker->nEpollFd, nClientFd, atEvents[nIndex].events );
+				
+				//TODO 전체적으로 RC에 대한 ERR LOG 필요
 
 				nRC = HTTP_ReadHeader( nClientFd, &tRequest );
 				if ( RAS_rOK != nRC )
@@ -169,12 +169,15 @@ void *WORKER_Run( void *pvArg )
 
 				pszIp = inet_ntoa( tSockAddr.sin_addr );
 				LOG_DBG_F( "Client Ip (%s)", pszIp );
-
+				
+				//TODO NONE 0 define
 				STAT_Count( HTTP_TYPE_REQUEST, nMethod, 0, pszIp );
 
 				nRC = REGI_CheckKeyExist( pszIp );
 				if ( RAS_rOK == nRC )
 				{
+					//TODO Trace는 Response후에 한번에 Make 하기
+					//TODO GUI를 위한 Trace인지 Text를 위한 Trace인지 설정이 다름 (현재 Text)
 					nRC = TRACE_MakeTrace( HTTP_TYPE_REQUEST, pszIp, &tRequest, &tResponse );
 					if ( RAS_rOK != nRC )
 					{
@@ -204,6 +207,7 @@ void *WORKER_Run( void *pvArg )
 						nRC = RAS_rErrHttpMethodNotAllowed;
 					}
 						break;
+
 				}
 
 _send_response:
@@ -215,6 +219,7 @@ _send_response:
 
 				tResponse.nStatusCode = HTTP_GetStatusCode( nRC );
 
+				//TODO POSTMAN에게 응답 보낼 메시지에 Content-Length 들어가면 왜 작동이 안되는지 확인
 				HTTP_SET_RESPONSE( nMethod, tResponse );
 
 				nRC = HTTP_SendResponse( nClientFd, tResponse.szMsg );
@@ -224,6 +229,7 @@ _send_response:
 					continue;
 				}
 
+				//TODO getsockopt로 acceptfd 옵션 확인 
 				STAT_Count( HTTP_TYPE_RESPONSE, nMethod, tResponse.nStatusCode, pszIp );
 
 				nRC = REGI_CheckKeyExist( pszIp );
@@ -246,9 +252,6 @@ _send_response:
 	}//while(1)
 
 _exit_worker:
-	PRT_EXIT;
 	pthread_cleanup_pop( 0 );
-	FD_CLOSE( ptWorker->nEpollFd );
-	DB_Close( &ptWorker->tDB );
 	pthread_exit( NULL );
 }

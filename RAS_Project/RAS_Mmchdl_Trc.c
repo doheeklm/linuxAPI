@@ -66,19 +66,20 @@ int MMCHDL_TRC_Add( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 		{
 			case ARG_NUM_IP:
 			{
-				pszIp = OAMMMC_VAL_STR( ptArg );
+				pszIp = OAMMMC_VAL_STR( ptArg ); //M
 				CHECK_PARAM_GOTO( pszIp, nRC );
 			}
 				break;
 			case ARG_NUM_TIME:
 			{
-				nTime = OAMMMC_VAL_INT( ptArg );
+				nTime = OAMMMC_VAL_INT( ptArg ); //O
 			}
 				break;
 		}	
 	}
 
-	REGI_STR_KEY( szKey, sizeof(szKey), pszIp );
+	REGI_STR_TO_KEY( szKey, sizeof(szKey), pszIp );
+
 	REGI_CREATE( szKey, strlen(szKey), nRC );	
 
 	if ( 0 == nTime )
@@ -86,17 +87,19 @@ int MMCHDL_TRC_Add( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 		nTime = DEFAULT_TIME;
 	}
 	
-	REGI_STR_VALUE( szTime, sizeof(szTime), nTime );
+	REGI_INT_TO_VALUE( szTime, sizeof(szTime), nTime );
+
 	REGI_SET_VALUE( szKey, strlen(szKey), szTime, strlen(szTime), nRC );
 
 	PRT_IP_ONE( ptOammmc, ARG_STR_IP, pszIp, ARG_STR_TIME, szTime ); 
+
 	return RAS_rSuccessMmchdl;
 
 end_of_function:
 	PRT_FAIL( ptOammmc, "%s\n", ERR_GetDesc(nRC) );
 	if ( NULL != pszIp )
 	{
-		REGI_DELETE_NO_RC( szKey, sizeof(szKey) );
+		REGI_DELETE_NO_RC( szKey, sizeof(szKey) ); //Value Set 실패 시 Key 삭제
 	}
 	return nRC;
 }
@@ -115,6 +118,8 @@ int MMCHDL_TRC_Dis( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 	char *pszIp = NULL;
 	char szKey[REGI_KEY_MAX];
 	memset( szKey, 0x00, sizeof(szKey) );
+	char szTime[32];
+	memset( szTime, 0x00, sizeof(szTime) );
 	oammmc_arg_t *ptArg = NULL;
 
 	for ( nIndex = 0; nIndex < nArgNum; nIndex++ )
@@ -125,8 +130,7 @@ int MMCHDL_TRC_Dis( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 		{
 			case ARG_NUM_IP:
 			{
-				pszIp = OAMMMC_VAL_STR( ptArg );
-				CHECK_PARAM_GOTO( pszIp, nRC );
+				pszIp = OAMMMC_VAL_STR( ptArg ); //O
 			}
 				break;
 		}	
@@ -152,11 +156,10 @@ int MMCHDL_TRC_Dis( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 	}
 	else
 	{
-		char szTime[32];
-		memset( szTime, 0x00, sizeof(szTime) );
+		REGI_STR_TO_KEY( szKey, sizeof(szKey), pszIp );
 
-		REGI_STR_KEY( szKey, sizeof(szKey), pszIp );
 		REGI_GET_VALUE( szKey, strlen(szKey), szTime, sizeof(szTime), nRC );
+
 		PRT_IP_ONE( ptOammmc, ARG_STR_IP, pszIp, ARG_STR_TIME, szTime );
 	}
 
@@ -193,15 +196,17 @@ int MMCHDL_TRC_Del( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 		{
 			case ARG_NUM_IP:
 			{
-				pszIp = OAMMMC_VAL_STR( ptArg );
+				pszIp = OAMMMC_VAL_STR( ptArg ); //M
 				CHECK_PARAM_GOTO( pszIp, nRC );
 			}
 				break;
 		}	
 	}
 
-	REGI_STR_KEY( szKey, sizeof(szKey), pszIp );
+	REGI_STR_TO_KEY( szKey, sizeof(szKey), pszIp );
+
 	REGI_GET_VALUE( szKey, strlen(szKey), szTime, sizeof(szTime), nRC );
+
 	REGI_DELETE( szKey, strlen(szKey), nRC );
 
 	PRT_IP_ONE( ptOammmc, ARG_STR_IP, pszIp, ARG_STR_TIME, szTime );

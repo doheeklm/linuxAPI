@@ -31,14 +31,6 @@ int DB_InitPreparedStatement( DB_t *ptDB )
 	DB_INIT_PSTMT( ptDB, PSTMT_DELETE_INFO,			SQL_DELETE_INFO );
 	DB_INIT_PSTMT( ptDB, PSTMT_NUMTUPLES_INFO,		SQL_NUMTUPLES_INFO );
 
-#if 0
-	int nIndex = 0;
-	for ( nIndex = 0; nIndex < PSTMT_MAX; nIndex++ )
-	{
-		printf( "[%d] %s\n", nIndex, dalPreparedGetQuery( ptDB->patPstmt[nIndex] ) );
-	}	
-#endif
-
 	return RAS_rOK;
 }
 
@@ -56,7 +48,7 @@ void DB_Close( DB_t *ptDB )
 			nRC = dalDestroyPreparedStmt( ptDB->patPstmt[nIndex] );
 			if ( -1 == nRC )
 			{
-				//LOG_ERR_F( "dalDestroyPreparedStmt fail <%d:%s>", dalErrno(), dalErrmsg(dalErrno()) );
+				LOG_ERR_F( "dalDestroyPreparedStmt fail <%d:%s>", dalErrno(), dalErrmsg(dalErrno()) );
 			}
 			ptDB->patPstmt[nIndex] = NULL;
 		}

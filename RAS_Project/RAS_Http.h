@@ -48,8 +48,8 @@ typedef struct REQUEST_s
 	char		szHeader	[SIZE_HEADER + 1];
 	char		szMethod	[SIZE_METHOD + 1];
 	char		szPath		[SIZE_PATH + 1];
-	int			nContentLength;
 	char		szBody		[SIZE_BODY + 1];
+	int			nContentLength;
 } REQUEST_t;
 
 typedef struct RESPONSE_s
@@ -60,13 +60,13 @@ typedef struct RESPONSE_s
 	char		szMsg		[SIZE_MSG + 1];
 } RESPONSE_t;
 
-int HTTP_ReadHeader( int nFd, struct REQUEST_s *ptRequest );
-int HTTP_GetMethodAndPath( struct REQUEST_s *ptRequest );
-int HTTP_GetContentLength( struct REQUEST_s *ptRequest );
-int HTTP_ReadBody( int nFd, struct REQUEST_s *ptRequest );
+int		HTTP_ReadHeader( int nFd, struct REQUEST_s *ptRequest );
+int 	HTTP_GetMethodAndPath( struct REQUEST_s *ptRequest );
+int	 	HTTP_GetContentLength( struct REQUEST_s *ptRequest );
+int	 	HTTP_ReadBody( int nFd, struct REQUEST_s *ptRequest );
 
-int HTTP_GetStatusCode( int nRC );
-char* HTTP_GetStatusMsg( int nCode );
-int HTTP_SendResponse( int nFd, void *pvBuf );
+int		HTTP_GetStatusCode( int nRC );
+char*	HTTP_GetStatusMsg( int nCode );
+int		HTTP_SendResponse( int nFd, void *pvBuf );
 
 #endif /* _RAS_HTTP_H_ */

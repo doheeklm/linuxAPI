@@ -2,11 +2,6 @@
 #ifndef _RAS_MMCHDL_INFO_H_
 #define _RAS_MMCHDL_INFO_H_
 
-#define SQL_SELECT_CUSTOM	"select * from "
-#define	SQL_WHERE			" where "
-#define SQL_AND				" and "
-#define SQL_SEMICOLON		";"
-
 int MMCHDL_INFO_Init( oammmc_t *ptOammmc );
 int MMCHDL_INFO_Add( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 		oammmc_arg_t *patArgList, int nArgNum, void *ptUarg );

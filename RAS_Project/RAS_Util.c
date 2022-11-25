@@ -22,7 +22,7 @@ end_of_function:
 	return nRC;
 }
 
-int UTIL_CheckPath( char *pszPath )
+int UTIL_CheckPath( char *pszPath ) //only for POST
 {
 	CHECK_PARAM_RC( pszPath );
 
@@ -56,7 +56,7 @@ int UTIL_CheckPath( char *pszPath )
 	return RAS_rOK;
 }
 
-int UTIL_GetIdFromPath( char *pszPath, int *pnId )
+int UTIL_GetIdFromPath( char *pszPath, int *pnId ) //for GET, DELETE
 {
 	CHECK_PARAM_RC( pszPath );
 	CHECK_PARAM_RC( pnId );

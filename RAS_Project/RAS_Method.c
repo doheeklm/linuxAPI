@@ -171,7 +171,7 @@ int METHOD_Post( DB_t tDBWorker, struct REQUEST_s *ptRequest, struct RESPONSE_s 
 	DB_PREPARED_EXEC_UPDATE( tDBWorker, tDBWorker.patPstmt[PSTMT_INSERT_INFO], nRC );
 
 	pthread_mutex_lock( &g_tMutex );
-	g_nUser++;
+	g_nUser++; //Alarm
 	pthread_mutex_unlock( &g_tMutex );
 
 	return RAS_rHttpCreated;
@@ -313,7 +313,7 @@ int METHOD_Delete( DB_t tDBWorker, struct REQUEST_s *ptRequest, struct RESPONSE_
 	DB_PREPARED_EXEC_UPDATE( tDBWorker, tDBWorker.patPstmt[PSTMT_DELETE_INFO], nRC );
 	
 	pthread_mutex_lock( &g_tMutex );
-	g_nUser--;
+	g_nUser--; //Alarm
 	pthread_mutex_unlock( &g_tMutex );
 
 	return RAS_rHttpOK;

@@ -2,7 +2,7 @@
 #include "RAS_Inc.h"
 
 extern WORKER_t	g_tWorker[MAX_WORKER_CNT];
-int g_nWorkerIndex = 0; //NOTE Main Thread에서 사용
+int g_nWorkerIndex = 0; //Main Thread에서만 사용
 
 int EVENT_Init( int *pnEpollFd )
 {
@@ -74,6 +74,7 @@ int EVENT_Wait( int nListenFd, int nEpollFd )
 		}
 		else if ( EPOLLIN & atEvents[nIndex].events )
 		{
+			//TODO Fd는 보통 0이 아닌 -1로 초기화함
 			nAcceptFd = 0;
 			memset( &tEvent, 0x00, sizeof(tEvent) );
 			memset( &tAddr, 0x00, sizeof(tAddr) );
@@ -87,8 +88,8 @@ int EVENT_Wait( int nListenFd, int nEpollFd )
 			}
 
 			pszClientIp = inet_ntoa( tAddr.sin_addr );
-			printf( "%s:: (ProcessId %d) (accept %d)\n", __func__, getpid(), nAcceptFd);
 
+			printf( "%s:: (ProcessId %d) (accept %d)\n", __func__, getpid(), nAcceptFd);
 			LOG_DBG_F( "accept ip(%s)", pszClientIp );
 
 			nRC = UTIL_CheckClientIp( pszClientIp );
@@ -115,11 +116,10 @@ int EVENT_Wait( int nListenFd, int nEpollFd )
 			printf( "\n%s:: Add (accept %d) to Worker[%d] (epoll %d)\n",
 				   __func__, nAcceptFd, g_nWorkerIndex, g_tWorker[g_nWorkerIndex].nEpollFd );
 		
-			g_nWorkerIndex++; //NOTE 기본값 -1
+			g_nWorkerIndex++; //기본값 0
 			printf( "Worker Index %d\n", g_nWorkerIndex );
-
+//modu
 			INDEX_RESET_WHEN_MAX( MAX_WORKER_CNT, g_nWorkerIndex );
-
 		}
 	}
 

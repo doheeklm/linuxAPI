@@ -7,6 +7,7 @@ typedef struct WORKER_s
 	pthread_t	nThreadId;
 	int			nEpollFd;
 	DB_t		tDB;
+
 } WORKER_t;
 
 int		WORKER_Init();

@@ -14,6 +14,8 @@ int HTTP_ReadHeader( int nFd, struct REQUEST_s *ptRequest )
 	{
 		memset( szBuf, 0x00, sizeof(szBuf) );
 
+		//TODO 소켓이 nonblock block인지 확인해야함
+		//nonblock인지 block인지에 따라 계속 지연될 경우 연결 해제할건지 다름
 		nRead = read( nFd, szBuf, sizeof(szBuf)-1 );
 		if ( -1 == nRead )
 		{
@@ -30,6 +32,9 @@ int HTTP_ReadHeader( int nFd, struct REQUEST_s *ptRequest )
 
 		STRLCAT_OVERFLOW_CHECK( ptRequest->szHeader, szBuf, sizeof(ptRequest->szHeader), nRC );
 
+		/*
+		 *	"\r\n\r\n" 검색
+		 */
 		pszSearch = strstr( ptRequest->szHeader, HTTP_DELIM_CRLFCRLF );
 		if ( NULL != pszSearch )
 		{
@@ -55,6 +60,9 @@ int HTTP_GetMethodAndPath( struct REQUEST_s *ptRequest )
 
 	strlcpy( szCopy, ptRequest->szHeader, sizeof(szCopy) ); 
 
+	/*
+	 *	스페이스 토큰화
+	 */
 	pszToken = strtok_r( szCopy, HTTP_DELIM_SPACE, &pszDefaultToken );
 	if ( NULL == pszToken )
 	{
@@ -64,9 +72,19 @@ int HTTP_GetMethodAndPath( struct REQUEST_s *ptRequest )
 
 	while ( NULL != pszToken )
 	{
+		//Method POST
 		strlcpy( ptRequest->szMethod, pszToken, sizeof(ptRequest->szMethod) );
+		
 		pszToken = strtok_r( NULL, HTTP_DELIM_SPACE, &pszDefaultToken );
+		if ( NULL == pszToken )
+		{
+			LOG_ERR_F( "not found <(space>" );
+			return RAS_rErrFail;
+		}
+		
+		//Path /user
 		strlcpy( ptRequest->szPath, pszToken, sizeof(ptRequest->szPath) );
+		
 		break;
 	}
 	
@@ -86,6 +104,9 @@ int HTTP_GetContentLength( struct REQUEST_s *ptRequest )
 	
 	strlcpy( szCopy, ptRequest->szHeader, sizeof(szCopy) ); 
 
+	/*
+	 *	"Content-Length: " 검색
+	 */
 	pszSearch = strstr( szCopy, HTTP_DELIM_CONTENTLENGTH );
 	if ( NULL == pszSearch )
 	{
@@ -131,6 +152,9 @@ int HTTP_ReadBody( int nFd, struct REQUEST_s *ptRequest )
 
 	strlcpy( szCopy, ptRequest->szHeader, sizeof(szCopy) ); 
 
+	/*
+	 *	"\r\n\r\n" 검색
+	 */
 	pszSearch = strstr( szCopy, HTTP_DELIM_CRLFCRLF );
 	if ( NULL == pszSearch )
 	{
@@ -138,16 +162,27 @@ int HTTP_ReadBody( int nFd, struct REQUEST_s *ptRequest )
 		return RAS_rErrFail;
 	}
 
+	/*
+	 *	"\r\n\r\n" 이후로 위치 옮기기
+	 */
 	pszSearch += strlen(HTTP_DELIM_CRLFCRLF);
 
 	strlcpy( ptRequest->szBody, pszSearch, sizeof(ptRequest->szBody) );
 
 	LOG_DBG_F( "read (%d)", (int)strlen(ptRequest->szBody) );
+
+	//TODO 실제 읽은 byte count를 하지 않고 큰 Buffer size를 줬을 때 문제는
+	//만약 POST GET 두 request가 연속해서 TCP buffer에 있으면,
+	//두 request를 다 읽어버릴 수 있기 때문에
+	//후속 request 처리 로직이 없다면 POST만 처리하고 GET은 처리 못하는 문제점이 있음
+	//NOTE TCP buffer에서 read 함수로 내부 buffer를 읽어버리면, 다음 epoll에서 EPOLL_IN이 뜨지 않음
+	//참고 자료: https://www.linuxtoday.com/blog/blocking-and-non-blocking-i-0/
 	
 	while ( 1 )
 	{
 		memset( szBuf, 0x00, sizeof(szBuf) );
-		
+	
+		//TODO contentLength가 잘못된 값으로 오면 반복적으로 read 함
 		if ( (int)strlen(ptRequest->szBody) == ptRequest->nContentLength )
 		{
 			LOG_DBG_F( "read all body (%d)", ptRequest->nContentLength );

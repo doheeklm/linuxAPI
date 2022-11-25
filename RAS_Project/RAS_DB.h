@@ -34,6 +34,11 @@
 #define SQL_DELETE_INFO			"delete from "USR_INFO_TBL" where "ATTR_ID"=?"ATTR_ID";"
 #define SQL_NUMTUPLES_INFO		"select NUMTUPLES from __SYS_TABLES__ where TABLE_NAME = '"USR_INFO_TBL"';"
 
+#define SQL_SELECT_CUSTOM		"select * from "
+#define	SQL_WHERE				" where "
+#define SQL_AND					" and "
+#define SQL_SEMICOLON			";"
+
 typedef enum
 {
 	PSTMT_INSERT_IP = 0,
