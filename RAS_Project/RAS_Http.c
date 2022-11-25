@@ -14,7 +14,7 @@ int HTTP_ReadHeader( int nFd, struct REQUEST_s *ptRequest )
 	{
 		memset( szBuf, 0x00, sizeof(szBuf) );
 
-		nRead = read( nFd, szBuf, sizeof(szBuf) - 1 );
+		nRead = read( nFd, szBuf, sizeof(szBuf)-1 );
 		if ( -1 == nRead )
 		{
 			LOG_ERR_F( "read fail <%d:%s>", errno, strerror(errno) );
@@ -22,16 +22,17 @@ int HTTP_ReadHeader( int nFd, struct REQUEST_s *ptRequest )
 		}
 		else if ( 0 == nRead )
 		{
-			LOG_DBG_F( "EOF에 도달하여 더 이상 읽을 자료가 없습니다." );
+			LOG_DBG_F( "read End Of File" );
 			return RAS_rErrHttpRead;
 		}
 
-		STRLCAT_OVERFLOW_CHECK( ptRequest->szHeader, szBuf, (sizeof(ptRequest->szHeader) + 1), nRC );
-		
+		LOG_DBG_F( "read (%d)", nRead );
+
+		STRLCAT_OVERFLOW_CHECK( ptRequest->szHeader, szBuf, sizeof(ptRequest->szHeader), nRC );
+
 		pszSearch = strstr( ptRequest->szHeader, HTTP_DELIM_CRLFCRLF );
 		if ( NULL != pszSearch )
 		{
-			//LOG_DBG_F( "found <\\r\\n\\r\\n>" );
 			break;
 		}
 	}
@@ -49,12 +50,12 @@ int HTTP_GetMethodAndPath( struct REQUEST_s *ptRequest )
 
 	char *pszToken = NULL;
 	char *pszDefaultToken = NULL;
-	char szCopyBuf[sizeof(ptRequest->szHeader)];
-	memset( szCopyBuf, 0x00, sizeof(szCopyBuf) );
+	char szCopy[sizeof(ptRequest->szHeader)];
+	memset( szCopy, 0x00, sizeof(szCopy) );
 
-	strlcpy( szCopyBuf, ptRequest->szHeader, sizeof(szCopyBuf) ); 
+	strlcpy( szCopy, ptRequest->szHeader, sizeof(szCopy) ); 
 
-	pszToken = strtok_r( szCopyBuf, HTTP_DELIM_SPACE, &pszDefaultToken );
+	pszToken = strtok_r( szCopy, HTTP_DELIM_SPACE, &pszDefaultToken );
 	if ( NULL == pszToken )
 	{
 		LOG_ERR_F( "not found <(space)>" );
@@ -80,12 +81,12 @@ int HTTP_GetContentLength( struct REQUEST_s *ptRequest )
 	char *pszSearch = NULL;
 	char *pszToken = NULL;
 	char *pszDefaultToken = NULL;
-	char szCopyBuf[sizeof(ptRequest->szHeader)];
-	memset( szCopyBuf, 0x00, sizeof(szCopyBuf) );
+	char szCopy[sizeof(ptRequest->szHeader)];
+	memset( szCopy, 0x00, sizeof(szCopy) );
 	
-	strlcpy( szCopyBuf, ptRequest->szHeader, sizeof(szCopyBuf) ); 
+	strlcpy( szCopy, ptRequest->szHeader, sizeof(szCopy) ); 
 
-	pszSearch = strstr( szCopyBuf, HTTP_DELIM_CONTENTLENGTH );
+	pszSearch = strstr( szCopy, HTTP_DELIM_CONTENTLENGTH );
 	if ( NULL == pszSearch )
 	{
 		ptRequest->nContentLength = 0;
@@ -104,11 +105,6 @@ int HTTP_GetContentLength( struct REQUEST_s *ptRequest )
 		else
 		{
 			ptRequest->nContentLength = atoi( pszToken );
-			if ( 0 == ptRequest->nContentLength )
-			{
-				LOG_ERR_F( "atoi fail <%d>", ptRequest->nContentLength );
-				return RAS_rErrFail;
-			}
 		}
 	}
 
@@ -125,12 +121,17 @@ int HTTP_ReadBody( int nFd, struct REQUEST_s *ptRequest )
 	int nRead = 0;
 	char *pszSearch = NULL;
 	char szBuf[50];
-	char szCopyBuf[sizeof(ptRequest->szHeader)];
-	memset( szCopyBuf, 0x00, sizeof(szCopyBuf) );
+	char szCopy[sizeof(ptRequest->szHeader)];
+	memset( szCopy, 0x00, sizeof(szCopy) );
 
-	strlcpy( szCopyBuf, ptRequest->szHeader, sizeof(szCopyBuf) ); 
-	
-	pszSearch = strstr( szCopyBuf, HTTP_DELIM_CRLFCRLF );
+	if ( 0 == ptRequest->nContentLength )
+	{
+		return RAS_rOK;
+	}
+
+	strlcpy( szCopy, ptRequest->szHeader, sizeof(szCopy) ); 
+
+	pszSearch = strstr( szCopy, HTTP_DELIM_CRLFCRLF );
 	if ( NULL == pszSearch )
 	{
 		LOG_ERR_F( "not found <\\r\\n\\r\\n>" );
@@ -138,20 +139,22 @@ int HTTP_ReadBody( int nFd, struct REQUEST_s *ptRequest )
 	}
 
 	pszSearch += strlen(HTTP_DELIM_CRLFCRLF);
-	strlcpy( ptRequest->szBody, pszSearch, sizeof(ptRequest->szBody) );
-	//LOG_DBG_F( "\n%s\n%s\n%s", LINE, ptRequest->szBody, LINE );
 
+	strlcpy( ptRequest->szBody, pszSearch, sizeof(ptRequest->szBody) );
+
+	LOG_DBG_F( "read (%d)", (int)strlen(ptRequest->szBody) );
+	
 	while ( 1 )
 	{
 		memset( szBuf, 0x00, sizeof(szBuf) );
 		
-		if ( 0 == ptRequest->nContentLength || (int)strlen(ptRequest->szBody) == ptRequest->nContentLength )
+		if ( (int)strlen(ptRequest->szBody) == ptRequest->nContentLength )
 		{
-			LOG_DBG( "read all body message (%d)", ptRequest->nContentLength );
+			LOG_DBG_F( "read all body (%d)", ptRequest->nContentLength );
 			break;
 		}
-
-		nRead = read( nFd, szBuf, sizeof(szBuf) - 1 );
+	
+		nRead = read( nFd, szBuf, sizeof(szBuf)-1 );
 		if ( -1 == nRead )
 		{
 			LOG_ERR_F( "read fail <%d:%s>", errno, strerror(errno) );
@@ -159,13 +162,13 @@ int HTTP_ReadBody( int nFd, struct REQUEST_s *ptRequest )
 		}
 		else if ( 0 == nRead )
 		{
-			LOG_DBG_F( "EOF에 도달하여 더 이상 읽을 자료가 없습니다." );
-			return RAS_rErrHttpRead;
+			LOG_DBG_F( "read End Of File" );
+			break;
 		}
 
 		LOG_DBG_F( "read (%d)", nRead );
 
-		STRLCAT_OVERFLOW_CHECK( ptRequest->szBody, szBuf, (sizeof(ptRequest->szBody) + 1), nRC );
+		STRLCAT_OVERFLOW_CHECK( ptRequest->szBody, szBuf, sizeof(ptRequest->szBody), nRC );
 	}
 
 	LOG_DBG_F( "\n%s\n%s\n%s", LINE, ptRequest->szBody, LINE );
@@ -187,8 +190,11 @@ int HTTP_GetStatusCode( int nRC )
 		CASE_RETURN( RAS_rErrHttpMethodNotAllowed,	STATUS_CODE_405 );
 		CASE_RETURN( RAS_rErrDBSetValue,			STATUS_CODE_500 );
 		CASE_RETURN( RAS_rErrDBExecUpdate,			STATUS_CODE_500 );
+		CASE_RETURN( RAS_rErrDBFetch,				STATUS_CODE_500 );
+		CASE_RETURN( RAS_rErrDBDuplicate,			STATUS_CODE_500 );
 		CASE_RETURN( RAS_rErrRegiGetEnumKeyValue,	STATUS_CODE_500 );
 		CASE_RETURN( RAS_rErrRegiNotFound,			STATUS_CODE_500 );
+		CASE_RETURN( RAS_rErrInvalidParam,			STATUS_CODE_500 );
 		CASE_RETURN( RAS_rErrFail,					STATUS_CODE_500 );
 		CASE_RETURN( RAS_rErrOverflow,				STATUS_CODE_500 );
 		CASE_RETURN( RAS_rErrIpcSend,				STATUS_CODE_500 );
@@ -210,35 +216,36 @@ char* HTTP_GetStatusMsg( int nCode )
 	}
 }
 
-int HTTP_SendResponse( int nFd, void *pvBuf, int nBufSize )
+int HTTP_SendResponse( int nFd, void *pvBuf )
 {
 	CHECK_PARAM_RC( pvBuf );
 
+	int nByteToWrite = 0;
 	int nWrite = 0;
-	int nTotalWrite = 0;
+	int nTotal = 0;
+
+	nByteToWrite = (int)strlen((char*)pvBuf);
 
 	while ( 1 )
 	{
-		nWrite = write( nFd, pvBuf + nTotalWrite, nBufSize - nTotalWrite );
+		nWrite = write( nFd, pvBuf + nTotal, nByteToWrite - nTotal );
 		if ( -1 == nWrite )
 		{
-			LOG_ERR_F( "write (Fd %d) fail <%d>", nFd, nWrite );
+			LOG_ERR_F( "write (fd %d) fail <%d:%s>", nFd, errno, strerror(errno) );
 			return RAS_rErrHttpWrite;
 		}
-		
-		nTotalWrite += nWrite;
-
-		if ( nBufSize == nTotalWrite )
+		else if ( 0 == nWrite )
 		{
-			LOG_DBG_F( "nBufSize == nTotalWrite (%d)\n", nBufSize );
+			LOG_DBG_F( "write End Of File" );
 			break;
 		}
-		else if ( 0 == nTotalWrite )
-		{
-			LOG_DBG_F( "write (Fd %d) zero", nFd );
-			return RAS_rErrFail;
-		}
+
+		nTotal += nWrite;
+
+		LOG_DBG_F( "write (%d) total (%d)", nWrite, nTotal );
 	}
+
+	LOG_DBG_F( "\n%s\n%s\n%s", LINE, (char*)pvBuf, LINE );
 
 	return RAS_rOK;
 }

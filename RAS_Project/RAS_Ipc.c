@@ -1,7 +1,10 @@
 /* RAS_Ipc.c */
 #include "RAS_Inc.h"
 
-extern mpipc_t *g_ptMpipc;
+extern mpipc_t			*g_ptMpipc;
+extern int				g_nUser;
+extern int				g_nAlarmStatus;
+extern pthread_mutex_t	g_tMutex;
 
 int IPC_Init()
 {
@@ -13,7 +16,6 @@ int IPC_Init()
 		LOG_ERR_F( "mpipc_init fail" );
 		return RAS_rErrFail; 
 	}
-	LOG_DBG_F( "mpipc_init" );
 
 	nRC = mpipc_regi_hdlr( g_ptMpipc, IPC_Handler, NULL );
 	if ( 0 > nRC )
@@ -21,7 +23,6 @@ int IPC_Init()
 		LOG_ERR_F( "mpipc_regi_hdlr fail <%d>", nRC );
 		return RAS_rErrFail;
 	}
-	LOG_DBG_F( "mpipc_regi_hdlr" );
 	
 	nRC = mpipc_start( g_ptMpipc );
 	if ( 0 > nRC )
@@ -29,7 +30,6 @@ int IPC_Init()
 		LOG_ERR_F( "mpipc_start fail <%d>", nRC );
 		return RAS_rErrFail;
 	}
-	LOG_DBG_F( "mpipc_start" );
 
 	return RAS_rOK;
 }
@@ -54,6 +54,7 @@ int IPC_Handler( mpipc_t *ptMpipc, iipc_msg_t *ptRecvMsg, void *pvData )
 		case MSG_ID_DEL_USR_INFO:	//7755
 		{
 			LOG_DBG_F( "msg_id = %d", ptMsg->head.msg_id );
+
 			return MPIPC_HDLR_RET_NOT_FOR_ME;
 		}
 			break;

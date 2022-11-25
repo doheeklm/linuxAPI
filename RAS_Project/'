@@ -99,9 +99,9 @@ void *WORKER_Run( void *pvArg )
 			}
 			else
 			{
-				//NOTE worker epoll에 등록된 client fd를 관리하지 않아서 epoll 재생성 하지 않고 close함
+				//NOTE 기존 Epoll에 등록된 AcceptFd를 다시 넣어주지 않아서 Epoll 재생성 x
 				FD_CLOSE( ptWorker->nEpollFd );
-				goto _exit_worker;
+				break;
 			}
 		}
 
@@ -207,17 +207,11 @@ void *WORKER_Run( void *pvArg )
 				}
 
 _send_response:
-				if ( SIZE_ZERO > sizeof(tResponse.szBody) || sizeof(tResponse.szMsg) < sizeof(tResponse.szBody) )
-				{
-					FD_DELETE_AND_CLOSE( nClientFd, ptWorker->nEpollFd );
-					goto _exit_worker;
-				}
-
 				tResponse.nStatusCode = HTTP_GetStatusCode( nRC );
-
-				HTTP_SET_RESPONSE( nMethod, tResponse );
-
-				nRC = HTTP_SendResponse( nClientFd, tResponse.szMsg );
+				tResponse.szBody[ 	
+				HTTP_SET_RESPONSE( tResponse );
+				
+				nRC = HTTP_SendResponse( nClientFd, tResponse.szMsg, sizeof(tResponse.szMsg) );
 				if ( RAS_rOK != nRC )
 				{
 					FD_DELETE_AND_CLOSE( nClientFd, ptWorker->nEpollFd );
@@ -237,7 +231,8 @@ _send_response:
 					}
 				}
 		
-				FD_DELETE_AND_CLOSE( nClientFd, ptWorker->nEpollFd );
+				//NOTE
+				//FD_DELETE_AND_CLOSE( nClientFd, ptWorker->nEpollFd );
 
 			}//else if(events & EPOLLIN)
 			
@@ -245,7 +240,6 @@ _send_response:
 
 	}//while(1)
 
-_exit_worker:
 	PRT_EXIT;
 	pthread_cleanup_pop( 0 );
 	FD_CLOSE( ptWorker->nEpollFd );

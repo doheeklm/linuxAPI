@@ -12,6 +12,8 @@
 #define NOT_INSERT	0
 #define INSERT		1
 
+#define LENGTH_ONE	1
+
 typedef enum
 {
 	TOKEN_NAME = 0,
@@ -20,18 +22,11 @@ typedef enum
 	TOKEN_ADDRESS,
 
 	TOKEN_MAX
+
 } Token_e;
 
-int METHOD_Post( DB_t tDBWorker, const char *pszIp,
-		struct REQUEST_s *ptRequest,
-		struct RESPONSE_s *ptResponse );
-
-int METHOD_Get( DB_t tDBWorker, const char *pszIp,
-		struct REQUEST_s *ptRequest,
-		struct RESPONSE_s *ptResponse );
-
-int METHOD_Delete( DB_t tDBWorker, const char *pszIp,
-		struct REQUEST_s *ptRequest,
-		struct RESPONSE_s *ptResponse );
+int METHOD_Post( DB_t tDB, struct REQUEST_s *ptRequest, struct RESPONSE_s *ptResponse );
+int METHOD_Get( DB_t tDB, struct REQUEST_s *ptRequest, struct RESPONSE_s *ptResponse );
+int METHOD_Delete( DB_t tDB, struct REQUEST_s *ptRequest, struct RESPONSE_s *ptResponse );
 
 #endif /* _RAS_METHOD_H_ */

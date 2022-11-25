@@ -2,7 +2,7 @@
 #ifndef _RAS_MMC_H_
 #define _RAS_MMC_H_
 
-#define DFLT_TIME			60
+#define DEFAULT_TIME		60
 
 #define ARG_NUM_IP			1
 #define ARG_NUM_DESC		2
@@ -51,7 +51,7 @@
 #define CMD_STR_DIS_INFO	"dis-usr-info"
 #define CMD_STR_DEL_INFO	"del-usr-info"
 
-int MMC_Init();
-void MMC_Destroy();
+int		MMC_Init();
+void	MMC_Destroy();
 
 #endif /* _RAS_MMC_H_ */

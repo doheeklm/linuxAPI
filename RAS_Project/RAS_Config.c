@@ -10,35 +10,34 @@ static int CONFIG_GetMmcConf();
 int CONFIG_Init()
 {
 	int nRC = 0;
-	
+
+	/*
+	 *	IP, PORT, REGI_IP, REGI_PORT
+	 */
 	nRC = CONFIG_GetConnConf();
 	if ( RAS_rOK != nRC )
 	{
 		return RAS_rErrConfInit;
 	}
-	
+
+	/*
+	 *	log_level, log_mode
+	 */	
 	nRC = CONFIG_GetLogConf();
 	if ( RAS_rOK != nRC )
 	{
 		return RAS_rErrConfInit;
 	}
 
+	/*
+	 *	mmt_enable, mmt_port, mmt_conn_max,
+	 *	mmt_local_only, mmt_is_quiet, mml_enable
+	 */
 	nRC = CONFIG_GetMmcConf();
 	if ( RAS_rOK != nRC )
 	{
 		return RAS_rErrConfInit;
 	}
-
-	LOG_SVC_F( "IP(%s) PORT(%d)\n"
-			"REGI_IP(%s) REGI_PORT(%d)\n"
-			"log_level(%d) log_mode(%d)\n"
-			"mmt_enable(%d) mmt_port(%d) mmt_conn_max(%d)\n"
-			"mmt_local_only(%d) mmt_is_quiet(%d) mml_enable(%d)",
-			g_tEnv.szIp, g_tEnv.nPort,
-			g_tEnv.szRegiIp, g_tEnv.nRegiPort,
-			g_tEnv.nLogMode, g_tEnv.nLogLevel,
-			g_tEnv.nMmtEnable, g_tEnv.nMmtPort, g_tEnv.nMmtConnMax,
-			g_tEnv.nMmtLocalOnly, g_tEnv.nMmtIsQuiet, g_tEnv.nMmlEnable );
 
 	return RAS_rOK;
 }

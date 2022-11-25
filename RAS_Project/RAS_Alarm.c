@@ -1,22 +1,23 @@
 /* RAS_Alarm.c */
 #include "RAS_Inc.h"
 
-extern mpipc_t *g_ptMpipc;
-extern DB_t g_tDBMain;
-extern int g_nUser;
-extern int g_nAlarmStatus;
+extern mpipc_t			*g_ptMpipc;
+extern DB_t				g_tDBMain;
+extern int				g_nUser;
+extern int				g_nAlarmStatus;
+extern pthread_mutex_t	g_tMutex;
 
 int ALARM_Init()
 {
 	int nRC = 0;
-
+	
 	char szModuleInfo[1024];
 	memset( szModuleInfo, 0x00, sizeof(szModuleInfo) );
 
 	nRC = ALARM_CountUser();
 	if ( RAS_rOK != nRC )
 	{
-		return RAS_rErrFail;
+		return nRC;
 	}
 
 	ALARM_SetStatus();
@@ -24,6 +25,8 @@ int ALARM_Init()
 	ALARM_SET_MODULE_INFO( szModuleInfo, sizeof(szModuleInfo),
 			UPP_GNAME, LOW_GNAME, ITEM_NAME, g_nAlarmStatus, g_nUser );
 
+	//LOG_DBG_F( "Module Info\n%s", szModuleInfo );
+	
 	ALARM_CREATE( mpipc_tap_ipc(g_ptMpipc),
 			UPP_GNAME, LOW_GNAME, ITEM_NAME, g_nAlarmStatus, szModuleInfo, nRC );
 
@@ -41,14 +44,19 @@ int ALARM_CountUser()
 	DAL_RESULT_SET *ptRes = NULL;
 	DAL_ENTRY *ptEntry = NULL;
 
-	DB_PREPARED_EXEC( g_tDBMain, g_tDBMain.patPstmt[PSTMT_NUMTUPLE_INFO], &ptRes, nRC );
+	DB_PREPARED_EXEC( g_tDBMain, g_tDBMain.patPstmt[PSTMT_NUMTUPLES_INFO], &ptRes, nRC );
+	
+	ptEntry = dalFetchFirst( ptRes );
 	if ( NULL != ptEntry )
 	{
-		DB_GET_INT_BY_KEY( ptEntry, NUMTUPLE, &g_nUser, nRC );
+		DB_GET_INT_BY_KEY( ptEntry, NUMTUPLES, &g_nUser, nRC );
+	}
+	else
+	{
+		nRC = RAS_rErrDBFetch;
+		goto end_of_function;
 	}
 
-	LOG_DBG_F( "User %d", g_nUser );
-	
 	DB_FREE( ptRes );
 	return RAS_rOK;
 
@@ -59,19 +67,19 @@ end_of_function:
 
 void ALARM_SetStatus()
 {
-	if ( 0 <= g_nUser && 11 > g_nUser )
+	if ( 0 <= g_nUser && ALARM_NORMAL >= g_nUser )
 	{
 		g_nAlarmStatus = NORMAL;
 	}
-	else if ( 11 <= g_nUser && 21 > g_nUser )
+	else if ( ALARM_NORMAL < g_nUser && ALARM_MINOR >= g_nUser )
 	{
 		g_nAlarmStatus = MINOR;
 	}
-	else if ( 21 <= g_nUser && 31 > g_nUser )
+	else if ( ALARM_MINOR < g_nUser && ALARM_MAJOR >= g_nUser )
 	{
 		g_nAlarmStatus = MAJOR;
 	}
-	else if ( 31 <= g_nUser )
+	else if ( ALARM_MAJOR < g_nUser )
 	{
 		g_nAlarmStatus = CRITICAL;
 	}
@@ -79,8 +87,6 @@ void ALARM_SetStatus()
 	{
 		g_nAlarmStatus = -1;
 	}
-
-	LOG_DBG_F( "Alarm Status %d", g_nAlarmStatus );
 }
 
 int ALARM_Report()
@@ -89,14 +95,20 @@ int ALARM_Report()
 	char szModuleInfo[1024];
 	memset( szModuleInfo, 0x00, sizeof(szModuleInfo) );
 
-	ALARM_SetStatus();
+	pthread_mutex_lock( &g_tMutex );
 
+	ALARM_SetStatus();
+	
 	ALARM_SET_MODULE_INFO( szModuleInfo, sizeof(szModuleInfo),
 			UPP_GNAME, LOW_GNAME, ITEM_NAME, g_nAlarmStatus, g_nUser );
 
 	ALARM_REPORT_STATUS( mpipc_tap_ipc(g_ptMpipc),
 			UPP_GNAME, LOW_GNAME, ITEM_NAME, g_nAlarmStatus, szModuleInfo, nRC );
-	
+
+	LOG_SVC_F( "Count User <%d> Alarm Status <%d>", g_nUser, g_nAlarmStatus );	
+
+	pthread_mutex_unlock( &g_tMutex );
+
 	return RAS_rOK;
 
 end_of_function:

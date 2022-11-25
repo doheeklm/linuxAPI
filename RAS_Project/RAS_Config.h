@@ -24,6 +24,7 @@ typedef struct
 	int nMmtLocalOnly;
 	int nMmtIsQuiet;
 	int nMmlEnable;
+
 } Env_t;
 
 int CONFIG_Init( void );

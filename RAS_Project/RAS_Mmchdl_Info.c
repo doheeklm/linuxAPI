@@ -1,8 +1,9 @@
 /* RAS_Mmchdl_Info.c */
 #include "RAS_Inc.h"
 
-extern DB_t g_tDBIpc;
-extern int g_nUser;
+extern DB_t				g_tDBIpc;
+extern int				g_nUser;
+extern pthread_mutex_t	g_tMutex;
 
 static mpenumx_t atGenderEnum[] =
 {
@@ -60,7 +61,7 @@ int MMCHDL_INFO_Dis( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 	int nRC = 0;
 	int nAddFlag = RAS_FALSE;
 	int nIndex = 0;
-	int nCntTuple = 0;
+	int nTuple = 0;
 	int nId = 0;
 	char *pszName = NULL;
 	char *pszGender = NULL;
@@ -143,11 +144,11 @@ int MMCHDL_INFO_Dis( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 		DB_GET_STRING_BY_KEY( ptEntry, ATTR_ADDRESS, &pszAddress, nRC );	
 
 		PRT_INFO_ALL_BODY( ptOammmc, nId, pszName, pszGender, pszBirth, pszAddress );	
-		nCntTuple++;
+		nTuple++;
 	}
 
 	PRT_LINEx3( ptOammmc );
-	PRT_CNT( ptOammmc, nCntTuple );
+	PRT_CNT( ptOammmc, nTuple );
 
 	DB_FREE( ptRes );
 	return RAS_rSuccessMmchdl;
@@ -185,8 +186,12 @@ int MMCHDL_INFO_Del( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 		{
 			case ARG_NUM_ID:
 			{
-				//TODO Mandatory Arg Check
 				nId = OAMMMC_VAL_INT( ptArg );
+				if ( 0 == nId )
+				{
+					nRC = RAS_rErrInvalidParam;
+					goto end_of_function;
+				}
 			}
 				break;
 		}	
@@ -203,13 +208,20 @@ int MMCHDL_INFO_Del( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 		DB_GET_STRING_BY_KEY( ptEntry, ATTR_BIRTH, &pszBirth, nRC );
 		DB_GET_STRING_BY_KEY( ptEntry, ATTR_ADDRESS, &pszAddress, nRC );
 	}
+	else
+	{
+		nRC = RAS_rErrDBFetch;
+		goto end_of_function;
+	}
 
 	DB_SET_INT_BY_KEY( g_tDBIpc.patPstmt[PSTMT_DELETE_INFO], ATTR_ID, nId, nRC );
 	DB_PREPARED_EXEC_UPDATE( g_tDBIpc, g_tDBIpc.patPstmt[PSTMT_DELETE_INFO], nRC );
 	PRT_INFO_ONE( ptOammmc, ATTR_ID, nId, ATTR_NAME, pszName,
 			ATTR_GENDER, pszGender, ATTR_BIRTH, pszBirth, ATTR_ADDRESS, pszAddress );
 
+	pthread_mutex_lock( &g_tMutex );
 	g_nUser--;
+	pthread_mutex_unlock( &g_tMutex );
 
 	DB_FREE( ptRes );
 	return RAS_rSuccessMmchdl;

@@ -1,21 +1,21 @@
 /* RAS_Main.c */
 #include "RAS_Inc.h"
 
-int			g_nSvcFlag = START_SVC;
-int			g_nWorkerIndex = 0; 
-int			g_nUser = 0;
-int			g_nAlarmStatus = 0;
+int				g_nSvcFlag = START_SVC;
+Env_t			g_tEnv;
 
-Env_t		g_tEnv;
-DB_t		g_tDBMain;
-DB_t		g_tDBIpc;
-WORKER_t	g_tWorker[MAX_WORKER_CNT];
-TRC_t		g_tTrc[MAX_TRC_CNT];
+DB_t			g_tDBMain;
+DB_t			g_tDBIpc;
+mpipc_t			*g_ptMpipc = NULL;
+oammmc_t		*g_ptOammmc = NULL;
 
-mpipc_t		*g_ptMpipc = NULL;
-oammmc_t	*g_ptOammmc = NULL;
+int				g_nUser = 0;
+int				g_nAlarmStatus = 0;
+pthread_mutex_t	g_tMutex = PTHREAD_MUTEX_INITIALIZER;
 
-static void SignalHandler( int nSigno );
+extern WORKER_t	g_tWorker[MAX_WORKER_CNT];
+
+void SignalHandler( int nSigno );
 
 int main( void )
 {
@@ -25,7 +25,6 @@ int main( void )
 	mpsignal( SIGTERM, SignalHandler );
 	mpsignal( SIGQUIT, SignalHandler );
 	mpsignal( SIGKILL, SignalHandler );
-	mpsignal( SIGPIPE, SIG_IGN );
 
 	int nRC = 0;
 	int nIndex = 0;
@@ -80,7 +79,7 @@ int main( void )
 	{
 		goto _exit_main;
 	}	
-	
+
 	nRC = DB_InitPreparedStatement( &g_tDBMain );
 	if ( RAS_rOK != nRC )
 	{
@@ -92,7 +91,7 @@ int main( void )
 	{
 		goto _exit_main;
 	}	
-
+	
 	nRC = ALARM_Init();
 	if ( RAS_rOK != nRC )
 	{
@@ -113,11 +112,10 @@ int main( void )
 
 	while ( g_nSvcFlag )
 	{
-		printf( "main thread run\n" );	
-
 		nRC = ALARM_Report();
 		if ( RAS_rOK != nRC )
 		{
+			goto _exit_main; 
 		}
 
 		if ( ON == bCreateListenFd )
@@ -127,6 +125,7 @@ int main( void )
 			{
 				continue;
 			}
+			PRT_CREATE_FD( "(listen", nListenFd );
 			bCreateListenFd = OFF;
 		};
 
@@ -137,6 +136,7 @@ int main( void )
 			{
 				continue;
 			}
+			PRT_CREATE_FD( "(epoll", nEpollFd );
 			bCreateEpollFd = OFF;
 		}
 
@@ -170,34 +170,28 @@ int main( void )
 	} 
 
 _exit_main:
-	printf( "exit main thread, wait for thread to exit\n" );
-
+	PRT_EXIT;
 	for ( nIndex = 0; nIndex < MAX_WORKER_CNT; nIndex++ )
 	{
-		nRC = pthread_join( g_tWorker[nIndex].nThreadId, NULL );
-		if ( nRC != 0 )
-		{
-			LOG_ERR_F( "pthread_join fail <%d>", nRC );
-		}
-		LOG_DBG_F( "pthread_join <%d>", nRC );
+		THREAD_CANCEL( g_tWorker[nIndex].nThreadId );
+		THREAD_JOIN( g_tWorker[nIndex].nThreadId );
 	}
-
-	printf( "thread exit\n" );
-
 	FD_CLOSE( nEpollFd );
 	FD_CLOSE( nListenFd );
 	stgen_close();
-	//oam_uda_del_alarm( iipc_ds_t *, upp_gname, low_gname, item_name, OAM_SFM_UDA_NOTI_ON );
+	oam_uda_del_alarm( mpipc_tap_ipc(g_ptMpipc),
+			UPP_GNAME, LOW_GNAME, ITEM_NAME, OAM_SFM_UDA_NOTI_ON );
 	DB_Close( &g_tDBIpc );
 	DB_Close( &g_tDBMain );
 	MMC_Destroy();
 	IPC_Destroy();
 	MPGLOG_DESTROY();
-	
+	pthread_mutex_destroy( &g_tMutex );
+
 	return 0;
 }
 
-static void SignalHandler( int nSigno )
+void SignalHandler( int nSigno )
 {
 	MPGLOG_DBG( "Signal <%d>", nSigno );
 	

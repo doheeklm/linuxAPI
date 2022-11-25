@@ -28,7 +28,7 @@ int UTIL_CheckPath( char *pszPath )
 
 	char *pszToken = NULL;
 	char *pszDefaultToken = NULL;
-	
+
 	pszToken = strtok_r( pszPath, HTTP_DELIM_SLASH, &pszDefaultToken );
 	if ( NULL == pszToken )
 	{
@@ -111,8 +111,6 @@ int UTIL_GetIdFromPath( char *pszPath, int *pnId )
 			*pnId = 0;
 		}
 	
-		//*pnId still zero	
-		
 		break;
 	}
 

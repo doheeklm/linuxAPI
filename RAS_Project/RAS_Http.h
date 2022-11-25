@@ -17,6 +17,7 @@
 #define HTTP_METHOD_POST_STR		"POST"
 #define HTTP_METHOD_GET_STR			"GET"
 #define HTTP_METHOD_DEL_STR			"DELETE"
+
 #define HTTP_METHOD_POST_NUM		70
 #define HTTP_METHOD_GET_NUM			71
 #define HTTP_METHOD_DEL_NUM			72
@@ -36,6 +37,29 @@
 #define STATUS_MSG_405				"Method Not Allowed"
 #define STATUS_MSG_500				"Internal Server Error"
 
+#define SIZE_HEADER					1024
+#define SIZE_METHOD					16
+#define SIZE_PATH					128
+#define SIZE_BODY					1024
+#define SIZE_MSG					2048
+
+typedef struct REQUEST_s
+{
+	char		szHeader	[SIZE_HEADER + 1];
+	char		szMethod	[SIZE_METHOD + 1];
+	char		szPath		[SIZE_PATH + 1];
+	int			nContentLength;
+	char		szBody		[SIZE_BODY + 1];
+} REQUEST_t;
+
+typedef struct RESPONSE_s
+{
+	int			nStatusCode;
+	int			nContentLength;
+	char		szBody		[SIZE_BODY + 1];
+	char		szMsg		[SIZE_MSG + 1];
+} RESPONSE_t;
+
 int HTTP_ReadHeader( int nFd, struct REQUEST_s *ptRequest );
 int HTTP_GetMethodAndPath( struct REQUEST_s *ptRequest );
 int HTTP_GetContentLength( struct REQUEST_s *ptRequest );
@@ -43,6 +67,6 @@ int HTTP_ReadBody( int nFd, struct REQUEST_s *ptRequest );
 
 int HTTP_GetStatusCode( int nRC );
 char* HTTP_GetStatusMsg( int nCode );
-int HTTP_SendResponse( int nFd, void *pvBuf, int nBufSize );
+int HTTP_SendResponse( int nFd, void *pvBuf );
 
 #endif /* _RAS_HTTP_H_ */

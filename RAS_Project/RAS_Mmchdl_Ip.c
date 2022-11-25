@@ -62,8 +62,8 @@ int MMCHDL_IP_Add( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 		{	
 			case ARG_NUM_IP:
 			{
-				//TODO Mandatory Arg Check
 				pszIp = OAMMMC_VAL_STR( ptArg );
+				CHECK_PARAM_GOTO( ptArg, nRC );
 			}
 				break;
 			case ARG_NUM_DESC:
@@ -106,7 +106,7 @@ int MMCHDL_IP_Dis( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 
 	int nRC = 0;
 	int nIndex = 0;
-	int nCntTuple = 0;
+	int nTuple = 0;
 	char *pszIp = NULL;
 	char *pszDesc = NULL;
 	oammmc_arg_t *ptArg = NULL;
@@ -121,7 +121,7 @@ int MMCHDL_IP_Dis( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 		{
 			case ARG_NUM_IP:
 			{
-				//TODO Mandatory Arg Check
+				//NOTE Optional
 				pszIp = OAMMMC_VAL_STR( ptArg );
 			}
 				break;
@@ -139,11 +139,11 @@ int MMCHDL_IP_Dis( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 			DB_GET_STRING_BY_KEY( ptEntry, ATTR_IP, &pszIp, nRC );
 			DB_GET_STRING_BY_KEY( ptEntry, ATTR_DESC, &pszDesc, nRC );
 			PRT_IP_ALL_BODY( ptOammmc, pszIp, pszDesc );
-			nCntTuple++;
+			nTuple++;
 		}
-	
+
 		PRT_LINE( ptOammmc );	
-		PRT_CNT( ptOammmc, nCntTuple );
+		PRT_CNT( ptOammmc, nTuple );
 	}
 	else
 	{
@@ -155,6 +155,11 @@ int MMCHDL_IP_Dis( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 		if ( NULL != ptEntry )
 		{
 			DB_GET_STRING_BY_KEY( ptEntry, ATTR_DESC, &pszDesc, nRC );
+		}
+		else
+		{
+			nRC = RAS_rErrDBFetch;
+			goto end_of_function;
 		}
 		
 		PRT_IP_ONE( ptOammmc, ARG_STR_IP, pszIp, ARG_STR_DESC, pszDesc );
@@ -193,8 +198,8 @@ int MMCHDL_IP_Del( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 		{
 			case ARG_NUM_IP:
 			{
-				//TODO Mandatory Arg Check
 				pszIp = OAMMMC_VAL_STR( ptArg );
+				CHECK_PARAM_GOTO( ptArg, nRC );
 			}
 				break;
 		}	
@@ -207,6 +212,11 @@ int MMCHDL_IP_Del( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 	if ( NULL != ptEntry )
 	{
 		DB_GET_STRING_BY_KEY( ptEntry, ATTR_DESC, &pszDesc, nRC );
+	}
+	else
+	{
+		nRC = RAS_rErrDBFetch;
+		goto end_of_function;
 	}
 
 	DB_SET_STRING_BY_KEY( g_tDBIpc.patPstmt[PSTMT_DELETE_IP], ATTR_IP, pszIp, nRC );

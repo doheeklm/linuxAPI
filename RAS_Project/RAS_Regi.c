@@ -2,7 +2,7 @@
 #include "RAS_Inc.h"
 
 extern Env_t g_tEnv;
-extern TRC_t g_tTrc[MAX_TRC_CNT];
+REGI_t g_tRegi[MAX_REGI_CNT];
 
 int REGI_Init()
 {
@@ -25,40 +25,54 @@ int REGI_Init()
 	return RAS_rOK;
 }
 
-int REGI_GetAll()
+int REGI_GetAll( int *pnCnt )
 {
+	CHECK_PARAM_RC( pnCnt );
+
 	int nRC = 0;
 	int nIndex = 0;
 	char szKeyList[1024];
 	memset( szKeyList, 0x00, sizeof(szKeyList) );
-	char *pszTokenKey = NULL;
-	char *pszDefaultTokenKey = NULL;
-	char *pszTokenVal = NULL;
-	char *pszDefaultTokenVal = NULL;
+	char *pszKey = NULL;
+	char *pszDefaultKey = NULL;
+	char *pszVal = NULL;
+	char *pszDefaultVal = NULL;
 
-	memset( g_tTrc, 0x00, sizeof(g_tTrc) );
+	memset( g_tRegi, 0x00, sizeof(g_tRegi) );
 
 	REGI_GET_ENUM_KEY_VALUE( REGI_DIR, strlen(REGI_DIR), szKeyList, sizeof(szKeyList), nRC );
 
-	pszTokenKey = strtok_r( szKeyList, REGI_DELIM_KEY, &pszDefaultTokenKey );
+	/*
+	 *	(keylist)
+	 *	/RAS_CLI_IP_TRC/255.255.255.255|60:/RAS_CLI_IP_TRC/127.0.0.1|10800:/RAS_CLI_IP_TRC/0.0.0.0|60
+	 *
+	 *	REGI_DELIM_KEY : :/RAS_CLI_IP_TRC/
+	 *	REGI_DELIM_VAL : | 
+	 */
+	pszKey = strtok_r( szKeyList, REGI_DELIM_KEY, &pszDefaultKey );
 
-	while ( NULL != pszTokenKey )
+	while ( NULL != pszKey )
 	{
-		pszTokenVal = strtok_r( pszTokenKey, REGI_DELIM_VAL, &pszDefaultTokenVal );
-		//LOG_DBG_F( "Key: %s", pszTokenVal );
-		strlcpy( g_tTrc[nIndex].szClientIp, pszTokenVal, sizeof(g_tTrc[nIndex].szClientIp) );
+		pszVal = strtok_r( pszKey, REGI_DELIM_VAL, &pszDefaultVal );
+		strlcpy( g_tRegi[nIndex].szClientIp, pszVal, sizeof(g_tRegi[nIndex].szClientIp) );
 
-		pszTokenVal = strtok_r( NULL, REGI_DELIM_VAL, &pszDefaultTokenVal );
-		//LOG_DBG_F( "Value: %s", pszTokenVal );
-		strlcpy( g_tTrc[nIndex].szPeriodTm, pszTokenVal, sizeof(g_tTrc[nIndex].szPeriodTm) );
+		pszVal = strtok_r( NULL, REGI_DELIM_VAL, &pszDefaultVal );
+		strlcpy( g_tRegi[nIndex].szPeriodTm, pszVal, sizeof(g_tRegi[nIndex].szPeriodTm) );
 
-		pszTokenKey = strtok_r( NULL, REGI_DELIM_KEY, &pszDefaultTokenKey );
-		
-		if ( nIndex > MAX_TRC_CNT )
+		pszKey = strtok_r( NULL, REGI_DELIM_KEY, &pszDefaultKey );
+
+		if ( nIndex > MAX_REGI_CNT )
 		{
-			break;
+			LOG_ERR_F( "key cnt more than MAX_REGI_CNT" );
+			return RAS_rErrOutOfRange; 
 		}
 		nIndex++;
+	}
+
+	*pnCnt = nIndex;
+	if ( 0 == *pnCnt )
+	{
+		return RAS_rErrRegiNotFound;
 	}
 
 	return RAS_rOK;
@@ -72,17 +86,18 @@ int REGI_CheckKeyExist( const char *pszIp )
 	CHECK_PARAM_RC( pszIp );
 
 	int nRC = 0;
+	int nCnt = 0;
 	int nIndex = 0;	
 
-	nRC = REGI_GetAll();
+	nRC = REGI_GetAll( &nCnt );
 	if ( RAS_rOK != nRC )
 	{
 		return nRC;
 	}
 
-	for ( nIndex = 0; nIndex < MAX_TRC_CNT; nIndex++ )
+	for ( nIndex = 0; nIndex < nCnt; nIndex++ )
 	{
-		if ( 0 == strcmp(pszIp, g_tTrc[nIndex].szClientIp) )
+		if ( 0 == strcmp(pszIp, g_tRegi[nIndex].szClientIp) )
 		{
 			LOG_DBG_F( "found key (%s)", pszIp );
 			return RAS_rOK;

@@ -100,6 +100,5 @@ int TRACE_MakeTrace( int nHttpType, const char *pszIp,
 		return RAS_rErrIpcSend;
 	}
 
-	//LOG_DBG_F( "Send Trace" );
 	return RAS_rOK;
 }

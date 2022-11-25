@@ -16,17 +16,26 @@
 
 #define LINE						"=============================="
 
-#define CHECK_PARAM( _expr_t, _error ) \
+#define CHECK_PARAM( _param, _return ) \
 	do { \
-		if ( !(_expr_t) ) \
+		if ( NULL == _param ) \
 		{ \
-			LOG_ERR_F( "Invalid parameter <(%s)=false>", #_expr_t ); \
-			_error; \
+			LOG_ERR_F( "invalid parameter <(%s)=false>", #_param ); \
+			_return; \
 		} \
 	} while (0)
 
-#define CHECK_PARAM_RC( _expr_t ) \
-	CHECK_PARAM( (_expr_t), return RAS_rErrInvalidParam )
+#define CHECK_PARAM_RC( _param ) CHECK_PARAM( _param, return RAS_rErrInvalidParam )
+
+#define CHECK_PARAM_GOTO( _param, _rc ) \
+	do { \
+		if ( NULL == _param ) \
+		{ \
+			LOG_ERR_F( "invalid paramter <(%s)=false>", #_param ); \
+			_rc = RAS_rErrInvalidParam; \
+			goto end_of_function; \
+		} \
+	} while (0)
 
 #define STRLCAT_OVERFLOW_CHECK( _dst, _src, _dstsize, _rc ) \
 	do { \
@@ -51,9 +60,48 @@
 	} while (0)
 
 #define VALID_RANGE( _val, _min, _max ) \
-	( ((int)(_val) >= (int)(_min)) && \
-	  ((int)(_val) <= (int)(_max)) \
-	  ? TRUE : FALSE )
+		( ((int)(_val) >= (int)(_min)) && ((int)(_val) <= (int)(_max)) \
+		  ? RAS_TRUE : RAS_FALSE ) \
+
+#define HTTP_VALID_RANGE( _val, _min, _max ) \
+	do { \
+		if ( RAS_FALSE == VALID_RANGE( _val, _min, _max ) ) \
+		{ \
+			LOG_ERR_F( "size overflow" ); \
+			return RAS_rErrHttpBadRequest; \
+		} \
+	} while (0)
+
+#define INDEX_RESET_WHEN_MAX( _max, _index ) \
+	do { \
+		if ( _max <= _index ) \
+		{ \
+			_index = 0; \
+		} \
+	} while (0)	
+
+#define PRT_PID( _pid ) \
+	do { \
+		printf( "%s:: (ProcessId %d)\n", __func__, _pid ); \
+	} while (0)
+
+#define PRT_TID( _tid ) \
+	do { \
+		printf( "%s:: (ThreadId %lu)\n", __func__, _tid ); \
+	} while (0)
+
+#define PRT_CREATE_FD( _str, _fd ) \
+	do { \
+		printf( "%s:: create %s %d)\n", __func__, _str, _fd ); \
+	} while (0)
+
+#define PRT_CREATE_EPOLL( _tid, _fd ) \
+	do { \
+		printf( "%s:: (ThreadId %lu) create (epoll %d)\n", \
+			  __func__, _tid, _fd ); \
+	} while (0)
+
+#define PRT_EXIT printf( "\n%s:: exit\n", __func__ );
 
 #define PRT_LINE( p_mmc ) \
 	do { \
@@ -64,7 +112,7 @@
 	do { \
 		oammmc_out( (p_mmc), "---------------------------------" \
  							 "---------------------------------" \
-							 "---------------------------------\n" ); \
+							 "----------------------------\n" ); \
 	} while (0)
 
 #define PRT_CNT( p_mmc, _cnt ) \
@@ -153,21 +201,21 @@
 
 #define DB_DESTROY_PSTMT( p_db, _index ) \
 	do { \
-		if ( NULL != (p_db)->patPstmt[(_index)] ) \
+		if ( NULL != (p_db)->patPstmt[_index] ) \
 		{ \
-			if ( 0 > dalDestroyPreparedStmt( (p_db)->patPstmt[(_index)] ) ) \
+			if ( 0 > dalDestroyPreparedStmt( (p_db)->patPstmt[_index] ) ) \
 			{ \
 				LOG_ERR_F( "dalDestroyPreparedStatement fail <%d:%s>", \
 						dalErrno(),dalErrmsg(dalErrno()) ); \
 				return; \
 			} \
-			(p_db)->patPstmt[(_index)] = NULL; \
+			(p_db)->patPstmt[_index] = NULL; \
 		} \
 	} while (0)
 
 #define DB_FREE( p_res ) \
 	do { \
-		if ( p_res ) \
+		if ( NULL != p_res ) \
 		{ \
 			dalResFree( p_res ); \
 			p_res = NULL; \
@@ -261,6 +309,11 @@
 		{ \
 			LOG_ERR_F( "dalPreparedExecUpdate fail <%d:%s>", \
 					dalErrno(), dalErrmsg(dalErrno()) ); \
+			if ( 2023 == dalErrno() ) \
+			{ \
+				_rc = RAS_rErrDBDuplicate; \
+				goto end_of_function; \
+			} \
 			_rc = RAS_rErrDBExecUpdate; \
 			goto end_of_function; \
 		} \
@@ -304,7 +357,7 @@
 		_rc = TAP_Registry_udp_key_create( _key, _keylen, TAP_REGISTRY_FILE, REGI_SYS_ID ); \
 		if ( TAP_REGI_ALREADY_EXIST == _rc ) \
 		{ \
-			LOG_SVC_F( "TAP_REGI_ALREADY_EXIST (%s)", _key ); \
+			LOG_DBG_F( "TAP_REGI_ALREADY_EXIST (%s)", _key ); \
 			_rc = RAS_rErrRegiKeyExist; \
 			goto end_of_function; \
 		} \
@@ -379,6 +432,14 @@
 		} \
 	} while (0)
 
+#define REGI_DELETE_NO_RC( _key, _keylen ); \
+	do { \
+		if ( 0 > TAP_Registry_udp_key_delete( _key, _keylen, TAP_REGISTRY_UDP_REMOVEALL, REGI_SYS_ID ) ) \
+		{ \
+			LOG_ERR_F( "TAP_Registry_udp_key_delete (%s) fail", _key ); \
+		} \
+	} while (0)
+
 /*
  *	FD
  */
@@ -388,13 +449,23 @@
 		{ \
 			LOG_ERR_F( "close (fd %d) fail <%d:%s>", _fd, errno, strerror(errno) ); \
 		} \
+		else \
+		{ \
+			printf( "%s:: close (fd %d)\n\n", __func__, _fd ); \
+			LOG_DBG_F( "close (fd %d) success", _fd ); \
+		} \
 	} while (0)
 
 #define FD_DELETE_AND_CLOSE( _fd, _epoll ); \
 	do { \
 		if ( -1 == epoll_ctl( _epoll, EPOLL_CTL_DEL, _fd, NULL ) ) \
 		{ \
-			LOG_ERR_F( "epoll_ctl (delete fd %d from epoll %d) fail <%d:%s>", _fd, _epoll, errno, strerror(errno) ); \
+			LOG_ERR_F( "epoll_ctl delete (fd %d) from (epoll %d) fail <%d:%s>", _fd, _epoll, errno, strerror(errno) ); \
+		} \
+		else \
+		{ \
+			printf( "\n%s:: delete (fd %d) from (epoll %d)\n", __func__, _fd, _epoll ); \
+			LOG_DBG_F( "epoll_ctl delete (fd %d) from (epoll %d) success", _fd, _epoll );\
 		} \
 		FD_CLOSE( _fd ); \
 	} while (0)
@@ -402,15 +473,29 @@
 /*
  *	HTTP
  */
-#define HTTP_SET_RESPONSE( _response ) \
+#define HTTP_SET_RESPONSE( _method, _response ) \
 	do { \
-		snprintf( _response.szMsg, sizeof(_response.szMsg), \
-				"HTTP/1.1 %d %s\r\n" \
-				"Content-Type: application/json\r\n" \
-				"Content-Length: %d\r\n\r\n%s", \
-				_response.nStatusCode, HTTP_GetStatusMsg(_response.nStatusCode ), \
-				_response.nContentLength, _response.szBody ); \
-		_response.szMsg[ strlen(_response.szMsg) ] = '\0'; \
+		if ( HTTP_METHOD_GET_NUM == _method ) \
+		{ \
+			snprintf( _response.szMsg, sizeof(_response.szMsg), \
+					"HTTP/1.1 %d %s" \
+					"\r\nContent-Type: application/json" \
+					"\r\n\r\n%s", \
+					_response.nStatusCode, \
+					HTTP_GetStatusMsg(_response.nStatusCode ), \
+					_response.szBody ); \
+			_response.szMsg[ strlen(_response.szMsg) ] = '\0'; \
+		} \
+		else \
+		{ \
+			snprintf( _response.szMsg, sizeof(_response.szMsg), \
+					"HTTP/1.1 %d %s" \
+					"\r\n\r\n%s", \
+					_response.nStatusCode, \
+					HTTP_GetStatusMsg(_response.nStatusCode ), \
+					_response.szBody ); \
+			_response.szMsg[ strlen(_response.szMsg) ] = '\0'; \
+		} \
 	} while (0)
 
 #define HTTP_JSON_INFO_BEGIN	"[\n"
@@ -421,12 +506,13 @@
 		_attr_gender, _gender, _attr_birth, _birth, _attr_address, _address ) \
 	do { \
 		snprintf( _buf, _bufsize, \
-				"{\n    " \
-				"\"%s\": %d,\n    " \
-				"\"%s\": \"%s\",\n    " \
-				"\"%s\": \"%s\",\n    " \
-				"\"%s\": \"%s\",\n    " \
-				"\"%s\": \"%s\"\n}", \
+				"{\n" \
+				"    \"%s\": %d,\n" \
+				"    \"%s\": \"%s\",\n" \
+				"    \"%s\": \"%s\",\n" \
+				"    \"%s\": \"%s\",\n" \
+				"    \"%s\": \"%s\"\n" \
+				"}", \
 				_attr_id, _id, _attr_name, _name, _attr_gender, _gender, \
 				_attr_birth, _birth, _attr_address, _address ); \
 		_buf[ strlen(_buf) ] = '\0'; \
@@ -459,6 +545,14 @@
 		} \
 	} while (0)
 
+#define THREAD_JOIN( _thread_id ) \
+	do { \
+		if ( 0 != pthread_join( _thread_id, NULL ) ) \
+		{ \
+			LOG_ERR_F( "pthread_join fai" ) \
+		} \
+	} while (0)
+
 /*
  *	Alarm
  */
@@ -468,7 +562,7 @@
 		if ( 0 > _rc ) \
 		{ \
 			LOG_ERR_F( "oam_uda_crte_alarm fail <%d>", _rc ); \
-			_rc = RAS_rErrFail; \
+			_rc = RAS_rErrAlarmCreate; \
 			goto end_of_function; \
 		} \
 	} while (0)
@@ -479,7 +573,7 @@
 		if ( 0 > _rc ) \
 		{ \
 			LOG_ERR_F( "oam_uda_crte_alarm_noti fail <%d>", _rc ); \
-			_rc = RAS_rErrFail; \
+			_rc = RAS_rErrAlarmCreate; \
 			goto end_of_function; \
 		} \
 	} while (0)
@@ -487,10 +581,11 @@
 #define ALARM_SET_MODULE_INFO( _buf, _bufsize, _upp, _low, _item, _status, _cnt ) \
 	do { \
 		snprintf( _buf, _bufsize, \
-				"UNIT NAME	: %s/%s\n" \
-				"ITEM NAME	: %s\n" \
-				"STATUS		: %d\n" \
-				"CNT USER	: %d", \
+				"UNIT NAME		: %s/%s\n" \
+				"ITEM NAME		: %s\n" \
+				"STATUS			: %d\n" \
+				"CNT USER		: %d\n" \
+				"DESCRIPTION		: Count users from db", \
 				_upp, _low, _item, _status, _cnt ); \
 		_buf[ strlen(_buf) ] = '\0'; \
 	} while (0)
@@ -501,9 +596,12 @@
 		if ( 0 > _rc ) \
 		{ \
 			LOG_ERR_F( "oam_uda_rpt_alarm_sts fail <%d>", _rc ); \
-			_rc = RAS_rErrFail; \
+			_rc = RAS_rErrAlarmReport; \
 			goto end_of_function; \
 		} \
+		else \
+		{ \
+			LOG_SVC_F( "REPORT ALARM" ); \
+		} \
 	} while (0)
-
 #endif /* _RAS_MACRO_H_ */

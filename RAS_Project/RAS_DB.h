@@ -13,7 +13,12 @@
 #define ATTR_BIRTH				"birth"
 #define ATTR_ADDRESS			"address"
 
-#define NUMTUPLE				"NUMTUPLES"
+#define SIZE_NAME				32
+#define SIZE_GENDER				6
+#define SIZE_BIRTH				6
+#define SIZE_ADDRESS			256
+
+#define NUMTUPLES				"NUMTUPLES"
 
 #define SQL_INSERT_IP			"insert into "CLI_IP_TBL" "\
 								"("ATTR_IP", "ATTR_DESC") values "\
@@ -27,7 +32,7 @@
 #define SQL_SELECT_INFO_ALL		"select * from "USR_INFO_TBL";"
 #define SQL_SELECT_INFO_BY_ID	"select * from "USR_INFO_TBL" where "ATTR_ID"=?"ATTR_ID";"
 #define SQL_DELETE_INFO			"delete from "USR_INFO_TBL" where "ATTR_ID"=?"ATTR_ID";"
-#define SQL_NUMTUPLE_INFO		"select "NUMTUPLE" from __SYS__TABLES__ where TABLE_NAME="USR_INFO_TBL";"
+#define SQL_NUMTUPLES_INFO		"select NUMTUPLES from __SYS_TABLES__ where TABLE_NAME = '"USR_INFO_TBL"';"
 
 typedef enum
 {
@@ -35,25 +40,25 @@ typedef enum
 	PSTMT_SELECT_IP_ALL,
 	PSTMT_SELECT_IP_BY_IP,
 	PSTMT_DELETE_IP,
-
 	PSTMT_INSERT_INFO,
 	PSTMT_SELECT_INFO_ALL,
 	PSTMT_SELECT_INFO_BY_ID,
 	PSTMT_DELETE_INFO,
+	PSTMT_NUMTUPLES_INFO,
 
-	PSTMT_NUMTUPLE_INFO,
 	PSTMT_MAX
+
 } Pstmt_e;
 
 typedef struct DB_s
 {
 	DAL_CONN	*ptDBConn;
 	DAL_PSTMT	*patPstmt[PSTMT_MAX];
+
 } DB_t;
 
-int DB_Init( DAL_CONN **pptDBConn );
-int DB_InitPreparedStatement( DB_t *ptDB );
-void DB_ClosePreparedStatement( DB_t *ptDB );
-void DB_Close( DB_t *ptDB );
+int		DB_Init( DAL_CONN **pptDBConn );
+int		DB_InitPreparedStatement( DB_t *ptDB );
+void	DB_Close( DB_t *ptDB );
 
 #endif /* _RAS_DB_H_ */

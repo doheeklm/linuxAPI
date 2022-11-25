@@ -1,7 +1,7 @@
 /* RAS_Mmchdl_Trc.c */
 #include "RAS_Inc.h"
 
-extern TRC_t g_tTrc[MAX_TRC_CNT];
+extern REGI_t g_tRegi[MAX_REGI_CNT];
 
 static oammmc_arg_info_t atArgIp[] =
 {
@@ -66,8 +66,8 @@ int MMCHDL_TRC_Add( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 		{
 			case ARG_NUM_IP:
 			{
-				//TODO Mandatory Arg Check
 				pszIp = OAMMMC_VAL_STR( ptArg );
+				CHECK_PARAM_GOTO( pszIp, nRC );
 			}
 				break;
 			case ARG_NUM_TIME:
@@ -83,7 +83,7 @@ int MMCHDL_TRC_Add( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 
 	if ( 0 == nTime )
 	{
-		nTime = DFLT_TIME;
+		nTime = DEFAULT_TIME;
 	}
 	
 	REGI_STR_VALUE( szTime, sizeof(szTime), nTime );
@@ -94,6 +94,10 @@ int MMCHDL_TRC_Add( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 
 end_of_function:
 	PRT_FAIL( ptOammmc, "%s\n", ERR_GetDesc(nRC) );
+	if ( NULL != pszIp )
+	{
+		REGI_DELETE_NO_RC( szKey, sizeof(szKey) );
+	}
 	return nRC;
 }
 
@@ -106,6 +110,7 @@ int MMCHDL_TRC_Dis( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 	ptUarg = ptUarg;
 
 	int nRC = 0;
+	int nCnt = 0;
 	int nIndex = 0;
 	char *pszIp = NULL;
 	char szKey[REGI_KEY_MAX];
@@ -120,8 +125,8 @@ int MMCHDL_TRC_Dis( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 		{
 			case ARG_NUM_IP:
 			{
-				//TODO Mandatory Arg Check
 				pszIp = OAMMMC_VAL_STR( ptArg );
+				CHECK_PARAM_GOTO( pszIp, nRC );
 			}
 				break;
 		}	
@@ -129,22 +134,17 @@ int MMCHDL_TRC_Dis( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 
 	if ( NULL == pszIp )
 	{
-		nRC = REGI_GetAll();
+		nRC = REGI_GetAll( &nCnt );
 		if ( RAS_rOK != nRC )
 		{
 			goto end_of_function;
 		}
-		
+
 		PRT_IP_ALL_HEADER( ptOammmc, ARG_STR_IP, ARG_STR_TIME );
 
-		for ( nIndex = 0; nIndex < MAX_TRC_CNT; nIndex++ )
+		for ( nIndex = 0; nIndex < nCnt; nIndex++ )
 		{
-			if ( 0 == strlen(g_tTrc[nIndex].szClientIp) &&  0 == strlen(g_tTrc[nIndex].szPeriodTm) )
-			{
-				break;
-			}
-
-			PRT_IP_ALL_BODY( ptOammmc, g_tTrc[nIndex].szClientIp, g_tTrc[nIndex].szPeriodTm );	
+			PRT_IP_ALL_BODY( ptOammmc, g_tRegi[nIndex].szClientIp, g_tRegi[nIndex].szPeriodTm );	
 		}
 
 		PRT_LINE( ptOammmc );
@@ -193,8 +193,8 @@ int MMCHDL_TRC_Del( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 		{
 			case ARG_NUM_IP:
 			{
-				//TODO Mandatory Arg Check
 				pszIp = OAMMMC_VAL_STR( ptArg );
+				CHECK_PARAM_GOTO( pszIp, nRC );
 			}
 				break;
 		}	
@@ -203,6 +203,7 @@ int MMCHDL_TRC_Del( oammmc_t *ptOammmc, oammmc_cmd_t *ptCmd,
 	REGI_STR_KEY( szKey, sizeof(szKey), pszIp );
 	REGI_GET_VALUE( szKey, strlen(szKey), szTime, sizeof(szTime), nRC );
 	REGI_DELETE( szKey, strlen(szKey), nRC );
+
 	PRT_IP_ONE( ptOammmc, ARG_STR_IP, pszIp, ARG_STR_TIME, szTime );
 	return RAS_rSuccessMmchdl;
 

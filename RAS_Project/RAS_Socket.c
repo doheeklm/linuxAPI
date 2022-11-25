@@ -5,7 +5,7 @@ extern Env_t g_tEnv;
 
 int SOCKET_Init( int *pnListenFd )
 {
-	CHECK_PARAM_RC( pnListenFd );
+	CHECK_PARAM( pnListenFd, return RAS_rErrSocketInit );
 
 	int nRC = 0;
 	const int nFlag = 1;
@@ -26,38 +26,33 @@ int SOCKET_Init( int *pnListenFd )
 	if ( 0 == nRC )
 	{
 		LOG_ERR_F( "inet_aton fail <%d>", nRC );
-		goto _exit_failure;
+		goto end_of_function;
 	}
 
 	nRC = setsockopt( *pnListenFd, SOL_SOCKET, SO_REUSEADDR, &nFlag, sizeof(int) );
 	if ( -1 == nRC )
 	{
 		LOG_ERR_F( "setsockopt (ListenFd %d) fail <%d>", *pnListenFd, nRC );
-		goto _exit_failure;
+		goto end_of_function;
 	}
 
 	nRC = bind( *pnListenFd, &tSockAddr, sizeof(tSockAddr) );
 	if ( -1 == nRC )
 	{
 		LOG_ERR_F( "bind (ListenFd %d) fail <%d>", *pnListenFd, nRC );
-		goto _exit_failure;
+		goto end_of_function;
 	}
 
 	nRC = listen( *pnListenFd, BACK_LOG );
 	if ( -1 == nRC )
 	{
 		LOG_ERR_F( "listen (ListenFd %d) fail <%d>", *pnListenFd, nRC );
-		goto _exit_failure;
+		goto end_of_function;
 	}
 
 	return RAS_rOK;
 
-_exit_failure:
-	nRC = close( *pnListenFd );
-	if ( -1 == nRC )
-	{
-		LOG_ERR_F( "close (ListenFd %d) fail <%d>", *pnListenFd, nRC );
-	}
-
+end_of_function:
+	FD_CLOSE( *pnListenFd );
 	return RAS_rErrSocketInit;
 }
